@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { LoginForm } from "@/components/login-form"
 import { supabase } from '@/lib/supabaseClient'
 
@@ -85,18 +86,38 @@ export function AppSidebar({
   exerciseLoadError,
   experienceFactors,
 }: AppSidebarProps) {
-  const [userEmail, setUserEmail] = useState<string | null>(null)
+  type UserInfo = { id: string; email: string | null; name: string | null; avatarUrl: string | null }
+  const [user, setUser] = useState<UserInfo | null>(null)
 
   useEffect(() => {
     const init = async () => {
-      const { data } = await supabase.auth.getUser()
-      setUserEmail(data.user?.email ?? null)
+      const { data } = await supabase.auth.getSession()
+      const u = data.session?.user ?? null
+      setUser(
+        u
+          ? {
+              id: u.id,
+              email: u.email ?? null,
+              name: (u.user_metadata?.full_name || u.user_metadata?.name || null) as string | null,
+              avatarUrl: (u.user_metadata?.avatar_url || null) as string | null,
+            }
+          : null
+      )
     }
-    init()
+    void init()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async () => {
-      const { data } = await supabase.auth.getUser()
-      setUserEmail(data.user?.email ?? null)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const u = session?.user ?? null
+      setUser(
+        u
+          ? {
+              id: u.id,
+              email: u.email ?? null,
+              name: (u.user_metadata?.full_name || u.user_metadata?.name || null) as string | null,
+              avatarUrl: (u.user_metadata?.avatar_url || null) as string | null,
+            }
+          : null
+      )
     })
     return () => subscription.unsubscribe()
   }, [])
@@ -107,6 +128,9 @@ export function AppSidebar({
   const [skeletalMuscleMassInput, setSkeletalMuscleMassInput] = useState(String(skeletalMuscleMass))
   const [bodyFatMassInput, setBodyFatMassInput] = useState(String(bodyFatMass))
   const [isLoginOpen, setIsLoginOpen] = useState(false)
+
+  // Close login sheet on successful sign-in
+  useEffect(() => { if (user && isLoginOpen) setIsLoginOpen(false) }, [user, isLoginOpen])
 
   useEffect(() => { setBodyWeightInput(String(bodyWeight)) }, [bodyWeight])
   useEffect(() => { setHeightInput(String(height)) }, [height])
@@ -133,8 +157,8 @@ export function AppSidebar({
             <p className="text-sm text-muted-foreground">Calculator</p>
           </div>
         </div>
-        {userEmail && (
-          <div className="text-xs text-muted-foreground truncate">Signed in as {userEmail}</div>
+        {user?.email && (
+          <div className="text-xs text-muted-foreground truncate">Signed in as {user.email}</div>
         )}
 
       </SidebarHeader>
@@ -505,10 +529,57 @@ export function AppSidebar({
       </SidebarContent>
 
       <SidebarFooter className="p-4">
-        {userEmail ? (
-          <Button className="w-full" variant="outline" onClick={async () => { await supabase.auth.signOut(); }}>
-            Logout
-          </Button>
+        {user ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-between h-12 bg-background border-border hover:bg-accent hover:text-accent-foreground transition-colors"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <Avatar className="size-8">
+                    {user.avatarUrl ? (
+                      <AvatarImage src={user.avatarUrl} alt={user.name || user.email || 'User'} />
+                    ) : (
+                      <AvatarFallback>
+                        {(user.name || user.email || '?').slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  <div className="flex flex-col text-left min-w-0">
+                    <span className="text-sm font-medium truncate">{user.name || user.email || 'Account'}</span>
+                    {user.email && (
+                      <span className="text-xs text-muted-foreground truncate">{user.email}</span>
+                    )}
+                  </div>
+                </div>
+                <ChevronDown className="h-4 w-4 opacity-70" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] min-w-[260px]" align="end">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onSelect={(e) => { e.preventDefault(); window.location.href = '/account' }}
+                className="cursor-pointer"
+              >
+                Account
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={(e) => { e.preventDefault(); window.location.href = '/pricing' }}
+                className="cursor-pointer"
+              >
+                Pricing
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onSelect={async (e) => { e.preventDefault(); await supabase.auth.signOut(); }}
+                className="cursor-pointer text-red-600 focus:text-red-600"
+              >
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         ) : (
           <Button className="w-full" onClick={() => setIsLoginOpen(true)}>
             Login
@@ -520,7 +591,7 @@ export function AppSidebar({
         <SheetContent side="bottom" animation="fade" className="p-0 inset-0 w-screen sm:h-dvh h-svh max-w-none rounded-none border-0">
           <div className="bg-muted flex min-h-full flex-col items-center justify-center p-6 md:p-10">
             <div className="w-full max-w-sm md:max-w-3xl">
-              <LoginForm />
+              <LoginForm onSuccess={() => setIsLoginOpen(false)} />
             </div>
           </div>
         </SheetContent>
