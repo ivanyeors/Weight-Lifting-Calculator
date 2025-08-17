@@ -8,8 +8,9 @@ import { supabase } from "@/lib/supabaseClient"
 
 export function LoginForm({
   className,
+  onSuccess,
   ...props
-}: React.ComponentProps<"div">) {
+}: React.ComponentProps<"div"> & { onSuccess?: () => void }) {
   const [mode, setMode] = useState<"signin" | "signup" | "reset">("signin")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -45,6 +46,8 @@ export function LoginForm({
         })
         if (signInError) throw signInError
         setMessage("Signed in successfully.")
+        // Notify parent to close the sheet immediately
+        onSuccess?.()
       } else {
         const { error: signUpError, data } = await supabase.auth.signUp({
           email,
@@ -59,6 +62,8 @@ export function LoginForm({
           setMessage("Check your email to confirm your account.")
         } else {
           setMessage("Account created and signed in.")
+          // If signup returns a session (rare with email confirmation enabled), also close
+          onSuccess?.()
         }
       }
     } catch (err: unknown) {
