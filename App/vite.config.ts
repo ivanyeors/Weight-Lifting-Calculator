@@ -6,6 +6,7 @@ import svgr from '@svgr/rollup'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/Weight-Lifting-Calculator/', // GitHub Pages repository name
   plugins: [
     // Enable importing SVGs as React components
     svgr({ include: ['**/*.svg'], exportType: 'named' }),
