@@ -21,6 +21,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
+import { Sheet, SheetContent } from "@/components/ui/sheet"
+import { LoginForm } from "@/components/login-form"
+import { supabase } from '@/lib/supabaseClient'
 
 import { Search, User, Dumbbell, Activity, ChevronDown, UserCheck, Users } from "lucide-react"
 
@@ -82,12 +85,28 @@ export function AppSidebar({
   exerciseLoadError,
   experienceFactors,
 }: AppSidebarProps) {
+  const [userEmail, setUserEmail] = useState<string | null>(null)
+
+  useEffect(() => {
+    const init = async () => {
+      const { data } = await supabase.auth.getUser()
+      setUserEmail(data.user?.email ?? null)
+    }
+    init()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async () => {
+      const { data } = await supabase.auth.getUser()
+      setUserEmail(data.user?.email ?? null)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
   const [searchQuery, setSearchQuery] = useState("")
   const [bodyWeightInput, setBodyWeightInput] = useState(String(bodyWeight))
   const [heightInput, setHeightInput] = useState(String(height))
   const [ageInput, setAgeInput] = useState(String(age))
   const [skeletalMuscleMassInput, setSkeletalMuscleMassInput] = useState(String(skeletalMuscleMass))
   const [bodyFatMassInput, setBodyFatMassInput] = useState(String(bodyFatMass))
+  const [isLoginOpen, setIsLoginOpen] = useState(false)
 
   useEffect(() => { setBodyWeightInput(String(bodyWeight)) }, [bodyWeight])
   useEffect(() => { setHeightInput(String(height)) }, [height])
@@ -114,7 +133,9 @@ export function AppSidebar({
             <p className="text-sm text-muted-foreground">Calculator</p>
           </div>
         </div>
-        
+        {userEmail && (
+          <div className="text-xs text-muted-foreground truncate">Signed in as {userEmail}</div>
+        )}
 
       </SidebarHeader>
 
@@ -484,10 +505,26 @@ export function AppSidebar({
       </SidebarContent>
 
       <SidebarFooter className="p-4">
-        <div className="text-xs text-muted-foreground text-center">
-          Loaded {exercises.length} exercises
-        </div>
+        {userEmail ? (
+          <Button className="w-full" variant="outline" onClick={async () => { await supabase.auth.signOut(); }}>
+            Logout
+          </Button>
+        ) : (
+          <Button className="w-full" onClick={() => setIsLoginOpen(true)}>
+            Login
+          </Button>
+        )}
       </SidebarFooter>
+
+      <Sheet open={isLoginOpen} onOpenChange={setIsLoginOpen}>
+        <SheetContent side="bottom" animation="fade" className="p-0 inset-0 w-screen sm:h-dvh h-svh max-w-none rounded-none border-0">
+          <div className="bg-muted flex min-h-full flex-col items-center justify-center p-6 md:p-10">
+            <div className="w-full max-w-sm md:max-w-3xl">
+              <LoginForm />
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </Sidebar>
   )
 }
