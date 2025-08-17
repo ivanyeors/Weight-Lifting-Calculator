@@ -1,0 +1,54 @@
+/* Custom styles for the Weight Lifting Calculator */
+.gradient-bg {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.muscle-bar {
+  transition: width 0.3s ease-in-out;
+}
+
+.input-group {
+  margin-bottom: 1.5rem;
+}
+
+.result-card {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  background: white;
+}
+
+.muscle-contribution-item {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.muscle-contribution-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .grid-cols-1 {
+    grid-template-columns: 1fr;
+  }
+  
+  .text-4xl {
+    font-size: 2.5rem;
+  }
+}
+
+/* Animation for muscle groups */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.muscle-group-enter {
+  animation: fadeInUp 0.5s ease-out;
+}
