@@ -36,8 +36,10 @@ export const loadExercisesFromLocalFile = async (): Promise<ExternalExercise[]> 
  * Load exercises by consulting public/manifest.json and merging the split files
  */
 export const loadExercisesFromManifest = async (): Promise<ExternalExercise[]> => {
+  // Helper to resolve URLs against Vite base path (works for GitHub Pages subpath deploys)
+  const publicUrl = (p: string) => `${import.meta.env.BASE_URL}${p.replace(/^\/+/, '')}`
   // 1) Read manifest
-  const manifestResponse = await fetch('/manifest.json')
+  const manifestResponse = await fetch(publicUrl('manifest.json'))
   if (!manifestResponse.ok) {
     throw new Error(`Failed to fetch manifest.json: ${manifestResponse.status}`)
   }
@@ -54,9 +56,9 @@ export const loadExercisesFromManifest = async (): Promise<ExternalExercise[]> =
 
   // 3) Fetch in parallel
   const [metaRes, workoutRes, trainingRes] = await Promise.all([
-    fetch(`/${metaPath}`),
-    workoutTypesPath ? fetch(`/${workoutTypesPath}`) : Promise.resolve(new Response(JSON.stringify({ exercises: [] }))),
-    fetch(`/${trainingPath}`),
+    fetch(publicUrl(`${metaPath}`)),
+    workoutTypesPath ? fetch(publicUrl(`${workoutTypesPath}`)) : Promise.resolve(new Response(JSON.stringify({ exercises: [] }))),
+    fetch(publicUrl(`${trainingPath}`)),
   ])
 
   if (!metaRes.ok) throw new Error(`Failed to fetch ${metaPath}: ${metaRes.status}`)
