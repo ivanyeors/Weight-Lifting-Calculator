@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "generated": 1754899939,
+  "files": {
+    "exercises_meta": "exercises_meta.json",
+    "exercises_workout_types": "exercises_workout_types.json",
+    "exercises_training_data": "exercises_training_data.json"
+  }
+}

@@ -1,0 +1,548 @@
+{
+  "exercises": [
+    {
+      "id": "bench-press",
+      "muscleGroups": [
+        "Upper Chest",
+        "Middle Chest",
+        "Lower Chest"
+      ],
+      "baseWeightFactor": 1.2,
+      "muscleInvolvement": {
+        "Biceps": 1,
+        "Triceps": 8,
+        "Deltoids": 5,
+        "Trapezius": 2,
+        "Upper Chest": 7,
+        "Middle Chest": 10,
+        "Lower Chest": 6,
+        "Latissimus Dorsi": 2,
+        "Rhomboids": 3,
+        "Lower Back": 2,
+        "Upper Back": 3,
+        "Rectus Abdominis": 3,
+        "Obliques": 2,
+        "Gluteus Maximus": 1,
+        "Quadriceps": 1,
+        "Hamstrings": 1,
+        "Calves": 1,
+        "Forearms": 3,
+        "Pectorals": 9
+      }
+    },
+    {
+      "id": "inclined-bench-press",
+      "muscleGroups": [
+        "Upper Chest",
+        "Middle Chest"
+      ],
+      "baseWeightFactor": 1.1,
+      "muscleInvolvement": {
+        "Biceps": 0,
+        "Triceps": 7,
+        "Deltoids": 7,
+        "Trapezius": 2,
+        "Upper Chest": 10,
+        "Middle Chest": 5,
+        "Lower Chest": 3,
+        "Latissimus Dorsi": 1,
+        "Rhomboids": 2,
+        "Lower Back": 3,
+        "Upper Back": 3,
+        "Rectus Abdominis": 3,
+        "Obliques": 2,
+        "Gluteus Maximus": 1,
+        "Quadriceps": 1,
+        "Hamstrings": 0,
+        "Calves": 1,
+        "Forearms": 3,
+        "Pectorals": 8
+      }
+    },
+    {
+      "id": "dumbbell-flies",
+      "muscleGroups": [
+        "Upper Chest",
+        "Middle Chest",
+        "Lower Chest"
+      ],
+      "baseWeightFactor": 0.8,
+      "muscleInvolvement": {
+        "Biceps": 1,
+        "Triceps": 1,
+        "Deltoids": 3,
+        "Trapezius": 1,
+        "Upper Chest": 6,
+        "Middle Chest": 9,
+        "Lower Chest": 7,
+        "Latissimus Dorsi": 0,
+        "Rhomboids": 1,
+        "Lower Back": 1,
+        "Upper Back": 1,
+        "Rectus Abdominis": 2,
+        "Obliques": 1,
+        "Gluteus Maximus": 0,
+        "Quadriceps": 0,
+        "Hamstrings": 0,
+        "Calves": 0,
+        "Forearms": 3,
+        "Pectorals": 8
+      }
+    },
+    {
+      "id": "shoulder-press",
+      "muscleGroups": [
+        "Deltoids"
+      ],
+      "baseWeightFactor": 1.0,
+      "muscleInvolvement": {
+        "Biceps": 0,
+        "Triceps": 8,
+        "Deltoids": 10,
+        "Trapezius": 5,
+        "Upper Chest": 3,
+        "Middle Chest": 1,
+        "Lower Chest": 0,
+        "Latissimus Dorsi": 2,
+        "Rhomboids": 3,
+        "Lower Back": 4,
+        "Upper Back": 4,
+        "Rectus Abdominis": 5,
+        "Obliques": 4,
+        "Gluteus Maximus": 2,
+        "Quadriceps": 2,
+        "Hamstrings": 0,
+        "Calves": 2,
+        "Forearms": 3,
+        "Pectorals": 2
+      }
+    },
+    {
+      "id": "lateral-raises",
+      "muscleGroups": [
+        "Deltoids"
+      ],
+      "baseWeightFactor": 0.6,
+      "muscleInvolvement": {
+        "Biceps": 0,
+        "Triceps": 0,
+        "Deltoids": 10,
+        "Trapezius": 2,
+        "Upper Chest": 0,
+        "Middle Chest": 0,
+        "Lower Chest": 0,
+        "Latissimus Dorsi": 0,
+        "Rhomboids": 1,
+        "Lower Back": 1,
+        "Upper Back": 1,
+        "Rectus Abdominis": 2,
+        "Obliques": 1,
+        "Gluteus Maximus": 0,
+        "Quadriceps": 0,
+        "Hamstrings": 0,
+        "Calves": 0,
+        "Forearms": 2,
+        "Pectorals": 0
+      }
+    },
+    {
+      "id": "squats",
+      "muscleGroups": [
+        "Quadriceps",
+        "Gluteus Maximus"
+      ],
+      "baseWeightFactor": 1.5,
+      "muscleInvolvement": {
+        "Biceps": 0,
+        "Triceps": 0,
+        "Deltoids": 1,
+        "Trapezius": 6,
+        "Upper Chest": 0,
+        "Middle Chest": 0,
+        "Lower Chest": 0,
+        "Latissimus Dorsi": 3,
+        "Rhomboids": 4,
+        "Lower Back": 7,
+        "Upper Back": 6,
+        "Rectus Abdominis": 5,
+        "Obliques": 4,
+        "Gluteus Maximus": 10,
+        "Quadriceps": 10,
+        "Hamstrings": 6,
+        "Calves": 3,
+        "Forearms": 1,
+        "Pectorals": 0
+      }
+    },
+    {
+      "id": "deadlift",
+      "muscleGroups": [
+        "Lower Back",
+        "Hamstrings",
+        "Gluteus Maximus"
+      ],
+      "baseWeightFactor": 1.8,
+      "muscleInvolvement": {
+        "Biceps": 1,
+        "Triceps": 0,
+        "Deltoids": 2,
+        "Trapezius": 8,
+        "Upper Chest": 0,
+        "Middle Chest": 0,
+        "Lower Chest": 0,
+        "Latissimus Dorsi": 7,
+        "Rhomboids": 6,
+        "Lower Back": 10,
+        "Upper Back": 7,
+        "Rectus Abdominis": 5,
+        "Obliques": 4,
+        "Gluteus Maximus": 10,
+        "Quadriceps": 6,
+        "Hamstrings": 9,
+        "Calves": 2,
+        "Forearms": 8,
+        "Pectorals": 0
+      }
+    },
+    {
+      "id": "pull-ups",
+      "muscleGroups": [
+        "Latissimus Dorsi",
+        "Biceps"
+      ],
+      "baseWeightFactor": 0.8,
+      "muscleInvolvement": {
+        "Biceps": 8,
+        "Triceps": 0,
+        "Deltoids": 3,
+        "Trapezius": 5,
+        "Upper Chest": 0,
+        "Middle Chest": 0,
+        "Lower Chest": 0,
+        "Latissimus Dorsi": 10,
+        "Rhomboids": 7,
+        "Lower Back": 3,
+        "Upper Back": 6,
+        "Rectus Abdominis": 5,
+        "Obliques": 4,
+        "Gluteus Maximus": 0,
+        "Quadriceps": 0,
+        "Hamstrings": 0,
+        "Calves": 0,
+        "Forearms": 8,
+        "Pectorals": 0
+      }
+    },
+    {
+      "id": "push-ups",
+      "muscleGroups": [
+        "Triceps",
+        "Pectorals"
+      ],
+      "baseWeightFactor": 0.7,
+      "muscleInvolvement": {
+        "Biceps": 0,
+        "Triceps": 8,
+        "Deltoids": 4,
+        "Trapezius": 1,
+        "Upper Chest": 6,
+        "Middle Chest": 9,
+        "Lower Chest": 5,
+        "Latissimus Dorsi": 1,
+        "Rhomboids": 2,
+        "Lower Back": 3,
+        "Upper Back": 2,
+        "Rectus Abdominis": 6,
+        "Obliques": 5,
+        "Gluteus Maximus": 2,
+        "Quadriceps": 2,
+        "Hamstrings": 0,
+        "Calves": 0,
+        "Forearms": 3,
+        "Pectorals": 8
+      }
+    },
+    {
+      "id": "sit-ups",
+      "muscleGroups": [
+        "Rectus Abdominis"
+      ],
+      "baseWeightFactor": 0.5,
+      "muscleInvolvement": {
+        "Biceps": 0,
+        "Triceps": 0,
+        "Deltoids": 0,
+        "Trapezius": 0,
+        "Upper Chest": 0,
+        "Middle Chest": 0,
+        "Lower Chest": 0,
+        "Latissimus Dorsi": 0,
+        "Rhomboids": 0,
+        "Lower Back": 1,
+        "Upper Back": 0,
+        "Rectus Abdominis": 10,
+        "Obliques": 4,
+        "Gluteus Maximus": 1,
+        "Quadriceps": 1,
+        "Hamstrings": 1,
+        "Calves": 0,
+        "Forearms": 0,
+        "Pectorals": 0
+      }
+    },
+    {
+      "id": "lunges",
+      "muscleGroups": [
+        "Quadriceps",
+        "Gluteus Maximus"
+      ],
+      "baseWeightFactor": 1.0,
+      "muscleInvolvement": {
+        "Biceps": 0,
+        "Triceps": 0,
+        "Deltoids": 1,
+        "Trapezius": 2,
+        "Upper Chest": 0,
+        "Middle Chest": 0,
+        "Lower Chest": 0,
+        "Latissimus Dorsi": 1,
+        "Rhomboids": 1,
+        "Lower Back": 4,
+        "Upper Back": 2,
+        "Rectus Abdominis": 6,
+        "Obliques": 5,
+        "Gluteus Maximus": 9,
+        "Quadriceps": 9,
+        "Hamstrings": 6,
+        "Calves": 5,
+        "Forearms": 1,
+        "Pectorals": 0
+      }
+    },
+    {
+      "id": "leg-press",
+      "muscleGroups": [
+        "Quadriceps",
+        "Gluteus Maximus"
+      ],
+      "baseWeightFactor": 1.3,
+      "muscleInvolvement": {
+        "Biceps": 0,
+        "Triceps": 0,
+        "Deltoids": 0,
+        "Trapezius": 0,
+        "Upper Chest": 0,
+        "Middle Chest": 0,
+        "Lower Chest": 0,
+        "Latissimus Dorsi": 0,
+        "Rhomboids": 0,
+        "Lower Back": 2,
+        "Upper Back": 0,
+        "Rectus Abdominis": 3,
+        "Obliques": 2,
+        "Gluteus Maximus": 9,
+        "Quadriceps": 10,
+        "Hamstrings": 4,
+        "Calves": 3,
+        "Forearms": 1,
+        "Pectorals": 0
+      }
+    },
+    {
+      "id": "calf-raises",
+      "muscleGroups": [
+        "Calves"
+      ],
+      "baseWeightFactor": 0.8,
+      "muscleInvolvement": {
+        "Biceps": 0,
+        "Triceps": 0,
+        "Deltoids": 0,
+        "Trapezius": 0,
+        "Upper Chest": 0,
+        "Middle Chest": 0,
+        "Lower Chest": 0,
+        "Latissimus Dorsi": 0,
+        "Rhomboids": 0,
+        "Lower Back": 1,
+        "Upper Back": 0,
+        "Rectus Abdominis": 2,
+        "Obliques": 1,
+        "Gluteus Maximus": 1,
+        "Quadriceps": 1,
+        "Hamstrings": 0,
+        "Calves": 10,
+        "Forearms": 1,
+        "Pectorals": 0
+      }
+    },
+    {
+      "id": "bicep-curls",
+      "muscleGroups": [
+        "Biceps"
+      ],
+      "baseWeightFactor": 0.6,
+      "muscleInvolvement": {
+        "Biceps": 10,
+        "Triceps": 0,
+        "Deltoids": 1,
+        "Trapezius": 0,
+        "Upper Chest": 0,
+        "Middle Chest": 0,
+        "Lower Chest": 0,
+        "Latissimus Dorsi": 0,
+        "Rhomboids": 0,
+        "Lower Back": 1,
+        "Upper Back": 0,
+        "Rectus Abdominis": 2,
+        "Obliques": 1,
+        "Gluteus Maximus": 0,
+        "Quadriceps": 0,
+        "Hamstrings": 0,
+        "Calves": 0,
+        "Forearms": 3,
+        "Pectorals": 0
+      }
+    },
+    {
+      "id": "tricep-dips",
+      "muscleGroups": [
+        "Triceps"
+      ],
+      "baseWeightFactor": 0.8,
+      "muscleInvolvement": {
+        "Biceps": 0,
+        "Triceps": 10,
+        "Deltoids": 4,
+        "Trapezius": 1,
+        "Upper Chest": 2,
+        "Middle Chest": 3,
+        "Lower Chest": 5,
+        "Latissimus Dorsi": 2,
+        "Rhomboids": 2,
+        "Lower Back": 2,
+        "Upper Back": 2,
+        "Rectus Abdominis": 4,
+        "Obliques": 3,
+        "Gluteus Maximus": 0,
+        "Quadriceps": 0,
+        "Hamstrings": 0,
+        "Calves": 0,
+        "Forearms": 3,
+        "Pectorals": 4
+      }
+    },
+    {
+      "id": "lat-pulldowns",
+      "muscleGroups": [
+        "Latissimus Dorsi"
+      ],
+      "baseWeightFactor": 1.0,
+      "muscleInvolvement": {
+        "Biceps": 6,
+        "Triceps": 0,
+        "Deltoids": 3,
+        "Trapezius": 5,
+        "Upper Chest": 0,
+        "Middle Chest": 0,
+        "Lower Chest": 0,
+        "Latissimus Dorsi": 10,
+        "Rhomboids": 5,
+        "Lower Back": 3,
+        "Upper Back": 5,
+        "Rectus Abdominis": 4,
+        "Obliques": 3,
+        "Gluteus Maximus": 0,
+        "Quadriceps": 0,
+        "Hamstrings": 0,
+        "Calves": 0,
+        "Forearms": 5,
+        "Pectorals": 0
+      }
+    },
+    {
+      "id": "pectoral-fly",
+      "muscleGroups": [
+        "Pectorals"
+      ],
+      "baseWeightFactor": 0.8,
+      "muscleInvolvement": {
+        "Biceps": 1,
+        "Triceps": 1,
+        "Deltoids": 3,
+        "Trapezius": 1,
+        "Upper Chest": 5,
+        "Middle Chest": 10,
+        "Lower Chest": 6,
+        "Latissimus Dorsi": 0,
+        "Rhomboids": 1,
+        "Lower Back": 1,
+        "Upper Back": 1,
+        "Rectus Abdominis": 2,
+        "Obliques": 1,
+        "Gluteus Maximus": 0,
+        "Quadriceps": 0,
+        "Hamstrings": 0,
+        "Calves": 0,
+        "Forearms": 2,
+        "Pectorals": 9
+      }
+    },
+    {
+      "id": "leg-curls",
+      "muscleGroups": [
+        "Hamstrings"
+      ],
+      "baseWeightFactor": 0.8,
+      "muscleInvolvement": {
+        "Biceps": 0,
+        "Triceps": 0,
+        "Deltoids": 0,
+        "Trapezius": 0,
+        "Upper Chest": 0,
+        "Middle Chest": 0,
+        "Lower Chest": 0,
+        "Latissimus Dorsi": 0,
+        "Rhomboids": 0,
+        "Lower Back": 1,
+        "Upper Back": 0,
+        "Rectus Abdominis": 1,
+        "Obliques": 1,
+        "Gluteus Maximus": 2,
+        "Quadriceps": 0,
+        "Hamstrings": 10,
+        "Calves": 1,
+        "Forearms": 1,
+        "Pectorals": 0
+      }
+    },
+    {
+      "id": "leg-extensions",
+      "muscleGroups": [
+        "Quadriceps"
+      ],
+      "baseWeightFactor": 0.8,
+      "muscleInvolvement": {
+        "Biceps": 0,
+        "Triceps": 0,
+        "Deltoids": 0,
+        "Trapezius": 0,
+        "Upper Chest": 0,
+        "Middle Chest": 0,
+        "Lower Chest": 0,
+        "Latissimus Dorsi": 0,
+        "Rhomboids": 0,
+        "Lower Back": 1,
+        "Upper Back": 0,
+        "Rectus Abdominis": 2,
+        "Obliques": 1,
+        "Gluteus Maximus": 0,
+        "Quadriceps": 10,
+        "Hamstrings": 0,
+        "Calves": 0,
+        "Forearms": 1,
+        "Pectorals": 0
+      }
+    }
+  ]
+}
