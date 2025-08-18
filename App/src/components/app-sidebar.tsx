@@ -574,7 +574,7 @@ export function AppSidebar({
                 Account
               </DropdownMenuItem>
               <DropdownMenuItem
-                onSelect={(e) => { e.preventDefault(); window.location.href = '/pricing' }}
+                onSelect={(e) => { e.preventDefault(); window.location.href = '/account?tab=billing' }}
                 className="cursor-pointer"
               >
                 Pricing

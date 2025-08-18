@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
+import Link from "next/link"
 
 import { supabase } from "@/lib/supabaseClient"
 
@@ -13,6 +14,8 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 
 import { LoginForm } from "@/components/login-form"
+import { PricingPlansClient } from "@/components/pricing-plans-client"
+import { plans } from "@/lib/plans"
 
 type SupabaseIdentity = { identity_id: string; provider: string; last_sign_in_at: string | null }
 
@@ -32,8 +35,17 @@ export default function AccountPage() {
   const [savingEmail, setSavingEmail] = useState(false)
   const [savingPassword, setSavingPassword] = useState(false)
   const [activeTab, setActiveTab] = useState("account")
+  const [currentPlan, setCurrentPlan] = useState<string>('Free')
+  const searchParams = useSearchParams()
 
   const canChangePassword = useMemo(() => identities.some(i => i.provider === "email"), [identities])
+
+  useEffect(() => {
+    const initialTab = searchParams.get('tab')
+    if (initialTab === 'account' || initialTab === 'billing' || initialTab === 'data') {
+      setActiveTab(initialTab)
+    }
+  }, [searchParams])
 
   useEffect(() => {
     let unsub: (() => void) | null = null
@@ -52,6 +64,9 @@ export default function AccountPage() {
       )
       setCreatedAt(sessionUser.created_at ?? null)
       setIdentities((sessionUser.identities || []) as SupabaseIdentity[])
+      const planFromMeta = (sessionUser.user_metadata?.plan as string | undefined) || null
+      const planFromStorage = typeof window !== 'undefined' ? (localStorage.getItem('stronk:plan') as string | null) : null
+      setCurrentPlan(planFromMeta || planFromStorage || 'Free')
       setLoading(false)
 
       const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
@@ -63,6 +78,9 @@ export default function AccountPage() {
         setFullName((u.user_metadata?.full_name || u.user_metadata?.name || "") as string)
         setCreatedAt(u.created_at ?? null)
         setIdentities((u.identities || []) as SupabaseIdentity[])
+        const uPlan = (u.user_metadata?.plan as string | undefined) || null
+        const lsPlan = typeof window !== 'undefined' ? (localStorage.getItem('stronk:plan') as string | null) : null
+        setCurrentPlan(uPlan || lsPlan || 'Free')
       })
       unsub = () => sub.subscription.unsubscribe()
     }
@@ -159,7 +177,12 @@ export default function AccountPage() {
 
   if (!userId) {
     return (
-      <div className="min-h-[70vh] w-full flex items-center justify-center p-6">
+      <div className="min-h-[70vh] w-full flex items-center justify-center p-6 relative">
+        <div className="absolute left-6 top-6">
+          <Button variant="ghost" asChild>
+            <Link href="/">← Back</Link>
+          </Button>
+        </div>
         <div className="w-full max-w-sm md:max-w-md">
           <Card>
             <CardHeader>
@@ -177,9 +200,14 @@ export default function AccountPage() {
 
   return (
     <div className="container mx-auto p-4 md:p-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Account</h1>
-        <p className="text-sm text-muted-foreground">Manage your profile, billing, and data.</p>
+      <div className="mb-6 flex items-center gap-3">
+        <Button variant="ghost" asChild>
+          <Link href="/">← Back</Link>
+        </Button>
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Account</h1>
+          <p className="text-sm text-muted-foreground">Manage your profile, billing, and data.</p>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -258,12 +286,28 @@ export default function AccountPage() {
           <Card>
             <CardHeader>
               <CardTitle>Billing</CardTitle>
-              <CardDescription>Open the billing portal to manage your subscription.</CardDescription>
+              <CardDescription>
+                Open the billing portal to manage your subscription. Current plan: {currentPlan}
+              </CardDescription>
             </CardHeader>
             <CardFooter className="flex gap-3">
               <Button onClick={openBilling}>Open billing portal</Button>
-              <Button variant="outline" onClick={() => router.push("/pricing")}>View plans</Button>
+              <Button variant="outline" onClick={() => {
+                if (typeof window !== 'undefined') {
+                  document.getElementById('plans')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }
+              }}>View plans</Button>
             </CardFooter>
+          </Card>
+
+          <Card id="plans">
+            <CardHeader>
+              <CardTitle>Plans</CardTitle>
+              <CardDescription>Choose a plan that fits your goals.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PricingPlansClient plans={plans} />
+            </CardContent>
           </Card>
         </TabsContent>
 
