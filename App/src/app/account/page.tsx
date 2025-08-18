@@ -311,7 +311,28 @@ export default function AccountPage() {
               </CardDescription>
             </CardHeader>
             <CardFooter className="flex gap-3">
-              <Button onClick={openBilling}>Open billing portal</Button>
+              <Button onClick={async () => {
+                try {
+                  const { data } = await supabase.auth.getSession()
+                  const accessToken = data.session?.access_token
+                  if (!accessToken) {
+                    toast.error('Sign in required')
+                    return
+                  }
+                  const res = await fetch('/api/stripe/portal', {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${accessToken}` },
+                  })
+                  const body = await res.json()
+                  if (!res.ok || !body?.url) {
+                    toast.error('Unable to open billing portal')
+                    return
+                  }
+                  if (typeof window !== 'undefined') window.location.href = body.url as string
+                } catch {
+                  toast.error('Unable to open billing portal')
+                }
+              }}>Open billing portal</Button>
               <Button variant="outline" onClick={() => {
                 if (typeof window !== 'undefined') {
                   document.getElementById('plans')?.scrollIntoView({ behavior: 'smooth', block: 'start' })

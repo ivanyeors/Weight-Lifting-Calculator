@@ -15,6 +15,34 @@ function parseClientReferenceId(ref: string | null | undefined) {
   return { userId, planName }
 }
 
+async function upsertSubscriptionRow(params: {
+  supabaseUrl: string
+  supabaseServiceRoleKey: string
+  userId: string
+  planName?: string | null
+  stripeCustomerId?: string | null
+  stripeSubscriptionId?: string | null
+  status?: string | null
+  currentPeriodEnd?: number | null
+  cancelAtPeriodEnd?: boolean | null
+}) {
+  const admin = createClient(params.supabaseUrl, params.supabaseServiceRoleKey)
+  const payload: Record<string, unknown> = {
+    user_id: params.userId,
+  }
+  if (typeof params.planName !== 'undefined') payload['plan_tier'] = params.planName
+  if (typeof params.stripeCustomerId !== 'undefined') payload['stripe_customer_id'] = params.stripeCustomerId
+  if (typeof params.stripeSubscriptionId !== 'undefined') payload['stripe_subscription_id'] = params.stripeSubscriptionId
+  if (typeof params.status !== 'undefined') payload['status'] = params.status
+  if (typeof params.currentPeriodEnd !== 'undefined') payload['current_period_end'] = params.currentPeriodEnd
+  if (typeof params.cancelAtPeriodEnd !== 'undefined') payload['cancel_at_period_end'] = params.cancelAtPeriodEnd
+
+  // Upsert into a "subscriptions" table (create it in Supabase with appropriate RLS)
+  await admin
+    .from('subscriptions')
+    .upsert(payload, { onConflict: 'user_id' })
+}
+
 export async function POST(request: Request) {
   const stripeSecret = process.env.STRIPE_SECRET_KEY as string | undefined
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET as string | undefined
@@ -49,9 +77,9 @@ export async function POST(request: Request) {
     const session = event.data.object as Stripe.Checkout.Session
     const ref = parseClientReferenceId(session.client_reference_id)
     const paymentStatus = session.payment_status
-    const subscriptionStatus = (session.subscription as Stripe.Subscription | string | null) ? 'active' : null
+    const hasSubscription = Boolean(session.subscription)
 
-    if (ref && (paymentStatus === 'paid' || subscriptionStatus === 'active')) {
+    if (ref && (paymentStatus === 'paid' || hasSubscription)) {
       const admin = createClient(supabaseUrl, supabaseServiceRoleKey)
       const userId = ref.userId
       const planName = ref.planName
@@ -63,23 +91,106 @@ export async function POST(request: Request) {
         if (error) {
           return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
         }
+
+        // Also persist to a subscriptions table for backend visibility
+        let stripeSubscriptionId: string | null = null
+        let status: string | null = null
+        let currentPeriodEnd: number | null = null
+        let cancelAtPeriodEnd: boolean | null = null
+
+        if (typeof session.subscription === 'string') {
+          try {
+            const sub = await stripe.subscriptions.retrieve(session.subscription)
+            stripeSubscriptionId = sub.id
+            status = sub.status
+            currentPeriodEnd = sub.current_period_end || null
+            cancelAtPeriodEnd = sub.cancel_at_period_end || false
+          } catch {
+            // ignore subscription fetch errors
+          }
+        } else if (session.subscription && typeof session.subscription === 'object') {
+          const sub = session.subscription as Stripe.Subscription
+          stripeSubscriptionId = sub.id
+          status = sub.status
+          currentPeriodEnd = sub.current_period_end || null
+          cancelAtPeriodEnd = sub.cancel_at_period_end || false
+        }
+
+        await upsertSubscriptionRow({
+          supabaseUrl,
+          supabaseServiceRoleKey,
+          userId,
+          planName,
+          stripeCustomerId: (typeof session.customer === 'string' ? session.customer : (session.customer as Stripe.Customer | null)?.id) || null,
+          stripeSubscriptionId,
+          status,
+          currentPeriodEnd,
+          cancelAtPeriodEnd,
+        })
       } catch (e) {
         return NextResponse.json({ ok: false }, { status: 500 })
       }
     }
   }
 
-  // Handle cancellations or subscription deletions to downgrade to Free
+  // Handle cancellations or subscription deletions to downgrade to Free and sync table
   if (event.type === 'customer.subscription.deleted') {
     const subscription = event.data.object as Stripe.Subscription
-    const ref = parseClientReferenceId(subscription.metadata?.client_reference_id || null)
     const supabaseUrl2 = process.env.NEXT_PUBLIC_SUPABASE_URL as string | undefined
     const supabaseServiceRoleKey2 = process.env.SUPABASE_SERVICE_ROLE_KEY as string | undefined
-    if (ref && supabaseUrl2 && supabaseServiceRoleKey2) {
+    if (supabaseUrl2 && supabaseServiceRoleKey2) {
       const admin2 = createClient(supabaseUrl2, supabaseServiceRoleKey2)
-      await admin2.auth.admin.updateUserById(ref.userId, {
-        user_metadata: { plan: 'Free' },
-      })
+      // Find user by stored subscription id
+      const { data: row } = await admin2
+        .from('subscriptions')
+        .select('user_id')
+        .eq('stripe_subscription_id', subscription.id)
+        .maybeSingle()
+      const userId = row?.user_id as string | undefined
+      if (userId) {
+        await admin2.auth.admin.updateUserById(userId, {
+          user_metadata: { plan: 'Free' },
+        })
+        await upsertSubscriptionRow({
+          supabaseUrl: supabaseUrl2,
+          supabaseServiceRoleKey: supabaseServiceRoleKey2,
+          userId,
+          planName: 'Free',
+          stripeCustomerId: subscription.customer as string,
+          stripeSubscriptionId: subscription.id,
+          status: subscription.status,
+          currentPeriodEnd: subscription.current_period_end || null,
+          cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
+        })
+      }
+    }
+  }
+
+  if (event.type === 'customer.subscription.updated') {
+    const subscription = event.data.object as Stripe.Subscription
+    const supabaseUrl2 = process.env.NEXT_PUBLIC_SUPABASE_URL as string | undefined
+    const supabaseServiceRoleKey2 = process.env.SUPABASE_SERVICE_ROLE_KEY as string | undefined
+    if (supabaseUrl2 && supabaseServiceRoleKey2) {
+      const admin2 = createClient(supabaseUrl2, supabaseServiceRoleKey2)
+      const { data: row } = await admin2
+        .from('subscriptions')
+        .select('user_id')
+        .eq('stripe_subscription_id', subscription.id)
+        .maybeSingle()
+      const userId = row?.user_id as string | undefined
+      if (userId) {
+        await upsertSubscriptionRow({
+          supabaseUrl: supabaseUrl2,
+          supabaseServiceRoleKey: supabaseServiceRoleKey2,
+          userId,
+          // We may not know plan name here without a mapping; leave unchanged
+          stripeCustomerId: subscription.customer as string,
+          stripeSubscriptionId: subscription.id,
+          status: subscription.status,
+          currentPeriodEnd: subscription.current_period_end || null,
+          cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
+        })
+      }
     }
   }
 
