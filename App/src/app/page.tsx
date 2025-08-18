@@ -385,6 +385,11 @@ export default function HomePage() {
                 <WebBodyHighlighter
                   muscleGroups={muscleGroups}
                   exerciseName={currentExercise.name}
+                  exercises={exercises}
+                  selectedExerciseId={selectedExerciseId}
+                  setSelectedExerciseId={setSelectedExerciseId}
+                  isLoadingExercises={isLoadingExercises}
+                  exerciseLoadError={exerciseLoadError}
                 />
               )}
             </div>

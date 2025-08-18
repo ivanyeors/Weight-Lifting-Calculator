@@ -28,7 +28,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { LoginForm } from "@/components/login-form"
 import { supabase } from '@/lib/supabaseClient'
 
-import { Search, User, Dumbbell, Activity, ChevronDown, UserCheck, Users } from "lucide-react"
+import { User, Dumbbell, Activity, ChevronDown, UserCheck, Users } from "lucide-react"
+import { ExerciseDropdown } from "@/components/ExerciseDropdown"
 
 interface Exercise {
   id: string
@@ -123,7 +124,7 @@ export function AppSidebar({
     })
     return () => subscription.unsubscribe()
   }, [])
-  const [searchQuery, setSearchQuery] = useState("")
+  
   const [bodyWeightInput, setBodyWeightInput] = useState(String(bodyWeight))
   const [heightInput, setHeightInput] = useState(String(height))
   const [ageInput, setAgeInput] = useState(String(age))
@@ -288,14 +289,7 @@ export function AppSidebar({
   useEffect(() => { setSkeletalMuscleMassInput(String(skeletalMuscleMass)) }, [skeletalMuscleMass])
   useEffect(() => { setBodyFatMassInput(String(bodyFatMass)) }, [bodyFatMass])
 
-  // Filter exercises based on search query
-  const filteredExercises = exercises.filter(exercise =>
-    exercise.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
-
-  // Get current exercise name for display
-  const currentExercise = exercises.find(ex => ex.id === selectedExerciseId)
-  const currentExerciseName = currentExercise?.name || "Select Exercise"
+  
 
   return (
     <Sidebar>
@@ -347,87 +341,13 @@ export function AppSidebar({
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <div className="px-3 py-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-between h-10 bg-background border-border hover:bg-accent hover:text-accent-foreground transition-colors"
-                    disabled={isLoadingExercises}
-                  >
-                    <span className="truncate font-medium">
-                      {isLoadingExercises ? "Loading exercises..." : currentExerciseName}
-                    </span>
-                    <ChevronDown className="h-4 w-4 opacity-50 transition-transform" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent 
-                  className="w-[--radix-dropdown-menu-trigger-width] min-w-[280px] max-h-[350px] overflow-y-auto"
-                  align="start"
-                  side="bottom"
-                  sideOffset={4}
-                  alignOffset={0}
-                >
-                  <DropdownMenuLabel className="flex items-center">
-                    <Activity className="mr-2 h-4 w-4" />
-                    Select Exercise
-                  </DropdownMenuLabel>
-                  <div className="px-3 py-2">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Search exercises..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10 h-10 bg-background border-border hover:border-border/80 focus:border-primary transition-colors"
-                      />
-                    </div>
-                  </div>
-                  <DropdownMenuSeparator />
-                  {filteredExercises.length > 0 ? (
-                    filteredExercises.map((exercise) => (
-                      <DropdownMenuItem
-                        key={exercise.id}
-                        onClick={() => setSelectedExerciseId(exercise.id)}
-                        className="cursor-pointer py-3 hover:bg-accent/50"
-                      >
-                        <div className="flex flex-col w-full">
-                          <span className="font-medium text-sm">{exercise.name}</span>
-                          <div className="flex justify-between items-center mt-1">
-                            <span className="text-xs text-muted-foreground">
-                              Weight Factor
-                            </span>
-                            <span className="text-xs font-semibold text-primary tabular-nums">
-                              {exercise.baseWeightFactor}
-                            </span>
-                          </div>
-                        </div>
-                      </DropdownMenuItem>
-                    ))
-                  ) : (
-                    <DropdownMenuItem disabled className="text-center py-4">
-                      <div className="flex flex-col items-center">
-                        <span className="text-sm text-muted-foreground">
-                          {searchQuery ? "No exercises found" : "No exercises available"}
-                        </span>
-                        {searchQuery && (
-                          <span className="text-xs text-muted-foreground mt-1">
-                            Try adjusting your search
-                          </span>
-                        )}
-                      </div>
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              
-              {exerciseLoadError && (
-                <div className="text-sm text-amber-600 bg-amber-50 dark:bg-amber-950/50 dark:text-amber-400 p-3 rounded-lg mt-3 border border-amber-200 dark:border-amber-800">
-                  <div className="flex items-start space-x-2">
-                    <span className="text-amber-600 dark:text-amber-400">⚠</span>
-                    <span>{exerciseLoadError}</span>
-                  </div>
-                </div>
-              )}
+              <ExerciseDropdown
+                exercises={exercises}
+                selectedExerciseId={selectedExerciseId}
+                onSelectExercise={setSelectedExerciseId}
+                isLoading={isLoadingExercises}
+                error={exerciseLoadError}
+              />
             </div>
           </SidebarGroupContent>
         </SidebarGroup>

@@ -9,6 +9,8 @@ import {
 } from "@/components/ui/tooltip"
 import { useState } from 'react'
 import { Eye, Dumbbell } from 'lucide-react'
+import { ExerciseDropdown } from "@/components/ExerciseDropdown"
+import { Button } from "@/components/ui/button"
 
 // Front assets
 import FrontHead from '@/assets/body-vector/front-body/Head.svg'
@@ -43,9 +45,17 @@ interface MuscleContribution {
   involvement: number
 }
 
+type Exercise = { id: string; name: string; description: string; baseWeightFactor: number }
+
 interface WebBodyHighlighterProps {
   muscleGroups: MuscleContribution[]
   exerciseName: string
+  // Optional props to enable header exercise dropdown without breaking existing callsites
+  exercises?: Exercise[]
+  selectedExerciseId?: string
+  setSelectedExerciseId?: (id: string) => void
+  isLoadingExercises?: boolean
+  exerciseLoadError?: string | null
 }
 
 // Mapping from our muscle names to body part areas
@@ -482,10 +492,9 @@ const BackBodySVG = ({ muscleData, onMuscleClick, onHover }: {
   )
 }
 
-export function WebBodyHighlighter({ muscleGroups, exerciseName }: WebBodyHighlighterProps) {
+export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, selectedExerciseId, setSelectedExerciseId, isLoadingExercises, exerciseLoadError }: WebBodyHighlighterProps) {
   const [side, setSide] = useState<'front' | 'back'>('front')
   const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null)
-  const [hoveredMuscle, setHoveredMuscle] = useState<string | null>(null)
 
   // Transform muscle groups data for the highlighter
   const muscleData: { [key: string]: { color: string; involvement: number } } = {}
@@ -504,22 +513,116 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName }: WebBodyHighli
     setSelectedMuscle(muscleName)
   }
 
-  const handleHover = (muscleName: string | null) => {
-    setHoveredMuscle(muscleName)
-  }
+  // Hover handler kept to satisfy props on SvgLayer consumers
+  const handleHover = () => {}
 
 
 
   const selectedMuscleData = selectedMuscle ? muscleGroups.find(m => m.name === selectedMuscle) : null
+
+  // Simple video search/render panel
+  const [isSearching, setIsSearching] = useState(false)
+  const [videoUrls, setVideoUrls] = useState<string[]>([])
+  const [videoIndex, setVideoIndex] = useState(0)
+
+  const placeholderShortcode = 'DNd1JdFK7Kk'
+  const placeholderInsta = `https://www.instagram.com/reel/${placeholderShortcode}/` // clean base
+
+  const toEmbedUrl = (url: string): string => {
+    try {
+      const u = new URL(url)
+      if (u.hostname.includes('instagram.com')) {
+        // Try to extract shortcode and use embed path
+        const parts = u.pathname.split('/').filter(Boolean)
+        const kind = parts[0]
+        const code = parts[1] || placeholderShortcode
+        if (kind === 'reel' || kind === 'p' || kind === 'tv') {
+          return `https://www.instagram.com/${kind}/${code}/embed`
+        }
+        return `https://www.instagram.com/reel/${placeholderShortcode}/embed`
+      }
+      return url
+    } catch {
+      return placeholderInsta + 'embed'
+    }
+  }
+
+  const currentVideoUrl = videoUrls.length > 0 ? videoUrls[videoIndex] : placeholderInsta
+  const embeddedUrl = toEmbedUrl(currentVideoUrl)
+
+  const searchVideos = async () => {
+    setIsSearching(true)
+    try {
+      // Optional n8n webhook: set NEXT_PUBLIC_N8N_WEBHOOK_URL to enable
+      // Expected response: { videos: string[] }
+      const webhook = process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL as string | undefined
+      let found: string[] | null = null
+      if (webhook) {
+        try {
+          const res = await fetch(webhook, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: exerciseName }),
+          })
+          if (res.ok) {
+            const data = await res.json().catch(() => null)
+            if (data && Array.isArray(data.videos)) {
+              found = data.videos as string[]
+            }
+          }
+        } catch {
+          // ignore webhook errors and fall back to placeholders
+        }
+      }
+      if (!found || found.length === 0) {
+        // Fallback placeholders (3-5 variations of the same reel for demo)
+        found = [
+          `https://www.instagram.com/reel/${placeholderShortcode}/`,
+          `https://www.instagram.com/reel/${placeholderShortcode}/?variant=2`,
+          `https://www.instagram.com/reel/${placeholderShortcode}/?variant=3`,
+        ]
+      }
+      setVideoUrls(found)
+      setVideoIndex(0)
+    } finally {
+      setIsSearching(false)
+    }
+  }
+
+  const nextVideo = () => {
+    if (videoUrls.length <= 1) return
+    setVideoIndex((i) => (i + 1) % videoUrls.length)
+  }
+
+  const prevVideo = () => {
+    if (videoUrls.length <= 1) return
+    setVideoIndex((i) => (i - 1 + videoUrls.length) % videoUrls.length)
+  }
 
   return (
     <TooltipProvider>
       <Card className="bg-card/50 backdrop-blur border-border/50">
       <CardContent className="p-6">
         <CardHeader className="px-0 pt-0">
-        <div className="flex items-center space-x-2 mb-4">
-          <Dumbbell className="h-5 w-5 text-primary" />
-          <CardTitle className="text-lg font-semibold">Muscle Involvement</CardTitle>
+        <div className="flex items-center justify-between mb-4 gap-3">
+          <div className="flex items-center space-x-2">
+            <Dumbbell className="h-5 w-5 text-primary" />
+            <CardTitle className="text-lg font-semibold">Muscle Involvement</CardTitle>
+          </div>
+          {/* Optional exercise dropdown (top-right) */}
+          {Array.isArray(exercises) && typeof setSelectedExerciseId === 'function' && typeof selectedExerciseId === 'string' && (
+            <ExerciseDropdown
+              exercises={exercises}
+              selectedExerciseId={selectedExerciseId}
+              onSelectExercise={setSelectedExerciseId}
+              isLoading={Boolean(isLoadingExercises)}
+              error={exerciseLoadError ?? null}
+              align="end"
+              side="bottom"
+              sideOffset={6}
+              contentClassName="min-w-[300px]"
+            />
+          )}
         </div>
         <CardDescription className="text-sm text-muted-foreground mb-4">
           Interactive muscle activation for {exerciseName.toLowerCase()}
@@ -546,7 +649,7 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName }: WebBodyHighli
                 </div>
               </div>
               
-              {/* Muscle Details Sidebar */}
+              {/* Right pane: details + videos */}
               <div className="flex-1 space-y-4">
                 {selectedMuscleData && (
                   <div className="p-4 bg-muted/30 rounded-lg border border-border/30">
@@ -575,44 +678,53 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName }: WebBodyHighli
                   </div>
                 )}
 
-                {/* Muscle List for front view */}
-                <div className="space-y-3">
-                  <h4 className="font-medium text-sm text-foreground">
-                    Active Muscles (Front View)
-                  </h4>
-                  {muscleGroups.filter(muscle => {
-                    const bodyPart = muscleToBodyPartMap[muscle.name]
-                    return !bodyPart?.side || bodyPart.side === 'front'
-                  }).map((muscle, index) => (
-                    <div 
-                      key={index} 
-                      className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
-                        selectedMuscle === muscle.name 
-                          ? 'bg-primary/10 border border-primary/20' 
-                          : hoveredMuscle === muscle.name
-                          ? 'bg-muted/30 border border-primary/30 shadow-sm'
-                          : 'bg-muted/20 hover:bg-muted/30'
-                      }`}
-                      onClick={() => handleMuscleClick(muscle.name)}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div 
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: getInvolvementColor(muscle.involvement) }}
-                        />
-                        <span className="text-sm font-medium">{muscle.name}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge variant="secondary" className="text-xs">
-                          {muscle.percentage.toFixed(1)}%
-                        </Badge>
-                        <Badge variant="outline" className="text-xs">
-                          Level {muscle.involvement}
-                        </Badge>
-                      </div>
+                {/* Video search & viewer */}
+                <Card className="border-border/50">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <CardTitle className="text-base">Exercise Videos</CardTitle>
+                      <Button size="sm" onClick={searchVideos} disabled={isSearching}>
+                        {isSearching ? 'Searching…' : 'Search video'}
+                      </Button>
                     </div>
-                  ))}
-                </div>
+                    <CardDescription className="text-xs mt-1">
+                      Results for {exerciseName}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="w-full bg-black rounded-md overflow-hidden" style={{ aspectRatio: '9/16' }}>
+                      {videoUrls.length === 0 ? (
+                        <div className="x1ey2m1c x9f619 xtijo5x x1o0tod x10l6tqk x13vifvy x1ypdohk" role="presentation" style={{ width: '100%', height: '100%' }}>
+                          <div className="xbudbmw x9uk3rv xa2bojp x10l6tqk xwa60dl" style={{ width: '100%', height: '100%' }}>
+                            <div className="x1yomw13 x1dhbnvk x4iexvp xfem2s5 xv2xd2s xg79w0" style={{ width: '100%', height: '100%' }}></div>
+                          </div>
+                        </div>
+                      ) : (
+                        <iframe
+                          key={embeddedUrl}
+                          src={embeddedUrl}
+                          className="w-full h-full"
+                          allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                          allowFullScreen
+                          loading="lazy"
+                          style={{ border: '0' }}
+                          title="Exercise video"
+                        />
+                      )}
+                    </div>
+                    <div className="mt-3 flex items-center justify-between">
+                      <Button variant="outline" size="sm" onClick={prevVideo} disabled={videoUrls.length <= 1}>
+                        Previous
+                      </Button>
+                      <div className="text-xs text-muted-foreground">
+                        {videoUrls.length > 0 ? `${videoIndex + 1} / ${videoUrls.length}` : '—'}
+                      </div>
+                      <Button variant="outline" size="sm" onClick={nextVideo} disabled={videoUrls.length <= 1}>
+                        Next
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           </TabsContent>
@@ -626,7 +738,7 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName }: WebBodyHighli
                 </div>
               </div>
 
-              {/* Muscle Details Sidebar */}
+              {/* Right pane: details + videos */}
               <div className="flex-1 space-y-4">
                 {selectedMuscleData && (
                   <div className="p-4 bg-muted/30 rounded-lg border border-border/30">
@@ -655,44 +767,53 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName }: WebBodyHighli
                   </div>
                 )}
 
-                {/* Muscle List for back view */}
-                <div className="space-y-3">
-                  <h4 className="font-medium text-sm text-foreground">
-                    Active Muscles (Back View)
-                  </h4>
-                  {muscleGroups.filter(muscle => {
-                    const bodyPart = muscleToBodyPartMap[muscle.name]
-                    return !bodyPart?.side || bodyPart.side === 'back'
-                  }).map((muscle, index) => (
-                    <div 
-                      key={index} 
-                      className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
-                        selectedMuscle === muscle.name 
-                          ? 'bg-primary/10 border border-primary/20' 
-                          : hoveredMuscle === muscle.name
-                          ? 'bg-muted/30 border border-primary/30 shadow-sm'
-                          : 'bg-muted/20 hover:bg-muted/30'
-                      }`}
-                      onClick={() => handleMuscleClick(muscle.name)}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div 
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: getInvolvementColor(muscle.involvement) }}
-                        />
-                        <span className="text-sm font-medium">{muscle.name}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge variant="secondary" className="text-xs">
-                          {muscle.percentage.toFixed(1)}%
-                        </Badge>
-                        <Badge variant="outline" className="text-xs">
-                          Level {muscle.involvement}
-                        </Badge>
-                      </div>
+                {/* Video search & viewer (same as front) */}
+                <Card className="border-border/50">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <CardTitle className="text-base">Exercise Videos</CardTitle>
+                      <Button size="sm" onClick={searchVideos} disabled={isSearching}>
+                        {isSearching ? 'Searching…' : 'Search video'}
+                      </Button>
                     </div>
-                  ))}
-                </div>
+                    <CardDescription className="text-xs mt-1">
+                      Results for {exerciseName}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="w-full bg-black rounded-md overflow-hidden" style={{ aspectRatio: '9/16' }}>
+                      {videoUrls.length === 0 ? (
+                        <div className="x1ey2m1c x9f619 xtijo5x x1o0tod x10l6tqk x13vifvy x1ypdohk" role="presentation" style={{ width: '100%', height: '100%' }}>
+                          <div className="xbudbmw x9uk3rv xa2bojp x10l6tqk xwa60dl" style={{ width: '100%', height: '100%' }}>
+                            <div className="x1yomw13 x1dhbnvk x4iexvp xfem2s5 xv2xd2s xg79w0" style={{ width: '100%', height: '100%' }}></div>
+                          </div>
+                        </div>
+                      ) : (
+                        <iframe
+                          key={embeddedUrl}
+                          src={embeddedUrl}
+                          className="w-full h-full"
+                          allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                          allowFullScreen
+                          loading="lazy"
+                          style={{ border: '0' }}
+                          title="Exercise video"
+                        />
+                      )}
+                    </div>
+                    <div className="mt-3 flex items-center justify-between">
+                      <Button variant="outline" size="sm" onClick={prevVideo} disabled={videoUrls.length <= 1}>
+                        Previous
+                      </Button>
+                      <div className="text-xs text-muted-foreground">
+                        {videoUrls.length > 0 ? `${videoIndex + 1} / ${videoUrls.length}` : '—'}
+                      </div>
+                      <Button variant="outline" size="sm" onClick={nextVideo} disabled={videoUrls.length <= 1}>
+                        Next
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           </TabsContent>
