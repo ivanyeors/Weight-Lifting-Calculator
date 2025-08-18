@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Sidebar,
   SidebarContent,
@@ -131,6 +131,11 @@ export function AppSidebar({
   const [bodyFatMassInput, setBodyFatMassInput] = useState(String(bodyFatMass))
   const [isLoginOpen, setIsLoginOpen] = useState(false)
   const [currentPlan, setCurrentPlan] = useState<string>('Free')
+  const [isSyncing, setIsSyncing] = useState(false)
+  const [syncError, setSyncError] = useState<string | null>(null)
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null)
+  const [hasPendingChanges, setHasPendingChanges] = useState(false)
+  const debounceTimerRef = useRef<number | null>(null)
 
   // Close login sheet on successful sign-in
   useEffect(() => { if (user && isLoginOpen) setIsLoginOpen(false) }, [user, isLoginOpen])
@@ -152,6 +157,101 @@ export function AppSidebar({
     })
     return () => sub.subscription.unsubscribe()
   }, [])
+
+  // Load saved personal details for Personal tier on sign-in
+  useEffect(() => {
+    const loadPersonalDetails = async () => {
+      if (!user?.id || currentPlan !== 'Personal') return
+      const { data } = await supabase.auth.getSession()
+      const u = data.session?.user
+      const saved = (u?.user_metadata?.stronk_personal as any) || null
+      if (saved) {
+        if (typeof saved.bodyWeight === 'number') setBodyWeight(saved.bodyWeight)
+        if (typeof saved.height === 'number') setHeight(saved.height)
+        if (typeof saved.age === 'number') setAge(saved.age)
+        if (typeof saved.gender === 'string') setGender(saved.gender)
+        if (typeof saved.experience === 'string') setExperience(saved.experience)
+        if (typeof saved.skeletalMuscleMass === 'number') setSkeletalMuscleMass(saved.skeletalMuscleMass)
+        if (typeof saved.bodyFatMass === 'number') setBodyFatMass(saved.bodyFatMass)
+        if (typeof saved.selectedExerciseId === 'string') setSelectedExerciseId(saved.selectedExerciseId)
+        if (typeof saved.updatedAt === 'string') {
+          const dt = new Date(saved.updatedAt)
+          if (!Number.isNaN(dt.getTime())) setLastSyncedAt(dt)
+        }
+        setHasPendingChanges(false)
+      }
+    }
+    void loadPersonalDetails()
+  }, [user?.id, currentPlan])
+
+  // Debounced auto-sync to Supabase for Personal tier
+  useEffect(() => {
+    if (!user?.id || currentPlan !== 'Personal') return
+    setHasPendingChanges(true)
+    if (debounceTimerRef.current) window.clearTimeout(debounceTimerRef.current)
+    debounceTimerRef.current = window.setTimeout(async () => {
+      setIsSyncing(true)
+      setSyncError(null)
+      try {
+        const payload = {
+          stronk_personal: {
+            bodyWeight,
+            height,
+            age,
+            gender,
+            experience,
+            skeletalMuscleMass,
+            bodyFatMass,
+            selectedExerciseId,
+            updatedAt: new Date().toISOString(),
+          },
+        }
+        const { error } = await supabase.auth.updateUser({ data: payload as any })
+        if (error) throw error
+        setLastSyncedAt(new Date())
+        setHasPendingChanges(false)
+      } catch (e: any) {
+        setSyncError(e?.message || 'Failed to sync')
+      } finally {
+        setIsSyncing(false)
+      }
+    }, 800)
+
+    return () => {
+      if (debounceTimerRef.current) window.clearTimeout(debounceTimerRef.current)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bodyWeight, height, age, gender, experience, skeletalMuscleMass, bodyFatMass, selectedExerciseId, user?.id, currentPlan])
+
+  const handleManualSync = async () => {
+    if (!user?.id || currentPlan !== 'Personal') return
+    if (debounceTimerRef.current) window.clearTimeout(debounceTimerRef.current)
+    setIsSyncing(true)
+    setSyncError(null)
+    try {
+      const payload = {
+        stronk_personal: {
+          bodyWeight,
+          height,
+          age,
+          gender,
+          experience,
+          skeletalMuscleMass,
+          bodyFatMass,
+          selectedExerciseId,
+          updatedAt: new Date().toISOString(),
+        },
+      }
+      const { error } = await supabase.auth.updateUser({ data: payload as any })
+      if (error) throw error
+      setLastSyncedAt(new Date())
+      setHasPendingChanges(false)
+    } catch (e: any) {
+      setSyncError(e?.message || 'Failed to sync')
+    } finally {
+      setIsSyncing(false)
+    }
+  }
 
   useEffect(() => { setBodyWeightInput(String(bodyWeight)) }, [bodyWeight])
   useEffect(() => { setHeightInput(String(height)) }, [height])
@@ -178,8 +278,34 @@ export function AppSidebar({
             <p className="text-sm text-muted-foreground">Calculator</p>
           </div>
         </div>
-        {user?.email && (
-          <div className="text-xs text-muted-foreground truncate">Signed in as {user.email}</div>
+        {user?.email && currentPlan === 'Personal' && (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span
+                className={[
+                  "inline-block size-2 rounded-full aspect-square shrink-0 flex-none",
+                  isSyncing
+                    ? "bg-amber-500 animate-pulse"
+                    : syncError
+                    ? "bg-red-500"
+                    : hasPendingChanges
+                    ? "bg-amber-500"
+                    : "bg-emerald-500",
+                ].join(' ')}
+                aria-label={isSyncing ? 'Syncing' : syncError ? 'Sync error' : hasPendingChanges ? 'Pending changes' : 'Synced'}
+              />
+              <span>
+                {isSyncing
+                  ? 'Syncing…'
+                  : syncError
+                  ? 'Sync failed'
+                  : `Last sync: ${lastSyncedAt ? lastSyncedAt.toLocaleString() : 'never'}`}
+              </span>
+            </div>
+            <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={handleManualSync} disabled={isSyncing || !user?.id}>
+              Sync now
+            </Button>
+          </div>
         )}
 
       </SidebarHeader>
