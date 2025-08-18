@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useTheme } from 'next-themes'
 import {
   Card,
   CardContent,
@@ -95,7 +96,8 @@ export default function HomePage() {
   // Adjustment controls
   const [adjustmentPercent, setAdjustmentPercent] = useState<number>(0)
   const [stepPercent, setStepPercent] = useState<number>(10)
-  const [isDark, setIsDark] = useState<boolean>(false)
+  const { theme, setTheme, resolvedTheme } = useTheme()
+  const isDark = (resolvedTheme ?? theme) === 'dark'
 
   // Get current exercise
   const currentExercise = exercises.find(ex => ex.id === selectedExerciseId) || exercises[0]
@@ -159,22 +161,7 @@ export default function HomePage() {
     loadExternalExercises()
   }, [loadExternalExercises])
 
-  // Initialize theme from storage or system preference
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const stored = localStorage.getItem('theme')
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-    const shouldBeDark = stored ? stored === 'dark' : prefersDark
-    setIsDark(shouldBeDark)
-    document.documentElement.classList.toggle('dark', shouldBeDark)
-  }, [])
-
-  const toggleTheme = () => {
-    const next = !isDark
-    setIsDark(next)
-    document.documentElement.classList.toggle('dark', next)
-    localStorage.setItem('theme', next ? 'dark' : 'light')
-  }
+  const toggleTheme = () => setTheme(isDark ? 'light' : 'dark')
 
   // Update muscle groups when exercise changes
   useEffect(() => {

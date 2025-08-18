@@ -204,6 +204,8 @@ export const loadExercisesFromGitLabFolder = async (
   _branch: string = 'main',
   _accessToken?: string
 ): Promise<ExternalExercise[]> => {
+  // Mark unused variables as used to satisfy lint rules
+  void _projectPath; void _folderPath; void _branch; void _accessToken
   console.warn('GitLab loading is deprecated. Using local file loading instead.')
   return loadAllExerciseData()
 }
