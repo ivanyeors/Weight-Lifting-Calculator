@@ -25,10 +25,10 @@ export const plans: Plan[] = [
     href: '/',
   },
   {
-    name: 'Bronze Tier',
+    name: 'Personal',
     price: '$1.99',
     period: '/mo',
-    description: 'Unlock the full experience and personalized insights.',
+    description: 'Useful for tracking your progress and getting personalized weight recommendations.',
     features: [
       'All features in Free tier',
       'Data saved in account',
@@ -39,14 +39,14 @@ export const plans: Plan[] = [
     highlighted: true,
   },
   {
-    name: 'Silver Tier',
+    name: 'Enterprise',
     price: '$4.99',
     period: '/mo',
-    description: 'For dedicated lifters who want more monitoring.',
+    description: 'For coaches, fitness trainers with multiple clients.',
     features: [
       'Everything in Pro',
-      'Early access to new models',
-      'Advanced tracking experiments',
+      '+2000 growing exercises updates in other categories',
+      'Save multiple users configuration',
     ],
     cta: 'Go Elite',
     href: '/account',
