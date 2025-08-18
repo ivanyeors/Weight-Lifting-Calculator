@@ -513,9 +513,16 @@ export function AppSidebar({
                     {Object.entries(experienceFactors).map(([key, value]) => (
                       <SelectItem key={key} value={key} className="cursor-pointer py-3">
                         <div className="flex flex-col items-start">
-                          <span className="font-medium">Category {key.slice(-1)}</span>
+                          <span className="font-medium">
+                            {(() => {
+                              const match = value.label.match(/\(([^)]+)\)/)
+                              const inside = match ? match[1] : ''
+                              const parts = inside.split(',').map(s => s.trim()).filter(Boolean)
+                              return parts.length ? parts[parts.length - 1] : value.label
+                            })()}
+                          </span>
                           <span className="text-xs text-muted-foreground">
-                            {value.label.split('(')[1]?.replace(')', '') || value.label}
+                            {value.label.split('(')[0].trim()}
                           </span>
                         </div>
                       </SelectItem>

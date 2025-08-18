@@ -346,8 +346,16 @@ export default function HomePage() {
                   <Card className="@container/card" data-slot="card">
                     <CardContent className="p-3 text-center h-24">
                       <CardDescription className="text-xs">Experience</CardDescription>
-                      <CardTitle className="text-2xl @[250px]/card:text-3xl font-semibold">Cat {experience.slice(-1)}</CardTitle>
-                      <div className="text-xs text-muted-foreground">E = {experienceFactors[experience as keyof typeof experienceFactors].factor.toFixed(2)}×</div>
+                      <CardTitle className="text-2xl @[250px]/card:text-3xl font-semibold">
+                        {(() => {
+                          const label = experienceFactors[experience as keyof typeof experienceFactors].label
+                          const match = label.match(/\(([^)]+)\)/)
+                          const inside = match ? match[1] : ''
+                          const parts = inside.split(',').map(s => s.trim()).filter(Boolean)
+                          return parts.length ? parts[parts.length - 1] : label
+                        })()}
+                      </CardTitle>
+                      <div className="text-xs text-muted-foreground">Cat {experience.slice(-1)} • E = {experienceFactors[experience as keyof typeof experienceFactors].factor.toFixed(2)}×</div>
                     </CardContent>
                   </Card>
                   
