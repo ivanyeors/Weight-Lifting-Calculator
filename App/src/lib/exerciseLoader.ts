@@ -65,19 +65,25 @@ export const loadExercisesFromManifest = async (): Promise<ExternalExercise[]> =
   if (!trainingRes.ok) throw new Error(`Failed to fetch ${trainingPath}: ${trainingRes.status}`)
   if (workoutTypesPath && !workoutRes.ok) throw new Error(`Failed to fetch ${workoutTypesPath}: ${workoutRes.status}`)
 
-  const [metaJson, _workoutJson, trainingJson] = await Promise.all([
+  const [metaJson, , trainingJson] = await Promise.all([
     metaRes.json(),
     workoutRes.json(),
     trainingRes.json(),
   ])
 
-  const metaList: Array<{ id: string; name: string; description: string }> = (metaJson.exercises || metaJson) as any
+  const metaList: Array<{ id: string; name: string; description: string }> = (
+    (metaJson as { exercises?: Array<{ id: string; name: string; description: string }> }).exercises ??
+    (metaJson as Array<{ id: string; name: string; description: string }>)
+  )
   const trainingList: Array<{
     id: string
     muscleGroups?: string[]
     baseWeightFactor: number
     muscleInvolvement: MuscleInvolvement
-  }> = (trainingJson.exercises || trainingJson) as any
+  }> = (
+    (trainingJson as { exercises?: Array<{ id: string; muscleGroups?: string[]; baseWeightFactor: number; muscleInvolvement: MuscleInvolvement }> }).exercises ??
+    (trainingJson as Array<{ id: string; muscleGroups?: string[]; baseWeightFactor: number; muscleInvolvement: MuscleInvolvement }>)
+  )
 
   // Workout types are loaded for potential future use, but not required for ExternalExercise
   const trainingById = new Map(trainingList.map((t) => [t.id, t]))
@@ -179,28 +185,23 @@ export const loadAllExerciseData = async (): Promise<ExternalExercise[]> => {
  */
 export const validateExerciseData = (data: unknown[]): ExternalExercise[] => {
   return data.filter((exercise): exercise is ExternalExercise => {
+    if (typeof exercise !== 'object' || exercise === null) return false
+    const e = exercise as Record<string, unknown>
     return (
-      typeof exercise === 'object' &&
-      exercise !== null &&
-      'id' in exercise &&
-      'name' in exercise &&
-      'description' in exercise &&
-      'muscleInvolvement' in exercise &&
-      'baseWeightFactor' in exercise &&
-      typeof (exercise as Record<string, unknown>).baseWeightFactor === 'number'
+      typeof e.id === 'string' &&
+      typeof e.name === 'string' &&
+      typeof e.description === 'string' &&
+      typeof e.baseWeightFactor === 'number' &&
+      typeof e.muscleInvolvement === 'object' && e.muscleInvolvement !== null
     )
   })
 }
 
 // Legacy function for backward compatibility
 export const loadExercisesFromGitLabFolder = async (
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _projectPath: string, 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _folderPath: string, 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _projectPath: string,
+  _folderPath: string,
   _branch: string = 'main',
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _accessToken?: string
 ): Promise<ExternalExercise[]> => {
   console.warn('GitLab loading is deprecated. Using local file loading instead.')
