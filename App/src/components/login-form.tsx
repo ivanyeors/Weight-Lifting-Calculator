@@ -90,7 +90,7 @@ export function LoginForm({
                 <button
                   type="button"
                   onClick={() => { setMode('signin'); setError(null); setMessage(null); }}
-                  className="self-start text-sm underline-offset-2 hover:underline"
+                  className="self-start text-sm underline-offset-2 hover:underline cursor-pointer"
                 >
                   ← Back
                 </button>
@@ -184,7 +184,7 @@ export function LoginForm({
                     Don&apos;t have an account?{" "}
                     <button
                       type="button"
-                      className="underline underline-offset-4"
+                      className="underline underline-offset-4 cursor-pointer"
                       onClick={() => { setMode('signup'); setError(null); setMessage(null); }}
                     >
                       Sign up
@@ -195,7 +195,7 @@ export function LoginForm({
                     Already have an account?{" "}
                     <button
                       type="button"
-                      className="underline underline-offset-4"
+                      className="underline underline-offset-4 cursor-pointer"
                       onClick={() => { setMode('signin'); setError(null); setMessage(null); }}
                     >
                       Sign in
@@ -206,7 +206,7 @@ export function LoginForm({
                     Remembered your password?{" "}
                     <button
                       type="button"
-                      className="underline underline-offset-4"
+                      className="underline underline-offset-4 cursor-pointer"
                       onClick={() => { setMode('signin'); setError(null); setMessage(null); }}
                     >
                       Back to sign in
