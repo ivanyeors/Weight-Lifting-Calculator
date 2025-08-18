@@ -164,7 +164,9 @@ export default function AccountPage() {
   }
 
   const openBilling = () => {
-    router.push("/pricing")
+    if (typeof window !== "undefined") {
+      document.getElementById("plans")?.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
   }
 
   if (loading) {
@@ -213,7 +215,7 @@ export default function AccountPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList>
           <TabsTrigger value="account">Account</TabsTrigger>
-          <TabsTrigger value="billing">Billing</TabsTrigger>
+          <TabsTrigger value="billing">Pricing & Billing</TabsTrigger>
           <TabsTrigger value="data">Data</TabsTrigger>
         </TabsList>
 
@@ -285,7 +287,7 @@ export default function AccountPage() {
         <TabsContent value="billing" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Billing</CardTitle>
+              <CardTitle>Pricing & Billing</CardTitle>
               <CardDescription>
                 Open the billing portal to manage your subscription. Current plan: {currentPlan}
               </CardDescription>
