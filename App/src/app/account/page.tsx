@@ -40,6 +40,10 @@ export default function AccountPage() {
   const searchParams = useSearchParams()
 
   const canChangePassword = useMemo(() => identities.some(i => i.provider === "email"), [identities])
+  
+  const hasPaidPlan = useMemo(() => {
+    return currentPlan === 'Personal' || currentPlan === 'Trainer'
+  }, [currentPlan])
 
   useEffect(() => {
     const initialTab = searchParams.get('tab')
@@ -303,41 +307,45 @@ export default function AccountPage() {
         </TabsContent>
 
         <TabsContent value="billing" className="space-y-6">
-          <Card>
+          <Card id="plans">
             <CardHeader>
-              <CardTitle>Pricing & Billing</CardTitle>
+              <CardTitle>Plans</CardTitle>
               <CardDescription>
-                Open the billing portal to manage your subscription. Current plan: {currentPlan}
+                Manage your subscription. Current plan: {currentPlan}
               </CardDescription>
             </CardHeader>
+            <CardContent>
+              <PricingPlansClient plans={plans} />
+            </CardContent>
             <CardFooter className="flex gap-3">
-              <Button onClick={async () => {
-                try {
-                  const { data } = await supabase.auth.getSession()
-                  const accessToken = data.session?.access_token
-                  if (!accessToken) {
-                    toast.error('Sign in required')
-                    return
-                  }
-                  const res = await fetch('/api/stripe/portal', {
-                    method: 'POST',
-                    headers: { Authorization: `Bearer ${accessToken}` },
-                  })
-                  const body = await res.json()
-                  if (!res.ok || !body?.url) {
+              <Button 
+                disabled={!hasPaidPlan}
+                onClick={async () => {
+                  if (!hasPaidPlan) return
+                  try {
+                    const { data } = await supabase.auth.getSession()
+                    const accessToken = data.session?.access_token
+                    if (!accessToken) {
+                      toast.error('Sign in required')
+                      return
+                    }
+                    const res = await fetch('/api/stripe/portal', {
+                      method: 'POST',
+                      headers: { Authorization: `Bearer ${accessToken}` },
+                    })
+                    const body = await res.json()
+                    if (!res.ok || !body?.url) {
+                      toast.error('Unable to open billing portal')
+                      return
+                    }
+                    if (typeof window !== 'undefined') window.location.href = body.url as string
+                  } catch {
                     toast.error('Unable to open billing portal')
-                    return
                   }
-                  if (typeof window !== 'undefined') window.location.href = body.url as string
-                } catch {
-                  toast.error('Unable to open billing portal')
-                }
-              }}>Open billing portal</Button>
-              <Button variant="outline" onClick={() => {
-                if (typeof window !== 'undefined') {
-                  document.getElementById('plans')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                }
-              }}>View plans</Button>
+                }}
+              >
+                {hasPaidPlan ? 'Manage subscription' : 'Manage subscription (Free plan)'}
+              </Button>
               <Button variant="secondary" onClick={async () => {
                 const { data } = await supabase.auth.getSession()
                 const uPlan = (data.session?.user?.user_metadata?.plan as string | undefined) || null
@@ -345,16 +353,6 @@ export default function AccountPage() {
                 setCurrentPlan(uPlan || lsPlan || 'Free')
               }}>Refresh status</Button>
             </CardFooter>
-          </Card>
-
-          <Card id="plans">
-            <CardHeader>
-              <CardTitle>Plans</CardTitle>
-              <CardDescription>Choose a plan that fits your goals.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <PricingPlansClient plans={plans} />
-            </CardContent>
           </Card>
         </TabsContent>
 

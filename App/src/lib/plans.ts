@@ -34,7 +34,7 @@ export const plans: Plan[] = [
     features: [
       'Everything in Free',
       'Data saved in account',
-      'Priority improvements',
+      'SMM + BFM metrics calculations',
     ],
     cta: 'Subscribe',
     href: 'https://buy.stripe.com/cNi3cudszgjt7481Rt0Ba02',
