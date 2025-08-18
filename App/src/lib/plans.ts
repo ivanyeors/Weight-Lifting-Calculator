@@ -22,9 +22,9 @@ export const plans: Plan[] = [
     name: 'Free',
     price: 'free',
     period: 'forever',
-    description: 'Great to explore the basics and try the calculator.',
+    description: 'Great to explore the basics and try the Fitness Calculator.',
     features: [
-      'Core calculator features',
+      'Core Fitness Calculator features',
       'Access to base gym exercises',
       'Muscle involvement breakdowns',
       'Dark theme only',

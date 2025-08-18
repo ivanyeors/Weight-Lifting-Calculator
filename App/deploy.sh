@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Weight Lifting Calculator - GitHub Pages Deployment Script
+# Fitspo — Fitness Calculator - GitHub Pages Deployment Script
 
 echo "🚀 Starting deployment to GitHub Pages..."
 

@@ -203,7 +203,7 @@ export default function HomePage() {
               <BreadcrumbList>
                 <BreadcrumbItem>
                   <BreadcrumbPage>
-                    {currentExercise ? currentExercise.name : 'Weight Lifting Calculator'}
+                    {currentExercise ? currentExercise.name : 'Fitness Calculator'}
                   </BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>

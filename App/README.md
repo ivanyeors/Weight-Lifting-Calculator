@@ -1,6 +1,6 @@
-# Weight Lifting Calculator
+# Fitspo — Fitness Calculator
 
-A React-based web application for calculating and tracking weight lifting exercises and workouts.
+A React-based Fitness Calculator for calculating and tracking weight lifting exercises and workouts.
 
 ## Features
 
