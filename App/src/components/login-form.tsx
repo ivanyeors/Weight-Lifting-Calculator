@@ -34,8 +34,10 @@ export function LoginForm({
     setLoading(true)
     try {
       if (mode === 'reset') {
+        const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/');
+        const redirectTo = `${window.location.origin}${base}auth/callback`;
         const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}${import.meta.env.BASE_URL || '/'}auth/callback`,
+          redirectTo,
         })
         if (resetError) throw resetError
         setMessage("Password reset email sent.")
@@ -49,11 +51,13 @@ export function LoginForm({
         // Notify parent to close the sheet immediately
         onSuccess?.()
       } else {
+        const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/');
+        const redirectTo = `${window.location.origin}${base}auth/callback`;
         const { error: signUpError, data } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL || '/'}auth/callback`,
+            emailRedirectTo: redirectTo,
           },
         })
         if (signUpError) throw signUpError
@@ -156,9 +160,10 @@ export function LoginForm({
                       className="w-full"
                       onClick={async () => {
                         sessionStorage.setItem('postAuthRedirectTo', window.location.pathname + window.location.search)
+                        const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/');
                         await supabase.auth.signInWithOAuth({
                           provider: 'google',
-                          options: { redirectTo: `${window.location.origin}${import.meta.env.BASE_URL || '/'}auth/callback` },
+                          options: { redirectTo: `${window.location.origin}${base}auth/callback` },
                         })
                       }}
                     >

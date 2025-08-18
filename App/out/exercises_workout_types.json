@@ -1,0 +1,118 @@
+{
+  "exercises": [
+    {
+      "id": "bench-press",
+      "workoutTypes": [
+        "Strength"
+      ]
+    },
+    {
+      "id": "inclined-bench-press",
+      "workoutTypes": [
+        "Strength"
+      ]
+    },
+    {
+      "id": "dumbbell-flies",
+      "workoutTypes": [
+        "Strength"
+      ]
+    },
+    {
+      "id": "shoulder-press",
+      "workoutTypes": [
+        "Strength"
+      ]
+    },
+    {
+      "id": "lateral-raises",
+      "workoutTypes": [
+        "Strength"
+      ]
+    },
+    {
+      "id": "squats",
+      "workoutTypes": [
+        "Strength"
+      ]
+    },
+    {
+      "id": "deadlift",
+      "workoutTypes": [
+        "Strength"
+      ]
+    },
+    {
+      "id": "pull-ups",
+      "workoutTypes": [
+        "Strength"
+      ]
+    },
+    {
+      "id": "push-ups",
+      "workoutTypes": [
+        "BodyWeight"
+      ]
+    },
+    {
+      "id": "sit-ups",
+      "workoutTypes": [
+        "BodyWeight"
+      ]
+    },
+    {
+      "id": "lunges",
+      "workoutTypes": [
+        "Strength"
+      ]
+    },
+    {
+      "id": "leg-press",
+      "workoutTypes": [
+        "Strength"
+      ]
+    },
+    {
+      "id": "calf-raises",
+      "workoutTypes": [
+        "Strength"
+      ]
+    },
+    {
+      "id": "bicep-curls",
+      "workoutTypes": [
+        "Strength"
+      ]
+    },
+    {
+      "id": "tricep-dips",
+      "workoutTypes": [
+        "Strength"
+      ]
+    },
+    {
+      "id": "lat-pulldowns",
+      "workoutTypes": [
+        "Strength"
+      ]
+    },
+    {
+      "id": "pectoral-fly",
+      "workoutTypes": [
+        "Strength"
+      ]
+    },
+    {
+      "id": "leg-curls",
+      "workoutTypes": [
+        "Strength"
+      ]
+    },
+    {
+      "id": "leg-extensions",
+      "workoutTypes": [
+        "Strength"
+      ]
+    }
+  ]
+}
