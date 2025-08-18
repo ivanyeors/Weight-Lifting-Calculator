@@ -1,10 +1,14 @@
 /** @type {import('next').NextConfig} */
 const isProd = process.env.NODE_ENV === 'production'
 
+const repoName = process.env.GITHUB_REPOSITORY
+  ? `/${process.env.GITHUB_REPOSITORY.split('/')[1]}`
+  : '/Weight-Lifting-Calculator'
+
 const nextConfig = {
   // Only apply basePath/assetPrefix in production (e.g. GitHub Pages)
-  basePath: isProd ? '/Weight-Lifting-Calculator' : undefined,
-  assetPrefix: isProd ? '/Weight-Lifting-Calculator/' : undefined,
+  basePath: isProd ? repoName : undefined,
+  assetPrefix: isProd ? `${repoName}/` : undefined,
   trailingSlash: true,
   output: 'export',
   images: {
