@@ -299,6 +299,12 @@ export default function AccountPage() {
                   document.getElementById('plans')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                 }
               }}>View plans</Button>
+              <Button variant="secondary" onClick={async () => {
+                const { data } = await supabase.auth.getSession()
+                const uPlan = (data.session?.user?.user_metadata?.plan as string | undefined) || null
+                const lsPlan = typeof window !== 'undefined' ? (localStorage.getItem('stronk:plan') as string | null) : null
+                setCurrentPlan(uPlan || lsPlan || 'Free')
+              }}>Refresh status</Button>
             </CardFooter>
           </Card>
 
