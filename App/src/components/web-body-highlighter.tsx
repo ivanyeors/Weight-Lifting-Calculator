@@ -1,6 +1,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { useState } from 'react'
 import { Eye, Dumbbell } from 'lucide-react'
 
@@ -104,6 +110,7 @@ const SvgLayer = ({
   placement,
   title,
   forceFillChildren,
+  onHover,
 }: {
   Component: React.FC<React.SVGProps<SVGSVGElement>>
   color: string
@@ -112,36 +119,53 @@ const SvgLayer = ({
   placement: LayerPlacement
   title: string
   forceFillChildren?: boolean
+  onHover?: (muscleName: string | null) => void
 }) => {
+  const intensityDescription = getIntensityDescription(involvement)
+  
   return (
-    <div
-      className={`absolute cursor-pointer transition-all hover:opacity-90 ${forceFillChildren ? 'wlc-force-fill' : ''}`}
-      style={{
-        top: `${placement.topPct}%`,
-        left: `${placement.leftPct}%`,
-        width: `${placement.widthPct}%`,
-        // provide CSS var for optional force fill
-        // @ts-expect-error CSS variable
-        '--wlc-fill': color,
-      }}
-      onClick={onClick}
-      title={title}
-      data-involvement={involvement}
-    >
-      <Component
-        style={{ fill: color }}
-        className="w-full h-auto"
-        aria-label={title}
-        focusable={false}
-      />
-    </div>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div
+          className={`absolute cursor-pointer transition-all hover:opacity-90 ${forceFillChildren ? 'wlc-force-fill' : ''}`}
+          style={{
+            top: `${placement.topPct}%`,
+            left: `${placement.leftPct}%`,
+            width: `${placement.widthPct}%`,
+            // provide CSS var for optional force fill
+            // @ts-expect-error CSS variable
+            '--wlc-fill': color,
+          }}
+          onClick={onClick}
+          onMouseEnter={() => onHover?.(title)}
+          onMouseLeave={() => onHover?.(null)}
+          data-involvement={involvement}
+        >
+          <Component
+            style={{ fill: color }}
+            className="w-full h-auto"
+            aria-label={title}
+            focusable={false}
+          />
+        </div>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-[200px]">
+        <div className="space-y-1">
+          <p className="font-medium">{title}</p>
+          <p className="text-xs text-muted-foreground">
+            Intensity: {intensityDescription} (Level {involvement})
+          </p>
+        </div>
+      </TooltipContent>
+    </Tooltip>
   )
 }
 
 // Front view body component (layered from individual SVG exports)
-const FrontBodySVG = ({ muscleData, onMuscleClick }: {
+const FrontBodySVG = ({ muscleData, onMuscleClick, onHover }: {
   muscleData: { [key: string]: { color: string; involvement: number } },
   onMuscleClick: (muscle: string) => void
+  onHover?: (muscleName: string | null) => void
 }) => {
   // Placement map relative to a 327x652 frame, expressed in percentages
   const placements: Record<string, LayerPlacement> = {
@@ -171,6 +195,7 @@ const FrontBodySVG = ({ muscleData, onMuscleClick }: {
         placement={placements.calves}
         title="Calves"
         forceFillChildren
+        onHover={onHover}
       />
         {/* Quadriceps */}
         <SvgLayer
@@ -181,6 +206,7 @@ const FrontBodySVG = ({ muscleData, onMuscleClick }: {
         placement={placements.quads}
         title="Quadriceps"
         forceFillChildren
+        onHover={onHover}
       />
       {/* Obliques */}
       <SvgLayer
@@ -191,6 +217,7 @@ const FrontBodySVG = ({ muscleData, onMuscleClick }: {
         placement={placements.obliques}
         title="Obliques"
         forceFillChildren
+        onHover={onHover}
       />
       {/* Trapezius */}
       <SvgLayer
@@ -201,6 +228,7 @@ const FrontBodySVG = ({ muscleData, onMuscleClick }: {
         placement={placements.trapezius}
         title="Trapezius"
         forceFillChildren
+        onHover={onHover}
       />
       {/* Abs */}
       <SvgLayer
@@ -211,6 +239,7 @@ const FrontBodySVG = ({ muscleData, onMuscleClick }: {
         placement={placements.abs}
         title="Rectus Abdominis"
         forceFillChildren
+        onHover={onHover}
       />
       {/* Biceps */}
       <SvgLayer
@@ -221,6 +250,7 @@ const FrontBodySVG = ({ muscleData, onMuscleClick }: {
         placement={placements.biceps}
         title="Biceps"
         forceFillChildren
+        onHover={onHover}
       />
       {/* Forearms */}
       <SvgLayer
@@ -231,6 +261,7 @@ const FrontBodySVG = ({ muscleData, onMuscleClick }: {
         placement={placements.forearms}
         title="Forearms"
         forceFillChildren
+        onHover={onHover}
       />
       {/* Hands (visual only) */}
       <SvgLayer
@@ -241,6 +272,7 @@ const FrontBodySVG = ({ muscleData, onMuscleClick }: {
         placement={placements.hands}
         title="Hands"
         forceFillChildren
+        onHover={onHover}
       />
         {/* Chest */}
         <SvgLayer
@@ -251,6 +283,7 @@ const FrontBodySVG = ({ muscleData, onMuscleClick }: {
         placement={placements.chest}
         title="Chest"
         forceFillChildren
+        onHover={onHover}
       />
         {/* Deltoids */}
         <SvgLayer
@@ -261,6 +294,7 @@ const FrontBodySVG = ({ muscleData, onMuscleClick }: {
         placement={placements.deltoids}
         title="Deltoids"
         forceFillChildren
+        onHover={onHover}
       />
         {/* Neck (visual only) */}
         <SvgLayer
@@ -271,6 +305,7 @@ const FrontBodySVG = ({ muscleData, onMuscleClick }: {
         placement={placements.neck}
         title="Neck"
         forceFillChildren
+        onHover={onHover}
       />
         {/* Head (visual only) */}
         <SvgLayer
@@ -281,15 +316,17 @@ const FrontBodySVG = ({ muscleData, onMuscleClick }: {
         placement={placements.head}
         title="Head"
         forceFillChildren
+        onHover={onHover}
       />
     </div>
   )
 }
 
 // Back view body component (layered SVGs)
-const BackBodySVG = ({ muscleData, onMuscleClick }: {
+const BackBodySVG = ({ muscleData, onMuscleClick, onHover }: {
   muscleData: { [key: string]: { color: string; involvement: number } },
   onMuscleClick: (muscle: string) => void
+  onHover?: (muscleName: string | null) => void
 }) => {
   const placements: Record<string, LayerPlacement> = {
     head: { topPct: -4, leftPct: 41, widthPct: 50 },
@@ -320,6 +357,7 @@ const BackBodySVG = ({ muscleData, onMuscleClick }: {
         placement={placements.calves}
         title="Calves"
         forceFillChildren
+        onHover={onHover}
       />
       {/* Head (visual only) */}
       <SvgLayer
@@ -330,6 +368,7 @@ const BackBodySVG = ({ muscleData, onMuscleClick }: {
         placement={placements.head}
         title="Head"
         forceFillChildren
+        onHover={onHover}
       />
       {/* Hamstrings */}
       <SvgLayer
@@ -340,6 +379,7 @@ const BackBodySVG = ({ muscleData, onMuscleClick }: {
         placement={placements.hamstrings}
         title="Hamstrings"
         forceFillChildren
+        onHover={onHover}
       />
 
       {/* Glutes */}
@@ -351,6 +391,7 @@ const BackBodySVG = ({ muscleData, onMuscleClick }: {
         placement={placements.glutes}
         title="Glutes"
         forceFillChildren
+        onHover={onHover}
       />
 
       {/* Lower Back */}
@@ -362,6 +403,7 @@ const BackBodySVG = ({ muscleData, onMuscleClick }: {
         placement={placements['lower-back']}
         title="Lower Back"
         forceFillChildren
+        onHover={onHover}
       />
 
       {/* Upper Back (includes Latissimus Dorsi mapping) */}
@@ -373,6 +415,7 @@ const BackBodySVG = ({ muscleData, onMuscleClick }: {
         placement={placements['upper-back']}
         title="Upper Back / Lats"
         forceFillChildren
+        onHover={onHover}
       />
 
       {/* Triceps */}
@@ -384,6 +427,7 @@ const BackBodySVG = ({ muscleData, onMuscleClick }: {
         placement={placements.triceps}
         title="Triceps"
         forceFillChildren
+        onHover={onHover}
       />
 
       {/* Deltoids (Back Shoulders) */}
@@ -395,6 +439,7 @@ const BackBodySVG = ({ muscleData, onMuscleClick }: {
         placement={placements.BackShoulders}
         title="Deltoids"
         forceFillChildren
+        onHover={onHover}
       />
 
       {/* Forearms */}
@@ -406,6 +451,7 @@ const BackBodySVG = ({ muscleData, onMuscleClick }: {
         placement={placements.forearms}
         title="Forearms"
         forceFillChildren
+        onHover={onHover}
       />
 
       {/* Hands (visual only) */}
@@ -417,6 +463,7 @@ const BackBodySVG = ({ muscleData, onMuscleClick }: {
         placement={placements.hands}
         title="Hands"
         forceFillChildren
+        onHover={onHover}
       />
 
       {/* Trapezius */}
@@ -428,6 +475,7 @@ const BackBodySVG = ({ muscleData, onMuscleClick }: {
         placement={placements.trapezius}
         title="Trapezius"
         forceFillChildren
+        onHover={onHover}
       />
 
     </div>
@@ -437,6 +485,7 @@ const BackBodySVG = ({ muscleData, onMuscleClick }: {
 export function WebBodyHighlighter({ muscleGroups, exerciseName }: WebBodyHighlighterProps) {
   const [side, setSide] = useState<'front' | 'back'>('front')
   const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null)
+  const [hoveredMuscle, setHoveredMuscle] = useState<string | null>(null)
 
   // Transform muscle groups data for the highlighter
   const muscleData: { [key: string]: { color: string; involvement: number } } = {}
@@ -455,12 +504,17 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName }: WebBodyHighli
     setSelectedMuscle(muscleName)
   }
 
+  const handleHover = (muscleName: string | null) => {
+    setHoveredMuscle(muscleName)
+  }
+
 
 
   const selectedMuscleData = selectedMuscle ? muscleGroups.find(m => m.name === selectedMuscle) : null
 
   return (
-    <Card className="bg-card/50 backdrop-blur border-border/50">
+    <TooltipProvider>
+      <Card className="bg-card/50 backdrop-blur border-border/50">
       <CardContent className="p-6">
         <CardHeader className="px-0 pt-0">
         <div className="flex items-center space-x-2 mb-4">
@@ -488,7 +542,7 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName }: WebBodyHighli
               {/* Body Highlighter */}
               <div className="flex-1 flex justify-center">
                 <div className="max-w-[280px] w-full">
-                  <FrontBodySVG muscleData={muscleData} onMuscleClick={handleMuscleClick} />
+                  <FrontBodySVG muscleData={muscleData} onMuscleClick={handleMuscleClick} onHover={handleHover} />
                 </div>
               </div>
               
@@ -535,6 +589,8 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName }: WebBodyHighli
                       className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
                         selectedMuscle === muscle.name 
                           ? 'bg-primary/10 border border-primary/20' 
+                          : hoveredMuscle === muscle.name
+                          ? 'bg-muted/30 border border-primary/30 shadow-sm'
                           : 'bg-muted/20 hover:bg-muted/30'
                       }`}
                       onClick={() => handleMuscleClick(muscle.name)}
@@ -566,7 +622,7 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName }: WebBodyHighli
               {/* Body Highlighter */}
               <div className="flex-1 flex justify-center">
                 <div className="max-w-[280px] w-full">
-                  <BackBodySVG muscleData={muscleData} onMuscleClick={handleMuscleClick} />
+                  <BackBodySVG muscleData={muscleData} onMuscleClick={handleMuscleClick} onHover={handleHover} />
                 </div>
               </div>
 
@@ -613,6 +669,8 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName }: WebBodyHighli
                       className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
                         selectedMuscle === muscle.name 
                           ? 'bg-primary/10 border border-primary/20' 
+                          : hoveredMuscle === muscle.name
+                          ? 'bg-muted/30 border border-primary/30 shadow-sm'
                           : 'bg-muted/20 hover:bg-muted/30'
                       }`}
                       onClick={() => handleMuscleClick(muscle.name)}
@@ -676,5 +734,6 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName }: WebBodyHighli
         </CardHeader>
       </CardContent>
     </Card>
+    </TooltipProvider>
   )
 }

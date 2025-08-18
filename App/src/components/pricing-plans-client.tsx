@@ -14,32 +14,32 @@ import { Badge } from '@/components/ui/badge'
 import { supabase } from '@/lib/supabaseClient'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import type { Plan } from '@/lib/plans'
 
-type Plan = {
-  name: string
-  price: string
-  period: string
-  description: string
-  features: string[]
-  cta: string
-  href: string
-  highlighted?: boolean
-}
+// Use shared `Plan` type from `lib/plans`
 
 export function PricingPlansClient({ plans }: { plans: Plan[] }) {
   const [currentPlan, setCurrentPlan] = useState<string>('Free')
   const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly')
+  const [userId, setUserId] = useState<string | null>(null)
+  const [email, setEmail] = useState<string | null>(null)
 
   useEffect(() => {
     let unsub: (() => void) | null = null
     const init = async () => {
       const { data } = await supabase.auth.getSession()
+      const u = data.session?.user ?? null
+      setUserId(u?.id ?? null)
+      setEmail(u?.email ?? null)
       const metaPlan = (data.session?.user?.user_metadata?.plan as string | undefined) || null
       const storedPlan = typeof window !== 'undefined' ? (localStorage.getItem('stronk:plan') as string | null) : null
       setCurrentPlan(metaPlan || storedPlan || 'Free')
 
       const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
-        const uPlan = (s?.user?.user_metadata?.plan as string | undefined) || null
+        const user = s?.user
+        setUserId(user?.id ?? null)
+        setEmail(user?.email ?? null)
+        const uPlan = (user?.user_metadata?.plan as string | undefined) || null
         const lsPlan = typeof window !== 'undefined' ? (localStorage.getItem('stronk:plan') as string | null) : null
         setCurrentPlan(uPlan || lsPlan || 'Free')
       })
@@ -52,6 +52,11 @@ export function PricingPlansClient({ plans }: { plans: Plan[] }) {
   const formatCurrency = (value: number) => `$${value.toFixed(2)}`
 
   const getDisplayPrice = (plan: Plan) => {
+    // Handle free plan specially
+    if (plan.price.toLowerCase() === 'free') {
+      return { price: 'Free', period: plan.period }
+    }
+    
     const monthly = parseFloat((plan.price || '').replace(/[^0-9.]/g, '')) || 0
     if (billing !== 'annual') {
       return { price: formatCurrency(monthly), period: '/mo' }
@@ -74,6 +79,11 @@ export function PricingPlansClient({ plans }: { plans: Plan[] }) {
       {plans.map((plan) => {
         const isCurrent = plan.name.toLowerCase() === currentPlan.toLowerCase()
         const display = getDisplayPrice(plan)
+        const isFree = plan.price.toLowerCase() === 'free'
+        const baseHref = billing === 'annual' && plan.yearlyHref ? plan.yearlyHref : plan.href
+        const hrefWithParams = !isFree && userId
+          ? `${baseHref}${baseHref.includes('?') ? '&' : '?'}client_reference_id=${encodeURIComponent(`${userId}|${plan.name}|${billing}`)}${email ? `&prefilled_email=${encodeURIComponent(email)}` : ''}`
+          : baseHref
         return (
           <Card key={plan.name} className={(plan.highlighted ? 'border-primary/50 shadow-md bg-gradient-to-b from-primary/5 to-card ' : '') + 'flex h-full flex-col'}>
             <CardHeader>
@@ -114,9 +124,17 @@ export function PricingPlansClient({ plans }: { plans: Plan[] }) {
                   Current plan
                 </Button>
               ) : (
-                <Button className="w-full" asChild>
-                  <Link href={plan.href}>{plan.cta}</Link>
-                </Button>
+                <>
+                  {!isFree && !userId ? (
+                    <Button className="w-full" asChild>
+                      <Link href={`/account?tab=billing`}>Sign in to subscribe</Link>
+                    </Button>
+                  ) : (
+                    <Button className="w-full" asChild>
+                      <Link href={hrefWithParams}>{plan.cta}</Link>
+                    </Button>
+                  )}
+                </>
               )}
             </CardFooter>
           </Card>
