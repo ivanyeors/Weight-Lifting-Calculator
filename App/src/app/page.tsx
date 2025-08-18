@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useTheme } from 'next-themes'
+
 import {
   Card,
   CardContent,
@@ -33,7 +33,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { AuthCallbackHandler } from "@/auth/AuthCallbackHandler"
-import { Moon, Sun } from 'lucide-react'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 interface MuscleContribution {
   name: string
@@ -96,8 +96,7 @@ export default function HomePage() {
   // Adjustment controls
   const [adjustmentPercent, setAdjustmentPercent] = useState<number>(0)
   const [stepPercent, setStepPercent] = useState<number>(10)
-  const { theme, setTheme, resolvedTheme } = useTheme()
-  const isDark = (resolvedTheme ?? theme) === 'dark'
+
 
   // Get current exercise
   const currentExercise = exercises.find(ex => ex.id === selectedExerciseId) || exercises[0]
@@ -161,7 +160,7 @@ export default function HomePage() {
     loadExternalExercises()
   }, [loadExternalExercises])
 
-  const toggleTheme = () => setTheme(isDark ? 'light' : 'dark')
+
 
   // Update muscle groups when exercise changes
   useEffect(() => {
@@ -210,13 +209,7 @@ export default function HomePage() {
               </BreadcrumbList>
             </Breadcrumb>
             <div className="ml-auto">
-              <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme" title="Toggle theme">
-                {isDark ? (
-                  <Sun className="h-5 w-5" />
-                ) : (
-                  <Moon className="h-5 w-5" />
-                )}
-              </Button>
+              <ThemeToggle />
             </div>
           </header>
 
