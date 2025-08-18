@@ -36,8 +36,8 @@ export const loadExercisesFromLocalFile = async (): Promise<ExternalExercise[]> 
  * Load exercises by consulting public/manifest.json and merging the split files
  */
 export const loadExercisesFromManifest = async (): Promise<ExternalExercise[]> => {
-  // Helper to resolve URLs against Vite base path (works for GitHub Pages subpath deploys)
-  const publicUrl = (p: string) => `${import.meta.env.BASE_URL}${p.replace(/^\/+/, '')}`
+  // Helper to resolve URLs against Next.js base path (works for GitHub Pages subpath deploys)
+  const publicUrl = (p: string) => `${process.env.NEXT_PUBLIC_BASE_URL || ''}${p.replace(/^\/+/, '')}`
   // 1) Read manifest
   const manifestResponse = await fetch(publicUrl('manifest.json'))
   if (!manifestResponse.ok) {

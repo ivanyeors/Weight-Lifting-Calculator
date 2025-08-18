@@ -1,0 +1,99 @@
+{
+  "exercises": [
+    {
+      "id": "bench-press",
+      "name": "Bench Press",
+      "description": "Horizontal pressing movement targeting chest"
+    },
+    {
+      "id": "inclined-bench-press",
+      "name": "Inclined Bench Press",
+      "description": "Inclined pressing movement emphasizing upper chest"
+    },
+    {
+      "id": "dumbbell-flies",
+      "name": "Dumbbell Flies",
+      "description": "Chest isolation exercise with arc movement"
+    },
+    {
+      "id": "shoulder-press",
+      "name": "Shoulder Press",
+      "description": "Overhead pressing movement targeting deltoids"
+    },
+    {
+      "id": "lateral-raises",
+      "name": "Lateral Raises",
+      "description": "Shoulder isolation exercise for lateral deltoids"
+    },
+    {
+      "id": "squats",
+      "name": "Squats",
+      "description": "Compound lower body pushing movement"
+    },
+    {
+      "id": "deadlift",
+      "name": "Deadlift",
+      "description": "Full-body pulling movement from the floor"
+    },
+    {
+      "id": "pull-ups",
+      "name": "Pull Ups",
+      "description": "Vertical pulling movement using body weight"
+    },
+    {
+      "id": "push-ups",
+      "name": "Push Ups",
+      "description": "Bodyweight horizontal pushing exercise"
+    },
+    {
+      "id": "sit-ups",
+      "name": "Sit Ups",
+      "description": "Core exercise targeting abdominal muscles"
+    },
+    {
+      "id": "lunges",
+      "name": "Lunges",
+      "description": "Unilateral lower body exercise"
+    },
+    {
+      "id": "leg-press",
+      "name": "Leg Press",
+      "description": "Machine-based lower body pushing exercise"
+    },
+    {
+      "id": "calf-raises",
+      "name": "Calf Raises",
+      "description": "Isolation exercise for calf muscles"
+    },
+    {
+      "id": "bicep-curls",
+      "name": "Bicep Curls",
+      "description": "Isolation exercise for bicep muscles"
+    },
+    {
+      "id": "tricep-dips",
+      "name": "Tricep Dips",
+      "description": "Bodyweight exercise targeting triceps"
+    },
+    {
+      "id": "lat-pulldowns",
+      "name": "Lat Pulldowns",
+      "description": "Machine-based back exercise targeting latissimus dorsi"
+    },
+    {
+      "id": "pectoral-fly",
+      "name": "Pectoral Fly",
+      "description": "Machine-based chest isolation exercise"
+    },
+    {
+      "id": "leg-curls",
+      "name": "Leg Curls",
+      "description": "Isolation exercise for hamstring muscles"
+    },
+    {
+      "id": "leg-extensions",
+      "name": "Leg Extensions",
+      "description": "Isolation exercise for quadriceps muscles"
+    }
+  ]
+}
