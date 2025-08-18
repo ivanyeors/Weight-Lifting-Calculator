@@ -88,13 +88,15 @@ export function PricingPlansClient({ plans }: { plans: Plan[] }) {
         const hrefWithParams = !isFree && userId
           ? `${baseHref}${baseHref.includes('?') ? '&' : '?'}client_reference_id=${encodeURIComponent(`${userId}|${plan.name}|${billing}`)}${email ? `&prefilled_email=${encodeURIComponent(email)}` : ''}`
           : baseHref
+        const isUserOnHighestPlan = currentPlan.toLowerCase() === 'trainer'
+        const shouldShowSwitchCta = isUserOnHighestPlan && (plan.name === 'Personal' || plan.name === 'Free') && !isCurrent
+        const ctaLabel = shouldShowSwitchCta ? 'Switch plan' : plan.cta
         return (
           <Card key={plan.name} className={(plan.highlighted ? 'border-primary/50 shadow-md bg-gradient-to-b from-primary/5 to-card ' : '') + 'flex h-full flex-col'}>
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div>
                   <CardTitle className="text-xl">{plan.name}</CardTitle>
-                  <CardDescription>{plan.description}</CardDescription>
                 </div>
                 <div className="flex gap-2">
                   {plan.highlighted && (
@@ -107,6 +109,9 @@ export function PricingPlansClient({ plans }: { plans: Plan[] }) {
               </div>
             </CardHeader>
             <CardContent>
+              {plan.description && (
+                <CardDescription className="mb-4">{plan.description}</CardDescription>
+              )}
               <div className="mb-4">
                 <div className="flex items-baseline gap-2">
                   <span className="text-4xl font-bold">{display.price}</span>
@@ -135,7 +140,7 @@ export function PricingPlansClient({ plans }: { plans: Plan[] }) {
                     </Button>
                   ) : (
                     <Button className="w-full" asChild>
-                      <Link href={hrefWithParams}>{plan.cta}</Link>
+                      <Link href={hrefWithParams}>{ctaLabel}</Link>
                     </Button>
                   )}
                 </>
