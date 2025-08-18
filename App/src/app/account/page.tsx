@@ -1,0 +1,314 @@
+"use client"
+
+import { useEffect, useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
+
+import { supabase } from "@/lib/supabaseClient"
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
+
+import { LoginForm } from "@/components/login-form"
+
+type SupabaseIdentity = { identity_id: string; provider: string; last_sign_in_at: string | null }
+
+export default function AccountPage() {
+  const router = useRouter()
+
+  const [loading, setLoading] = useState(true)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [email, setEmail] = useState("")
+  const [fullName, setFullName] = useState("")
+  const [createdAt, setCreatedAt] = useState<string | null>(null)
+  const [identities, setIdentities] = useState<SupabaseIdentity[]>([])
+
+  const [pendingEmail, setPendingEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [savingEmail, setSavingEmail] = useState(false)
+  const [savingPassword, setSavingPassword] = useState(false)
+  const [activeTab, setActiveTab] = useState("account")
+
+  const canChangePassword = useMemo(() => identities.some(i => i.provider === "email"), [identities])
+
+  useEffect(() => {
+    let unsub: (() => void) | null = null
+    const init = async () => {
+      const { data } = await supabase.auth.getSession()
+      const sessionUser = data.session?.user ?? null
+      if (!sessionUser) {
+        setLoading(false)
+        return
+      }
+      setUserId(sessionUser.id)
+      setEmail(sessionUser.email ?? "")
+      setPendingEmail(sessionUser.email ?? "")
+      setFullName(
+        (sessionUser.user_metadata?.full_name || sessionUser.user_metadata?.name || "") as string
+      )
+      setCreatedAt(sessionUser.created_at ?? null)
+      setIdentities((sessionUser.identities || []) as SupabaseIdentity[])
+      setLoading(false)
+
+      const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+        const u = s?.user
+        if (!u) return
+        setUserId(u.id)
+        setEmail(u.email ?? "")
+        setPendingEmail(u.email ?? "")
+        setFullName((u.user_metadata?.full_name || u.user_metadata?.name || "") as string)
+        setCreatedAt(u.created_at ?? null)
+        setIdentities((u.identities || []) as SupabaseIdentity[])
+      })
+      unsub = () => sub.subscription.unsubscribe()
+    }
+    void init()
+    return () => { if (unsub) unsub() }
+  }, [])
+
+  const handleSaveProfile = async () => {
+    setSavingProfile(true)
+    try {
+      const { error } = await supabase.auth.updateUser({ data: { full_name: fullName } })
+      if (error) throw error
+    } finally {
+      setSavingProfile(false)
+    }
+  }
+
+  const handleUpdateEmail = async () => {
+    if (!pendingEmail || pendingEmail === email) return
+    setSavingEmail(true)
+    try {
+      const { error } = await supabase.auth.updateUser({ email: pendingEmail })
+      if (error) throw error
+    } finally {
+      setSavingEmail(false)
+    }
+  }
+
+  const handleUpdatePassword = async () => {
+    if (!canChangePassword || !password) return
+    setSavingPassword(true)
+    try {
+      const { error } = await supabase.auth.updateUser({ password })
+      if (error) throw error
+      setPassword("")
+    } finally {
+      setSavingPassword(false)
+    }
+  }
+
+  const exportData = () => {
+    const collected: Record<string, unknown> = {
+      profile: { id: userId, email, fullName, createdAt },
+      local: {
+        theme: typeof window !== "undefined" ? localStorage.getItem("theme") : null,
+      },
+    }
+    try {
+      if (typeof window !== "undefined") {
+        const extraKeys = Object.keys(localStorage).filter(k => k.startsWith("stronk:"))
+        const extras: Record<string, string | null> = {}
+        for (const k of extraKeys) extras[k] = localStorage.getItem(k)
+        collected["localKeys"] = extras
+      }
+    } catch (err) {
+      // Intentionally ignore export failures (e.g., storage access blocked)
+      void err
+    }
+
+    const blob = new Blob([JSON.stringify(collected, null, 2)], { type: "application/json" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = "stronk-account-export.json"
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const clearSavedData = () => {
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("theme")
+        Object.keys(localStorage)
+          .filter(k => k.startsWith("stronk:"))
+          .forEach(k => localStorage.removeItem(k))
+      }
+    } catch (err) {
+      // Intentionally ignore localStorage clear failures
+      void err
+    }
+  }
+
+  const openBilling = () => {
+    router.push("/pricing")
+  }
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="text-sm text-muted-foreground">Loading account…</div>
+      </div>
+    )
+  }
+
+  if (!userId) {
+    return (
+      <div className="min-h-[70vh] w-full flex items-center justify-center p-6">
+        <div className="w-full max-w-sm md:max-w-md">
+          <Card>
+            <CardHeader>
+              <CardTitle>Sign in required</CardTitle>
+              <CardDescription>Log in to manage your account.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <LoginForm onSuccess={() => router.refresh()} />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="container mx-auto p-4 md:p-8">
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold tracking-tight">Account</h1>
+        <p className="text-sm text-muted-foreground">Manage your profile, billing, and data.</p>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList>
+          <TabsTrigger value="account">Account</TabsTrigger>
+          <TabsTrigger value="billing">Billing</TabsTrigger>
+          <TabsTrigger value="data">Data</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="account" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Profile</CardTitle>
+              <CardDescription>Update your name and basic information.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 md:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="fullName">Full name</Label>
+                <Input id="fullName" value={fullName} onChange={e => setFullName(e.target.value)} />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label>Account created</Label>
+                <Input value={createdAt ? new Date(createdAt).toLocaleString() : "—"} readOnly />
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button onClick={handleSaveProfile} disabled={savingProfile}>
+                {savingProfile ? "Saving…" : "Save profile"}
+              </Button>
+            </CardFooter>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Sign-in & Security</CardTitle>
+              <CardDescription>Update your email and password.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-4">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" type="email" value={pendingEmail} onChange={e => setPendingEmail(e.target.value)} />
+                </div>
+                <Button variant="default" onClick={handleUpdateEmail} disabled={savingEmail || pendingEmail === email}>
+                  {savingEmail ? "Updating…" : "Update email"}
+                </Button>
+                <p className="text-xs text-muted-foreground">Updating your email may require confirmation.</p>
+              </div>
+              <div className="space-y-4">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="password">New password</Label>
+                  <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder={canChangePassword ? "Enter a new password" : "Not available for social login"} disabled={!canChangePassword} />
+                </div>
+                <Button variant="default" onClick={handleUpdatePassword} disabled={!canChangePassword || savingPassword || !password}>
+                  {savingPassword ? "Updating…" : "Update password"}
+                </Button>
+                {!canChangePassword && (
+                  <p className="text-xs text-muted-foreground">Password changes are only available for email/password accounts.</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Subscription</CardTitle>
+              <CardDescription>Manage your plan and billing.</CardDescription>
+            </CardHeader>
+            <CardFooter>
+              <Button onClick={() => setActiveTab("billing")}>Manage subscription</Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="billing" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Billing</CardTitle>
+              <CardDescription>Open the billing portal to manage your subscription.</CardDescription>
+            </CardHeader>
+            <CardFooter className="flex gap-3">
+              <Button onClick={openBilling}>Open billing portal</Button>
+              <Button variant="outline" onClick={() => router.push("/pricing")}>View plans</Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="data" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Export</CardTitle>
+              <CardDescription>Download a copy of your data.</CardDescription>
+            </CardHeader>
+            <CardFooter>
+              <Button onClick={exportData}>Export data</Button>
+            </CardFooter>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Saved settings</CardTitle>
+              <CardDescription>Remove saved settings from this device.</CardDescription>
+            </CardHeader>
+            <CardFooter>
+              <Button variant="destructive" onClick={clearSavedData}>Delete saved data</Button>
+            </CardFooter>
+          </Card>
+
+          <Separator />
+
+          <Card className="border-destructive/50">
+            <CardHeader>
+              <CardTitle>Danger zone</CardTitle>
+              <CardDescription>Delete your account from this platform.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Account deletion requires a secure server-side process. If this project adds a deletion endpoint later,
+                it will appear here. For now, contact support or remove your saved data above.
+              </p>
+            </CardContent>
+            <CardFooter>
+              <Button variant="outline" disabled>Delete account (unavailable)</Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  )
+}
+
+

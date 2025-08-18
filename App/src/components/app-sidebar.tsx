@@ -1,3 +1,4 @@
+"use client"
 import { useEffect, useState } from 'react'
 import {
   Sidebar,
@@ -564,7 +565,7 @@ export function AppSidebar({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] min-w-[260px]" align="end" side="right" sideOffset={4} alignOffset={0}>
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>Menu</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onSelect={(e) => { e.preventDefault(); window.location.href = '/account' }}
