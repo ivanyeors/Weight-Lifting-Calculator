@@ -16,6 +16,7 @@ import { Separator } from "@/components/ui/separator"
 import { LoginForm } from "@/components/login-form"
 import { PricingPlansClient } from "@/components/pricing-plans-client"
 import { plans } from "@/lib/plans"
+import { toast } from "sonner"
 
 type SupabaseIdentity = { identity_id: string; provider: string; last_sign_in_at: string | null }
 
@@ -93,6 +94,9 @@ export default function AccountPage() {
     try {
       const { error } = await supabase.auth.updateUser({ data: { full_name: fullName } })
       if (error) throw error
+      toast.success("Profile updated")
+    } catch {
+      toast.error("Failed to save profile")
     } finally {
       setSavingProfile(false)
     }
@@ -104,6 +108,9 @@ export default function AccountPage() {
     try {
       const { error } = await supabase.auth.updateUser({ email: pendingEmail })
       if (error) throw error
+      toast.success("Email update requested. Check your inbox to confirm.")
+    } catch {
+      toast.error("Failed to update email")
     } finally {
       setSavingEmail(false)
     }
@@ -116,12 +123,16 @@ export default function AccountPage() {
       const { error } = await supabase.auth.updateUser({ password })
       if (error) throw error
       setPassword("")
+      toast.success("Password updated")
+    } catch {
+      toast.error("Failed to update password")
     } finally {
       setSavingPassword(false)
     }
   }
 
   const exportData = () => {
+    toast("Preparing download…")
     const collected: Record<string, unknown> = {
       profile: { id: userId, email, fullName, createdAt },
       local: {
@@ -150,16 +161,23 @@ export default function AccountPage() {
   }
 
   const clearSavedData = () => {
+    const confirmed = typeof window !== "undefined" ? window.confirm("Delete saved settings on this device? This cannot be undone.") : false
+    if (!confirmed) {
+      toast.message("Deletion cancelled")
+      return
+    }
     try {
       if (typeof window !== "undefined") {
         localStorage.removeItem("theme")
         Object.keys(localStorage)
           .filter(k => k.startsWith("stronk:"))
           .forEach(k => localStorage.removeItem(k))
+        toast.success("Saved data deleted")
       }
     } catch (err) {
       // Intentionally ignore localStorage clear failures
       void err
+      toast.error("Failed to delete saved data")
     }
   }
 

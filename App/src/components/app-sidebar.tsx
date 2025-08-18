@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -129,9 +130,28 @@ export function AppSidebar({
   const [skeletalMuscleMassInput, setSkeletalMuscleMassInput] = useState(String(skeletalMuscleMass))
   const [bodyFatMassInput, setBodyFatMassInput] = useState(String(bodyFatMass))
   const [isLoginOpen, setIsLoginOpen] = useState(false)
+  const [currentPlan, setCurrentPlan] = useState<string>('Free')
 
   // Close login sheet on successful sign-in
   useEffect(() => { if (user && isLoginOpen) setIsLoginOpen(false) }, [user, isLoginOpen])
+
+  // Sync current plan from Supabase and localStorage
+  useEffect(() => {
+    const fetchPlan = async () => {
+      const { data } = await supabase.auth.getSession()
+      const metaPlan = (data.session?.user?.user_metadata?.plan as string | undefined) || null
+      const storedPlan = typeof window !== 'undefined' ? (localStorage.getItem('stronk:plan') as string | null) : null
+      setCurrentPlan(metaPlan || storedPlan || 'Free')
+    }
+    void fetchPlan()
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      const uPlan = (s?.user?.user_metadata?.plan as string | undefined) || null
+      const lsPlan = typeof window !== 'undefined' ? (localStorage.getItem('stronk:plan') as string | null) : null
+      setCurrentPlan(uPlan || lsPlan || 'Free')
+    })
+    return () => sub.subscription.unsubscribe()
+  }, [])
 
   useEffect(() => { setBodyWeightInput(String(bodyWeight)) }, [bodyWeight])
   useEffect(() => { setHeightInput(String(height)) }, [height])
@@ -565,7 +585,10 @@ export function AppSidebar({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] min-w-[260px]" align="end" side="right" sideOffset={4} alignOffset={0}>
-              <DropdownMenuLabel>Menu</DropdownMenuLabel>
+              <DropdownMenuLabel className="flex items-center justify-between gap-2">
+                <span className="truncate">{user?.name || user?.email || 'Account'}</span>
+                <Badge variant="secondary" className="ml-2 shrink-0">{currentPlan}</Badge>
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onSelect={(e) => { e.preventDefault(); window.location.href = '/account' }}
