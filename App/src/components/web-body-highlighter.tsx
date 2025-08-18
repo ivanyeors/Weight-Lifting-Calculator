@@ -179,18 +179,18 @@ const FrontBodySVG = ({ muscleData, onMuscleClick, onHover }: {
 }) => {
   // Placement map relative to a 327x652 frame, expressed in percentages
   const placements: Record<string, LayerPlacement> = {
-    head: { topPct: -4, leftPct: 41, widthPct: 50 },
-    neck: { topPct: 7.5, leftPct: 45.8, widthPct: 100 },
+    head: { topPct: -4, leftPct: 41, widthPct: 25 },
+    neck: { topPct: 7.5, leftPct: 45.8, widthPct: 15 },
     trapezius: { topPct: 11, leftPct: 34.5, widthPct: 44 },
     hands: { topPct: 47, leftPct: -5.2, widthPct: 121 },
     deltoids: { topPct: 15, leftPct: 19, widthPct: 99 },
-    chest: { topPct: 16.7, leftPct: 30, widthPct: 99 },
+    chest: { topPct: 16.7, leftPct: 30, widthPct: 47 },
     biceps: { topPct: 23.4, leftPct: 16, widthPct: 99 },
-    abs: { topPct: 24, leftPct: 42, widthPct: 99 },
-    obliques: { topPct: 16, leftPct: 31, widthPct: 99 },
+    abs: { topPct: 24, leftPct: 42, widthPct: 24 },
+    obliques: { topPct: 16, leftPct: 31, widthPct: 45 },
     forearms: { topPct: 33.5, leftPct: 5.5, widthPct: 99 },
-    quads: { topPct: 44, leftPct: 28, widthPct: 99 },
-    calves: { topPct: 68, leftPct: 21.5, widthPct: 99 }, // using Lower Legs for front calves
+    quads: { topPct: 44, leftPct: 28, widthPct: 51 },
+    calves: { topPct: 68, leftPct: 21.5, widthPct: 66.5 }, // using Lower Legs for front calves
   }
 
   return (
@@ -642,17 +642,18 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, sele
           
           <TabsContent value="front" className="mt-6">
             <div className="flex flex-col lg:flex-row gap-6">
-              {/* Body Highlighter */}
-              <div className="flex-1 flex justify-center">
-                <div className="max-w-[280px] w-full">
-                  <FrontBodySVG muscleData={muscleData} onMuscleClick={handleMuscleClick} onHover={handleHover} />
+              {/* Left side: Body vector and selected muscle stacked */}
+              <div className="flex flex-col gap-4 lg:w-1/2 lg:justify-between">
+                {/* Body Highlighter */}
+                <div className="flex justify-center">
+                  <div className="max-w-[280px] w-full">
+                    <FrontBodySVG muscleData={muscleData} onMuscleClick={handleMuscleClick} onHover={handleHover} />
+                  </div>
                 </div>
-              </div>
-              
-              {/* Right pane: details + videos */}
-              <div className="flex-1 space-y-4">
+                
+                {/* Selected Muscle Card - pushed to bottom */}
                 {selectedMuscleData && (
-                  <div className="p-4 bg-muted/30 rounded-lg border border-border/30">
+                  <div className="p-4 bg-muted/30 rounded-lg border border-border/30 max-w-[280px] mx-auto">
                     <h4 className="font-medium text-sm mb-2">Selected Muscle</h4>
                     <div className="flex items-center space-x-2 flex-wrap gap-2">
                       <Badge variant="secondary">
@@ -677,8 +678,10 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, sele
                     </div>
                   </div>
                 )}
+              </div>
 
-                {/* Video search & viewer */}
+              {/* Right side: Video search & viewer */}
+              <div className="flex-1 lg:w-1/2">
                 <Card className="border-border/50">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between gap-3">
@@ -692,7 +695,7 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, sele
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="w-full bg-black rounded-md overflow-hidden" style={{ aspectRatio: '9/16' }}>
+                    <div className="w-full bg-black rounded-md overflow-hidden mx-auto" style={{ aspectRatio: '9/16', maxWidth: '70%' }}>
                       {videoUrls.length === 0 ? (
                         <div className="x1ey2m1c x9f619 xtijo5x x1o0tod x10l6tqk x13vifvy x1ypdohk" role="presentation" style={{ width: '100%', height: '100%' }}>
                           <div className="xbudbmw x9uk3rv xa2bojp x10l6tqk xwa60dl" style={{ width: '100%', height: '100%' }}>
@@ -700,16 +703,40 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, sele
                           </div>
                         </div>
                       ) : (
-                        <iframe
-                          key={embeddedUrl}
-                          src={embeddedUrl}
-                          className="w-full h-full"
-                          allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-                          allowFullScreen
-                          loading="lazy"
-                          style={{ border: '0' }}
-                          title="Exercise video"
-                        />
+                        <div className="x5yr21d x10l6tqk x13vifvy xh8yej3" data-visualcompletion="ignore" style={{ width: '100%', height: '100%', position: 'relative' }}>
+                          <img 
+                            className="x15mokao x1ga7v0g x16uus16 xbiv7yw x5yr21d xl1xv1r xh8yej3" 
+                            alt="" 
+                            referrerPolicy="origin-when-cross-origin" 
+                            src="https://scontent.cdninstagram.com/v/t51.82787-15/534315472_18285042016282299_6602308732763501482_n.jpg?stp=dst-jpg_e15_tt6&amp;_nc_cat=105&amp;ig_cache_key=MzcwMTM0ODIxNDkzNDA1NzYzNjE4Mjg1MDQyMDEwMjgyMjk5.3-ccb1-7&amp;ccb=1-7&amp;_nc_sid=58cdad&amp;efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjU0MHg5NjAuc2RyLkMzIn0%3D&amp;_nc_ohc=l1J7rOTpbMcQ7kNvwGBi9cg&amp;_nc_oc=AdmiK1B8wvtSLVdff9ZFTmjdk9e0MrJ84mTuXWjKjcpOchQjpeM9pJp3H7YeDcjxtuA&amp;_nc_ad=z-m&amp;_nc_cid=0&amp;_nc_zt=23&amp;_nc_ht=scontent.cdninstagram.com&amp;_nc_gid=N8FldTjgfFtNH-oJvKslCg&amp;oh=00_AfXEBcsDB2xIcfNtsZY6IQvyKDQQl0-W8W-cToGXh6Izww&amp;oe=68A91E08"
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                          <div className="x1ey2m1c x9f619 xtijo5x x1o0tod x10l6tqk x13vifvy x1ypdohk" role="presentation" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
+                            <div className="xbudbmw x9uk3rv xa2bojp x10l6tqk xwa60dl" style={{ width: '100%', height: '100%' }}>
+                              <div className="x1yomw13 x1dhbnvk x4iexvp xfem2s5 xv2xd2s xg79w0" style={{ width: '100%', height: '100%' }}></div>
+                            </div>
+                          </div>
+                          <div className="html-div xdj266r x14z9mp xat24cr x1lziwak xexx8yu xyri2b x18d9i69 x1c1uobl x9f619 xjbqb8w x78zum5 x15mokao x1ga7v0g x16uus16 xbiv7yw x10l6tqk x1ey2m1c xtijo5x x1plvlek xryxfnj x1c4vz4f x2lah0s xdt5ytf xqjyukv x1qjc9v5 x1oa3qoh x1nhvcw1" style={{ position: 'absolute', top: '10px', right: '10px' }}>
+                            <button aria-label="Toggle audio" className=" _aswp _aswq _aswu _asw_ _asx2" type="button" style={{ background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                              <div className="html-div x9f619 x78zum5 x1c9tyrk xeusxvb x1pahc9y x1ertn4p x14vqqas xbmvrgn xod5an3 x1diwwjn x1y1aw1k xf159sx xwib8y2 xmzvs34 x1uhb9sk x1plvlek xryxfnj x1c4vz4f x2lah0s xdt5ytf xqjyukv x1qjc9v5 x1oa3qoh x1nhvcw1 x18l40ae">
+                                <svg aria-label="Audio is muted" className="x1lliihq x1n2onr6 x9bdzbf" fill="currentColor" height="12" role="img" viewBox="0 0 48 48" width="12" style={{ color: 'white' }}>
+                                  <title>Audio is muted</title>
+                                  <path clipRule="evenodd" d="M1.5 13.3c-.8 0-1.5.7-1.5 1.5v18.4c0 .8.7 1.5 1.5 1.5h8.7l12.9 12.9c.9.9 2.5.3 2.5-1v-9.8c0-.4-.2-.8-.4-1.1l-22-22c-.3-.3-.7-.4-1.1-.4h-.6zm46.8 31.4-5.5-5.5C44.9 36.6 48 31.4 48 24c0-11.4-7.2-17.4-7.2-17.4-.6-.6-1.6-.6-2.2 0L37.2 8c-.6.6-.6 1.6 0 2.2 0 0 5.7 5 5.7 13.8 0 5.4-2.1 9.3-3.8 11.6L35.5 32c1.1-1.7 2.3-4.4 2.3-8 0-6.8-4.1-10.3-4.1-10.3-.6-.6-1.6-.6-2.2 0l-1.4 1.4c-.6.6-.6 1.6 0 2.2 0 0 2.6 2 2.6 6.7 0 1.8-.4 3.2-.9 4.3L25.5 22V1.4c0-1.3-1.6-1.9-2.5-1L13.5 10 3.3-.3c-.6-.6-1.5-.6-2.1 0L-.2 1.1c-.6.6-.6 1.5 0 2.1L4 7.6l26.8 26.8 13.9 13.9c.6.6 1.5.6 2.1 0l1.4-1.4c.7-.6.7-1.6.1-2.2z" fillRule="evenodd"></path>
+                                </svg>
+                              </div>
+                            </button>
+                          </div>
+                          <div className="xwepwai x12ol6y4 x180vkcf x1khw62d x709u02 x972fbf x10w94by x1qhh985 x14e42zd x1ypdohk x14vqqas xbmvrgn xod5an3 x1diwwjn x13dflua x19991ni x1ey2m1c x1o0tod x10l6tqk x1hc1fzr" style={{ position: 'absolute', bottom: '10px', right: '10px' }}>
+                            <button className=" _aswp _aswq _aswu _asw_ _asx2" type="button" style={{ background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                              <div className="html-div xdj266r x14z9mp xat24cr x1lziwak x9f619 xjbqb8w x78zum5 x15mokao x1ga7v0g x16uus16 xbiv7yw xf159sx xmzvs34 xwib8y2 x1y1aw1k x1n2onr6 x1plvlek xryxfnj x1c4vz4f x2lah0s x1q0g3np xqjyukv x6s0dn4 x1oa3qoh xl56j7k">
+                                <svg aria-label="Tags" className="x1lliihq x1n2onr6 x9bdzbf" fill="currentColor" height="12" role="img" viewBox="0 0 24 24" width="12" style={{ color: 'white' }}>
+                                  <title>Tags</title>
+                                  <path d="M21.334 23H2.666a1 1 0 0 1-1-1v-1.354a6.279 6.279 0 0 1 6.272-6.272h8.124a6.279 6.279 0 0 1 6.271 6.271V22a1 1 0 0 1-1 1ZM12 13.269a6 6 0 1 1 6-6 6.007 6.007 0 0 1-6 6Z"></path>
+                                </svg>
+                              </div>
+                            </button>
+                          </div>
+                        </div>
                       )}
                     </div>
                     <div className="mt-3 flex items-center justify-between">
@@ -731,17 +758,18 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, sele
           
           <TabsContent value="back" className="mt-6">
             <div className="flex flex-col lg:flex-row gap-6">
-              {/* Body Highlighter */}
-              <div className="flex-1 flex justify-center">
-                <div className="max-w-[280px] w-full">
-                  <BackBodySVG muscleData={muscleData} onMuscleClick={handleMuscleClick} onHover={handleHover} />
+              {/* Left side: Body vector and selected muscle stacked */}
+              <div className="flex flex-col gap-4 lg:w-1/2 lg:justify-between">
+                {/* Body Highlighter */}
+                <div className="flex justify-center">
+                  <div className="max-w-[280px] w-full">
+                    <BackBodySVG muscleData={muscleData} onMuscleClick={handleMuscleClick} onHover={handleHover} />
+                  </div>
                 </div>
-              </div>
 
-              {/* Right pane: details + videos */}
-              <div className="flex-1 space-y-4">
+                {/* Selected Muscle Card - pushed to bottom */}
                 {selectedMuscleData && (
-                  <div className="p-4 bg-muted/30 rounded-lg border border-border/30">
+                  <div className="p-4 bg-muted/30 rounded-lg border border-border/30 max-w-[280px] mx-auto">
                     <h4 className="font-medium text-sm mb-2">Selected Muscle</h4>
                     <div className="flex items-center space-x-2 flex-wrap gap-2">
                       <Badge variant="secondary">
@@ -766,8 +794,10 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, sele
                     </div>
                   </div>
                 )}
+              </div>
 
-                {/* Video search & viewer (same as front) */}
+              {/* Right side: Video search & viewer */}
+              <div className="flex-1 lg:w-1/2">
                 <Card className="border-border/50">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between gap-3">
@@ -781,7 +811,7 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, sele
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="w-full bg-black rounded-md overflow-hidden" style={{ aspectRatio: '9/16' }}>
+                    <div className="w-full bg-black rounded-md overflow-hidden mx-auto" style={{ aspectRatio: '9/16', maxWidth: '70%' }}>
                       {videoUrls.length === 0 ? (
                         <div className="x1ey2m1c x9f619 xtijo5x x1o0tod x10l6tqk x13vifvy x1ypdohk" role="presentation" style={{ width: '100%', height: '100%' }}>
                           <div className="xbudbmw x9uk3rv xa2bojp x10l6tqk xwa60dl" style={{ width: '100%', height: '100%' }}>
@@ -789,16 +819,40 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, sele
                           </div>
                         </div>
                       ) : (
-                        <iframe
-                          key={embeddedUrl}
-                          src={embeddedUrl}
-                          className="w-full h-full"
-                          allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-                          allowFullScreen
-                          loading="lazy"
-                          style={{ border: '0' }}
-                          title="Exercise video"
-                        />
+                        <div className="x5yr21d x10l6tqk x13vifvy xh8yej3" data-visualcompletion="ignore" style={{ width: '100%', height: '100%', position: 'relative' }}>
+                          <img 
+                            className="x15mokao x1ga7v0g x16uus16 xbiv7yw x5yr21d xl1xv1r xh8yej3" 
+                            alt="" 
+                            referrerPolicy="origin-when-cross-origin" 
+                            src="https://scontent.cdninstagram.com/v/t51.82787-15/534315472_18285042016282299_6602308732763501482_n.jpg?stp=dst-jpg_e15_tt6&amp;_nc_cat=105&amp;ig_cache_key=MzcwMTM0ODIxNDkzNDA1NzYzNjE4Mjg1MDQyMDEwMjgyMjk5.3-ccb1-7&amp;ccb=1-7&amp;_nc_sid=58cdad&amp;efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjU0MHg5NjAuc2RyLkMzIn0%3D&amp;_nc_ohc=l1J7rOTpbMcQ7kNvwGBi9cg&amp;_nc_oc=AdmiK1B8wvtSLVdff9ZFTmjdk9e0MrJ84mTuXWjKjcpOchQjpeM9pJp3H7YeDcjxtuA&amp;_nc_ad=z-m&amp;_nc_cid=0&amp;_nc_zt=23&amp;_nc_ht=scontent.cdninstagram.com&amp;_nc_gid=N8FldTjgfFtNH-oJvKslCg&amp;oh=00_AfXEBcsDB2xIcfNtsZY6IQvyKDQQl0-W8W-cToGXh6Izww&amp;oe=68A91E08"
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                          <div className="x1ey2m1c x9f619 xtijo5x x1o0tod x10l6tqk x13vifvy x1ypdohk" role="presentation" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
+                            <div className="xbudbmw x9uk3rv xa2bojp x10l6tqk xwa60dl" style={{ width: '100%', height: '100%' }}>
+                              <div className="x1yomw13 x1dhbnvk x4iexvp xfem2s5 xv2xd2s xg79w0" style={{ width: '100%', height: '100%' }}></div>
+                            </div>
+                          </div>
+                          <div className="html-div xdj266r x14z9mp xat24cr x1lziwak xexx8yu xyri2b x18d9i69 x1c1uobl x9f619 xjbqb8w x78zum5 x15mokao x1ga7v0g x16uus16 xbiv7yw x10l6tqk x1ey2m1c xtijo5x x1plvlek xryxfnj x1c4vz4f x2lah0s xdt5ytf xqjyukv x1qjc9v5 x1oa3qoh x1nhvcw1" style={{ position: 'absolute', top: '10px', right: '10px' }}>
+                            <button aria-label="Toggle audio" className=" _aswp _aswq _aswu _asw_ _asx2" type="button" style={{ background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                              <div className="html-div x9f619 x78zum5 x1c9tyrk xeusxvb x1pahc9y x1ertn4p x14vqqas xbmvrgn xod5an3 x1diwwjn x1y1aw1k xf159sx xwib8y2 xmzvs34 x1uhb9sk x1plvlek xryxfnj x1c4vz4f x2lah0s xdt5ytf xqjyukv x1qjc9v5 x1oa3qoh x1nhvcw1 x18l40ae">
+                                <svg aria-label="Audio is muted" className="x1lliihq x1n2onr6 x9bdzbf" fill="currentColor" height="12" role="img" viewBox="0 0 48 48" width="12" style={{ color: 'white' }}>
+                                  <title>Audio is muted</title>
+                                  <path clipRule="evenodd" d="M1.5 13.3c-.8 0-1.5.7-1.5 1.5v18.4c0 .8.7 1.5 1.5 1.5h8.7l12.9 12.9c.9.9 2.5.3 2.5-1v-9.8c0-.4-.2-.8-.4-1.1l-22-22c-.3-.3-.7-.4-1.1-.4h-.6zm46.8 31.4-5.5-5.5C44.9 36.6 48 31.4 48 24c0-11.4-7.2-17.4-7.2-17.4-.6-.6-1.6-.6-2.2 0L37.2 8c-.6.6-.6 1.6 0 2.2 0 0 5.7 5 5.7 13.8 0 5.4-2.1 9.3-3.8 11.6L35.5 32c1.1-1.7 2.3-4.4 2.3-8 0-6.8-4.1-10.3-4.1-10.3-.6-.6-1.6-.6-2.2 0l-1.4 1.4c-.6.6-.6 1.6 0 2.2 0 0 2.6 2 2.6 6.7 0 1.8-.4 3.2-.9 4.3L25.5 22V1.4c0-1.3-1.6-1.9-2.5-1L13.5 10 3.3-.3c-.6-.6-1.5-.6-2.1 0L-.2 1.1c-.6.6-.6 1.5 0 2.1L4 7.6l26.8 26.8 13.9 13.9c.6.6 1.5.6 2.1 0l1.4-1.4c.7-.6.7-1.6.1-2.2z" fillRule="evenodd"></path>
+                                </svg>
+                              </div>
+                            </button>
+                          </div>
+                          <div className="xwepwai x12ol6y4 x180vkcf x1khw62d x709u02 x972fbf x10w94by x1qhh985 x14e42zd x1ypdohk x14vqqas xbmvrgn xod5an3 x1diwwjn x13dflua x19991ni x1ey2m1c x1o0tod x10l6tqk x1hc1fzr" style={{ position: 'absolute', bottom: '10px', right: '10px' }}>
+                            <button className=" _aswp _aswq _aswu _asw_ _asx2" type="button" style={{ background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                              <div className="html-div xdj266r x14z9mp xat24cr x1lziwak x9f619 xjbqb8w x78zum5 x15mokao x1ga7v0g x16uus16 xbiv7yw xf159sx xmzvs34 xwib8y2 x1y1aw1k x1n2onr6 x1plvlek xryxfnj x1c4vz4f x2lah0s x1q0g3np xqjyukv x6s0dn4 x1oa3qoh xl56j7k">
+                                <svg aria-label="Tags" className="x1lliihq x1n2onr6 x9bdzbf" fill="currentColor" height="12" role="img" viewBox="0 0 24 24" width="12" style={{ color: 'white' }}>
+                                  <title>Tags</title>
+                                  <path d="M21.334 23H2.666a1 1 0 0 1-1-1v-1.354a6.279 6.279 0 0 1 6.272-6.272h8.124a6.279 6.279 0 0 1 6.271 6.271V22a1 1 0 0 1-1 1ZM12 13.269a6 6 0 1 1 6-6 6.007 6.007 0 0 1-6 6Z"></path>
+                                </svg>
+                              </div>
+                            </button>
+                          </div>
+                        </div>
                       )}
                     </div>
                     <div className="mt-3 flex items-center justify-between">
