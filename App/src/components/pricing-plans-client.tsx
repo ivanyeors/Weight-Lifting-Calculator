@@ -32,7 +32,9 @@ export function PricingPlansClient({ plans }: { plans: Plan[] }) {
       setUserId(u?.id ?? null)
       setEmail(u?.email ?? null)
       const metaPlan = (data.session?.user?.user_metadata?.plan as string | undefined) || null
-      const storedPlan = typeof window !== 'undefined' ? (localStorage.getItem('stronk:plan') as string | null) : null
+      const storedPlan = typeof window !== 'undefined'
+        ? ((localStorage.getItem('fitspo:plan') as string | null) || (localStorage.getItem('stronk:plan') as string | null))
+        : null
       setCurrentPlan(metaPlan || storedPlan || 'Free')
 
       const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
@@ -40,7 +42,9 @@ export function PricingPlansClient({ plans }: { plans: Plan[] }) {
         setUserId(user?.id ?? null)
         setEmail(user?.email ?? null)
         const uPlan = (user?.user_metadata?.plan as string | undefined) || null
-        const lsPlan = typeof window !== 'undefined' ? (localStorage.getItem('stronk:plan') as string | null) : null
+        const lsPlan = typeof window !== 'undefined'
+          ? ((localStorage.getItem('fitspo:plan') as string | null) || (localStorage.getItem('stronk:plan') as string | null))
+          : null
         setCurrentPlan(uPlan || lsPlan || 'Free')
       })
       unsub = () => sub.subscription.unsubscribe()

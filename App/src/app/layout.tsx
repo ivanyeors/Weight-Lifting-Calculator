@@ -7,8 +7,8 @@ import { Toaster } from "@/components/ui/sonner"
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Weight Lifting Calculator',
-  description: 'Personalized weight lifting recommendations based on your body composition and experience level',
+  title: 'Fitspo — Fitness Calculator',
+  description: 'Personalized fitness recommendations based on your body composition and experience level',
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',

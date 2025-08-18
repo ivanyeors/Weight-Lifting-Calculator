@@ -145,14 +145,18 @@ export function AppSidebar({
     const fetchPlan = async () => {
       const { data } = await supabase.auth.getSession()
       const metaPlan = (data.session?.user?.user_metadata?.plan as string | undefined) || null
-      const storedPlan = typeof window !== 'undefined' ? (localStorage.getItem('stronk:plan') as string | null) : null
+      const storedPlan = typeof window !== 'undefined'
+        ? ((localStorage.getItem('fitspo:plan') as string | null) || (localStorage.getItem('stronk:plan') as string | null))
+        : null
       setCurrentPlan(metaPlan || storedPlan || 'Free')
     }
     void fetchPlan()
 
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
       const uPlan = (s?.user?.user_metadata?.plan as string | undefined) || null
-      const lsPlan = typeof window !== 'undefined' ? (localStorage.getItem('stronk:plan') as string | null) : null
+      const lsPlan = typeof window !== 'undefined'
+        ? ((localStorage.getItem('fitspo:plan') as string | null) || (localStorage.getItem('stronk:plan') as string | null))
+        : null
       setCurrentPlan(uPlan || lsPlan || 'Free')
     })
     return () => sub.subscription.unsubscribe()
@@ -164,7 +168,15 @@ export function AppSidebar({
       if (!user?.id || currentPlan !== 'Personal') return
       const { data } = await supabase.auth.getSession()
       const u = data.session?.user
-      const saved = (u?.user_metadata?.stronk_personal as any) || null
+      const savedNew = (u?.user_metadata?.fitspo_personal as any) || null
+      const savedOld = (u?.user_metadata?.stronk_personal as any) || null
+      const saved = savedNew || savedOld || null
+      // Seamless migration: if old exists and new doesn't, copy to new key
+      if (!savedNew && savedOld) {
+        try {
+          await supabase.auth.updateUser({ data: { fitspo_personal: savedOld } as any })
+        } catch {}
+      }
       if (saved) {
         if (typeof saved.bodyWeight === 'number') setBodyWeight(saved.bodyWeight)
         if (typeof saved.height === 'number') setHeight(saved.height)
@@ -184,6 +196,23 @@ export function AppSidebar({
     void loadPersonalDetails()
   }, [user?.id, currentPlan])
 
+  // Ensure migration runs even outside Personal plan context
+  useEffect(() => {
+    const migrateIfNeeded = async () => {
+      if (!user?.id) return
+      const { data } = await supabase.auth.getSession()
+      const u = data.session?.user
+      const savedNew = (u?.user_metadata?.fitspo_personal as any) || null
+      const savedOld = (u?.user_metadata?.stronk_personal as any) || null
+      if (!savedNew && savedOld) {
+        try {
+          await supabase.auth.updateUser({ data: { fitspo_personal: savedOld } as any })
+        } catch {}
+      }
+    }
+    void migrateIfNeeded()
+  }, [user?.id])
+
   // Debounced auto-sync to Supabase for Personal tier
   useEffect(() => {
     if (!user?.id || currentPlan !== 'Personal') return
@@ -194,7 +223,7 @@ export function AppSidebar({
       setSyncError(null)
       try {
         const payload = {
-          stronk_personal: {
+          fitspo_personal: {
             bodyWeight,
             height,
             age,
@@ -230,7 +259,7 @@ export function AppSidebar({
     setSyncError(null)
     try {
       const payload = {
-        stronk_personal: {
+        fitspo_personal: {
           bodyWeight,
           height,
           age,
@@ -274,8 +303,8 @@ export function AppSidebar({
         <div className="flex items-center space-x-2 mb-4">
           <Dumbbell className="h-8 w-8 text-primary" />
           <div>
-            <h2 className="text-lg font-semibold">Stronk</h2>
-            <p className="text-sm text-muted-foreground">Calculator</p>
+            <h2 className="text-lg font-semibold">Fitspo</h2>
+            <p className="text-sm text-muted-foreground">Fitness Calculator</p>
           </div>
         </div>
         {user?.email && currentPlan === 'Personal' && (

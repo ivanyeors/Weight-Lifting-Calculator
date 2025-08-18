@@ -70,7 +70,9 @@ export default function AccountPage() {
       setCreatedAt(sessionUser.created_at ?? null)
       setIdentities((sessionUser.identities || []) as SupabaseIdentity[])
       const planFromMeta = (sessionUser.user_metadata?.plan as string | undefined) || null
-      const planFromStorage = typeof window !== 'undefined' ? (localStorage.getItem('stronk:plan') as string | null) : null
+      const planFromStorage = typeof window !== 'undefined'
+        ? ((localStorage.getItem('fitspo:plan') as string | null) || (localStorage.getItem('stronk:plan') as string | null))
+        : null
       setCurrentPlan(planFromMeta || planFromStorage || 'Free')
       setLoading(false)
 
@@ -84,7 +86,9 @@ export default function AccountPage() {
         setCreatedAt(u.created_at ?? null)
         setIdentities((u.identities || []) as SupabaseIdentity[])
         const uPlan = (u.user_metadata?.plan as string | undefined) || null
-        const lsPlan = typeof window !== 'undefined' ? (localStorage.getItem('stronk:plan') as string | null) : null
+        const lsPlan = typeof window !== 'undefined'
+          ? ((localStorage.getItem('fitspo:plan') as string | null) || (localStorage.getItem('stronk:plan') as string | null))
+          : null
         setCurrentPlan(uPlan || lsPlan || 'Free')
       })
       unsub = () => sub.subscription.unsubscribe()
@@ -145,7 +149,7 @@ export default function AccountPage() {
     }
     try {
       if (typeof window !== "undefined") {
-        const extraKeys = Object.keys(localStorage).filter(k => k.startsWith("stronk:"))
+        const extraKeys = Object.keys(localStorage).filter(k => k.startsWith("fitspo:") || k.startsWith("stronk:"))
         const extras: Record<string, string | null> = {}
         for (const k of extraKeys) extras[k] = localStorage.getItem(k)
         collected["localKeys"] = extras
@@ -159,7 +163,7 @@ export default function AccountPage() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = "stronk-account-export.json"
+    a.download = "fitspo-account-export.json"
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -174,7 +178,7 @@ export default function AccountPage() {
       if (typeof window !== "undefined") {
         localStorage.removeItem("theme")
         Object.keys(localStorage)
-          .filter(k => k.startsWith("stronk:"))
+          .filter(k => k.startsWith("fitspo:") || k.startsWith("stronk:"))
           .forEach(k => localStorage.removeItem(k))
         toast.success("Saved data deleted")
       }
@@ -185,11 +189,7 @@ export default function AccountPage() {
     }
   }
 
-  const openBilling = () => {
-    if (typeof window !== "undefined") {
-      document.getElementById("plans")?.scrollIntoView({ behavior: "smooth", block: "start" })
-    }
-  }
+  
 
   if (loading) {
     return (
@@ -349,7 +349,9 @@ export default function AccountPage() {
               <Button variant="secondary" onClick={async () => {
                 const { data } = await supabase.auth.getSession()
                 const uPlan = (data.session?.user?.user_metadata?.plan as string | undefined) || null
-                const lsPlan = typeof window !== 'undefined' ? (localStorage.getItem('stronk:plan') as string | null) : null
+                const lsPlan = typeof window !== 'undefined'
+                  ? ((localStorage.getItem('fitspo:plan') as string | null) || (localStorage.getItem('stronk:plan') as string | null))
+                  : null
                 setCurrentPlan(uPlan || lsPlan || 'Free')
               }}>Refresh status</Button>
             </CardFooter>

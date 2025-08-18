@@ -1,6 +1,6 @@
 # Comprehensive Muscle Involvement Breakdown
 
-This document provides detailed explanations for the muscle involvement ratings (0-10 scale) for all 19 exercises in the weight lifting calculator.
+This document provides detailed explanations for the muscle involvement ratings (0-10 scale) for all 19 exercises in the Fitness Calculator.
 
 ## Rating Scale
 

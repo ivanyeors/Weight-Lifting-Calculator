@@ -20,7 +20,7 @@ export function useUserTier() {
         setUserId(user.id)
         const planFromMeta = (user.user_metadata?.plan as string | undefined) || null
         const planFromStorage = typeof window !== 'undefined' 
-          ? (localStorage.getItem('stronk:plan') as string | null) 
+          ? ((localStorage.getItem('fitspo:plan') as string | null) || (localStorage.getItem('stronk:plan') as string | null))
           : null
         
         const tier = (planFromMeta || planFromStorage || 'Free') as UserTier
@@ -37,7 +37,7 @@ export function useUserTier() {
           setUserId(u.id)
           const uPlan = (u.user_metadata?.plan as string | undefined) || null
           const lsPlan = typeof window !== 'undefined' 
-            ? (localStorage.getItem('stronk:plan') as string | null) 
+            ? ((localStorage.getItem('fitspo:plan') as string | null) || (localStorage.getItem('stronk:plan') as string | null))
             : null
           const tier = (uPlan || lsPlan || 'Free') as UserTier
           setCurrentTier(tier)
