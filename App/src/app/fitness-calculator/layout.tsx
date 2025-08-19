@@ -1,4 +1,4 @@
-export default function FitnessCalculatorLayout({
+export default function WeightCalculatorLayout({
   children,
 }: {
   children: React.ReactNode

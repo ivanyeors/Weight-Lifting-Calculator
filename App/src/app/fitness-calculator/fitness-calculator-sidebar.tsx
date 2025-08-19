@@ -12,7 +12,7 @@ import { supabase } from '@/lib/supabaseClient'
 
 import { User, UserCheck, Users, Calculator, Cloud, CloudOff, RefreshCw, CheckCircle, AlertCircle, Clock } from "lucide-react"
 
-interface FitnessCalculatorSidebarProps {
+interface WeightCalculatorSidebarProps {
   side?: "left" | "right"
 
   // User input states
@@ -47,7 +47,7 @@ interface FitnessCalculatorSidebarProps {
   onLastSyncTimeChange?: (time: Date | null) => void
 }
 
-export function FitnessCalculatorSidebar({
+export function WeightCalculatorSidebar({
   bodyWeight,
   setBodyWeight,
   height,
@@ -68,7 +68,7 @@ export function FitnessCalculatorSidebar({
   collapsed,
   onSyncStatusChange,
   onLastSyncTimeChange,
-}: FitnessCalculatorSidebarProps) {
+}: WeightCalculatorSidebarProps) {
   type UserInfo = { id: string; email: string | null; name: string | null; avatarUrl: string | null }
   const [user, setUser] = useState<UserInfo | null>(null)
   type SavedPersonalData = {
@@ -368,7 +368,7 @@ export function FitnessCalculatorSidebar({
           <div className="flex items-center space-x-2">
             <Calculator className="h-6 w-6 text-primary" />
             {!collapsed && (
-              <h2 className="text-sm font-semibold">Fitness Calculator</h2>
+              <h2 className="text-sm font-semibold">Weight Calculator</h2>
             )}
           </div>
         </div>
