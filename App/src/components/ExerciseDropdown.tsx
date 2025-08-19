@@ -135,7 +135,14 @@ export function ExerciseDropdown({
             disabled={isActuallyLoading}
           >
             <span className="truncate font-medium">
-              {isActuallyLoading ? "Loading exercises..." : currentExerciseName}
+              {isActuallyLoading ? (
+                <div className="flex items-center space-x-2">
+                  <div className="h-3 w-3 animate-spin rounded-full border border-muted-foreground/20 border-t-foreground" />
+                  <span>Loading exercises...</span>
+                </div>
+              ) : (
+                currentExerciseName
+              )}
             </span>
             <ChevronDown className="h-4 w-4 opacity-50 transition-transform" />
           </Button>

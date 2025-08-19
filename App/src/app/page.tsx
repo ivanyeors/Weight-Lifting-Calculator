@@ -170,6 +170,122 @@ export default function HomePage() {
     setMuscleGroups(contributions)
   }, [currentExercise])
 
+  // Show loading state while exercises are being loaded
+  if (isLoadingExercises) {
+    return (
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="container flex h-14 items-center">
+            <div className="flex items-center space-x-2">
+              <div className="h-8 w-8 bg-muted animate-pulse rounded" />
+              <div className="h-6 w-32 bg-muted animate-pulse rounded" />
+            </div>
+            <div className="flex flex-1 items-center justify-end space-x-2">
+              <div className="h-9 w-9 bg-muted animate-pulse rounded" />
+              <div className="h-9 w-9 bg-muted animate-pulse rounded" />
+            </div>
+          </div>
+        </header>
+
+        <div className="flex">
+          {/* Sidebar Skeleton */}
+          <div className="hidden lg:flex lg:w-80 lg:flex-col lg:fixed lg:inset-y-0 lg:z-50 lg:border-r lg:bg-background">
+            <div className="flex flex-col flex-grow pt-5 bg-background overflow-y-auto">
+              <div className="flex items-center flex-shrink-0 px-4">
+                <div className="h-8 w-8 bg-muted animate-pulse rounded mr-2" />
+                <div className="h-6 w-24 bg-muted animate-pulse rounded" />
+              </div>
+              <div className="mt-5 flex-grow flex flex-col">
+                <div className="flex-1 px-2 space-y-1">
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <div key={i} className="flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                      <div className="h-4 w-4 bg-muted animate-pulse rounded mr-3" />
+                      <div className="h-4 flex-1 bg-muted animate-pulse rounded" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="lg:pl-80 flex-1">
+            <div className="container mx-auto p-6">
+              <div className="grid gap-6 lg:grid-cols-2">
+                {/* Left Column - Body Highlighter */}
+                <div className="space-y-6">
+                  <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                    <div className="flex flex-col space-y-1.5 p-6">
+                      <div className="h-6 w-48 bg-muted animate-pulse rounded mb-2" />
+                      <div className="h-4 w-64 bg-muted animate-pulse rounded" />
+                    </div>
+                    <div className="p-6 pt-0">
+                      <div className="space-y-4">
+                        <div className="flex justify-center">
+                          <div className="h-80 w-80 bg-muted animate-pulse rounded-lg" />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="h-4 w-32 bg-muted animate-pulse rounded" />
+                          <div className="h-10 w-full bg-muted animate-pulse rounded" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column - Results */}
+                <div className="space-y-6">
+                  <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                    <div className="flex flex-col space-y-1.5 p-6">
+                      <div className="h-6 w-32 bg-muted animate-pulse rounded mb-2" />
+                      <div className="h-4 w-48 bg-muted animate-pulse rounded" />
+                    </div>
+                    <div className="p-6 pt-0">
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <div className="h-4 w-20 bg-muted animate-pulse rounded" />
+                            <div className="h-10 w-full bg-muted animate-pulse rounded" />
+                          </div>
+                          <div className="space-y-2">
+                            <div className="h-4 w-16 bg-muted animate-pulse rounded" />
+                            <div className="h-10 w-full bg-muted animate-pulse rounded" />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="h-4 w-24 bg-muted animate-pulse rounded" />
+                          <div className="h-10 w-full bg-muted animate-pulse rounded" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                    <div className="flex flex-col space-y-1.5 p-6">
+                      <div className="h-6 w-40 bg-muted animate-pulse rounded mb-2" />
+                      <div className="h-4 w-56 bg-muted animate-pulse rounded" />
+                    </div>
+                    <div className="p-6 pt-0">
+                      <div className="space-y-3">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <div key={i} className="flex items-center justify-between">
+                            <div className="h-4 w-24 bg-muted animate-pulse rounded" />
+                            <div className="h-4 w-16 bg-muted animate-pulse rounded" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <AuthCallbackHandler>
       <SidebarProvider>
@@ -221,7 +337,6 @@ export default function HomePage() {
                 <WebBodyHighlighter
                   muscleGroups={muscleGroups}
                   exerciseName={currentExercise.name}
-                  exercises={exercises}
                   selectedExerciseId={selectedExerciseId}
                   setSelectedExerciseId={setSelectedExerciseId}
                   isLoadingExercises={isLoadingExercises}

@@ -10,7 +10,14 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
 
   // Don't render until we know the user's tier
   if (loading) {
-    return <div className="min-h-screen bg-background">{children}</div>
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="space-y-4 text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground/20 border-t-foreground mx-auto" />
+          <p className="text-sm text-muted-foreground">Loading theme...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
