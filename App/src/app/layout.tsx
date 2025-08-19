@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { type CSSProperties } from 'react'
 import { Inter } from 'next/font/google'
 import '../index.css'
 import { ThemeProvider } from "@/components/theme-provider"
@@ -27,7 +28,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <SidebarProvider>
+          <SidebarProvider style={{ "--sidebar-width": "14rem" } as CSSProperties}>
             <AppSidebar />
             <SidebarInset>
               {children}

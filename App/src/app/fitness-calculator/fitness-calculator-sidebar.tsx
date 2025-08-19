@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
+import { Separator } from "@/components/ui/separator"
 import { supabase } from '@/lib/supabaseClient'
 
 import { User, UserCheck, Users, Calculator } from "lucide-react"
@@ -278,60 +279,77 @@ export function FitnessCalculatorSidebar({
   useEffect(() => { setSkeletalMuscleMassInput(String(skeletalMuscleMass)) }, [skeletalMuscleMass])
   useEffect(() => { setBodyFatMassInput(String(bodyFatMass)) }, [bodyFatMass])
 
+  const getLastSyncLabel = (): string => {
+    if (!lastSyncedAt) return 'a long time ago'
+    const now = new Date()
+    const diffMs = now.getTime() - lastSyncedAt.getTime()
+    const fiveMinutesMs = 5 * 60 * 1000
+    if (diffMs <= fiveMinutesMs) return 'just now'
+    const y = new Date(now)
+    y.setDate(now.getDate() - 1)
+    const isYesterday =
+      lastSyncedAt.getFullYear() === y.getFullYear() &&
+      lastSyncedAt.getMonth() === y.getMonth() &&
+      lastSyncedAt.getDate() === y.getDate()
+    if (isYesterday) return 'yesterday'
+    return 'a long time ago'
+  }
+
   return (
     <div
       className={[
         collapsed
-          ? 'hidden lg:block lg:w-14'
+          ? 'hidden'
           : 'fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] shadow-lg lg:static lg:w-56 lg:max-w-none',
-        'border-r bg-background flex flex-col h-full transition-all'
+        'border-r bg-background flex flex-col h-full transition-all p-6'
       ].join(' ')}
     >
-      <div className="p-4">
+      <div className="p-0">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
             <Calculator className="h-6 w-6 text-primary" />
             {!collapsed && (
-              <h2 className="text-lg font-semibold">Fitness Calculator</h2>
+              <h2 className="text-sm font-semibold">Fitness Calculator</h2>
             )}
           </div>
         </div>
-        {user?.email && currentPlan === 'Personal' && (
-          !collapsed && (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span
-                className={[
-                  "inline-block size-2 rounded-full aspect-square shrink-0 flex-none",
-                  isSyncing
-                    ? "bg-amber-500 animate-pulse"
+        {user?.email && currentPlan === 'Personal' && !collapsed && (
+          <>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span
+                  className={[
+                    "inline-block size-2 rounded-full aspect-square shrink-0 flex-none",
+                    isSyncing
+                      ? "bg-amber-500 animate-pulse"
+                      : syncError
+                      ? "bg-red-500"
+                      : hasPendingChanges
+                      ? "bg-amber-500"
+                      : "bg-emerald-500",
+                  ].join(' ')}
+                  aria-label={isSyncing ? 'Syncing' : syncError ? 'Sync error' : hasPendingChanges ? 'Pending changes' : 'Synced'}
+                />
+                <span>
+                  {isSyncing
+                    ? 'Syncing…'
                     : syncError
-                    ? "bg-red-500"
-                    : hasPendingChanges
-                    ? "bg-amber-500"
-                    : "bg-emerald-500",
-                ].join(' ')}
-                aria-label={isSyncing ? 'Syncing' : syncError ? 'Sync error' : hasPendingChanges ? 'Pending changes' : 'Synced'}
-              />
-              <span>
-                {isSyncing
-                  ? 'Syncing…'
-                  : syncError
-                  ? 'Sync failed'
-                  : `Last sync: ${lastSyncedAt ? lastSyncedAt.toLocaleString() : 'never'}`}
-              </span>
+                    ? 'Sync failed'
+                    : `Last sync: ${getLastSyncLabel()}`}
+                </span>
+              </div>
+              <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={handleManualSync} disabled={isSyncing || !user?.id}>
+                Sync now
+              </Button>
             </div>
-            <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={handleManualSync} disabled={isSyncing || !user?.id}>
-              Sync now
-            </Button>
-          </div>
-          )
+            <Separator className="my-4" />
+          </>
         )}
       </div>
 
       {!collapsed && (
       <div className="flex-1 overflow-auto">
-        <div className="px-4 py-2">
+        <div className="p-0">
           <div className="flex items-center mb-3">
             <User className="mr-2 h-4 w-4" />
             <span className="text-sm font-medium">Personal Details</span>
@@ -364,7 +382,7 @@ export function FitnessCalculatorSidebar({
                     <span className="text-xs text-muted-foreground">kg</span>
                   </div>
                 </div>
-                <div className="px-1">
+                <div className="p-0">
                   <Slider
                     min={40}
                     max={150}
@@ -373,7 +391,7 @@ export function FitnessCalculatorSidebar({
                     onValueChange={(value) => setBodyWeight(value[0])}
                     className="w-full cursor-pointer"
                   />
-                  <div className="flex justify-between text-xs text-muted-foreground mt-1 px-1">
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
                     <span>40kg</span>
                     <span>150kg</span>
                   </div>
@@ -407,7 +425,7 @@ export function FitnessCalculatorSidebar({
                     <span className="text-xs text-muted-foreground">cm</span>
                   </div>
                 </div>
-                <div className="px-1">
+                <div className="p-0">
                   <Slider
                     min={140}
                     max={220}
@@ -416,7 +434,7 @@ export function FitnessCalculatorSidebar({
                     onValueChange={(value) => setHeight(value[0])}
                     className="w-full cursor-pointer"
                   />
-                  <div className="flex justify-between text-xs text-muted-foreground mt-1 px-1">
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
                     <span>140cm</span>
                     <span>220cm</span>
                   </div>
@@ -450,7 +468,7 @@ export function FitnessCalculatorSidebar({
                     <span className="text-xs text-muted-foreground">years</span>
                   </div>
                 </div>
-                <div className="px-1">
+                <div className="p-0">
                   <Slider
                     min={15}
                     max={80}
@@ -459,7 +477,7 @@ export function FitnessCalculatorSidebar({
                     onValueChange={(value) => setAge(value[0])}
                     className="w-full cursor-pointer"
                   />
-                  <div className="flex justify-between text-xs text-muted-foreground mt-1 px-1">
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
                     <span>15</span>
                     <span>80</span>
                   </div>
@@ -493,7 +511,7 @@ export function FitnessCalculatorSidebar({
                     <span className="text-xs text-muted-foreground">kg</span>
                   </div>
                 </div>
-                <div className="px-1">
+                <div className="p-0">
                   <Slider
                     min={10}
                     max={200}
@@ -502,7 +520,7 @@ export function FitnessCalculatorSidebar({
                     onValueChange={(value) => setSkeletalMuscleMass(value[0])}
                     className="w-full cursor-pointer"
                   />
-                  <div className="flex justify-between text-xs text-muted-foreground mt-1 px-1">
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
                     <span>10kg</span>
                     <span>200kg</span>
                   </div>
@@ -536,7 +554,7 @@ export function FitnessCalculatorSidebar({
                     <span className="text-xs text-muted-foreground">kg</span>
                   </div>
                 </div>
-                <div className="px-1">
+                <div className="p-0">
                   <Slider
                     min={2}
                     max={200}
@@ -545,7 +563,7 @@ export function FitnessCalculatorSidebar({
                     onValueChange={(value) => setBodyFatMass(value[0])}
                     className="w-full cursor-pointer"
                   />
-                  <div className="flex justify-between text-xs text-muted-foreground mt-1 px-1">
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
                     <span>2kg</span>
                     <span>200kg</span>
                   </div>

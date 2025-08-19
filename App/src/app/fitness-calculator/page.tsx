@@ -349,7 +349,7 @@ export default function HomePage() {
             </div>
           </header>
 
-          <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6 overflow-auto">
+          <div className="flex flex-1 flex-col gap-4 pt-4 pr-4 pb-4 pl-2 md:gap-2 md:pt-6 md:pr-6 md:pb-6 md:pl-6 overflow-auto">
             {/* Charts Section - Web Body Highlighter */}
             <div className="grid grid-cols-1 gap-6">
               {/* Web Body Highlighter */}
