@@ -1,5 +1,3 @@
-import { redirect } from 'next/navigation'
+import HomePage from './main-page'
 
-export default function HomePage() {
-  redirect('/fitness-calculator')
-}
+export default HomePage
