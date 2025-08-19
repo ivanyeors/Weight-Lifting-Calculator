@@ -10,7 +10,7 @@ import { Slider } from "@/components/ui/slider"
 import { Separator } from "@/components/ui/separator"
 import { supabase } from '@/lib/supabaseClient'
 
-import { User, UserCheck, Users, Calculator } from "lucide-react"
+import { User, UserCheck, Users, Calculator, Cloud, CloudOff, RefreshCw, CheckCircle, AlertCircle, Clock } from "lucide-react"
 
 interface FitnessCalculatorSidebarProps {
   side?: "left" | "right"
@@ -41,6 +41,10 @@ interface FitnessCalculatorSidebarProps {
 
   // Collapsed state controlled by parent
   collapsed: boolean
+  
+  // Sync status callbacks
+  onSyncStatusChange?: (status: 'idle' | 'syncing' | 'success' | 'error') => void
+  onLastSyncTimeChange?: (time: Date | null) => void
 }
 
 export function FitnessCalculatorSidebar({
@@ -62,6 +66,8 @@ export function FitnessCalculatorSidebar({
   setSelectedExerciseId,
   experienceFactors,
   collapsed,
+  onSyncStatusChange,
+  onLastSyncTimeChange,
 }: FitnessCalculatorSidebarProps) {
   type UserInfo = { id: string; email: string | null; name: string | null; avatarUrl: string | null }
   const [user, setUser] = useState<UserInfo | null>(null)
@@ -176,7 +182,10 @@ export function FitnessCalculatorSidebar({
         }
         if (typeof saved.updatedAt === 'string') {
           const dt = new Date(saved.updatedAt)
-          if (!Number.isNaN(dt.getTime())) setLastSyncedAt(dt)
+          if (!Number.isNaN(dt.getTime())) {
+            setLastSyncedAt(dt)
+            onLastSyncTimeChange?.(dt)
+          }
         }
         setHasPendingChanges(false)
       }
@@ -211,6 +220,7 @@ export function FitnessCalculatorSidebar({
     debounceTimerRef.current = window.setTimeout(async () => {
       setIsSyncing(true)
       setSyncError(null)
+      onSyncStatusChange?.('syncing')
       try {
         const payload: { fitspo_personal: Record<string, unknown> } = {
           fitspo_personal: {
@@ -227,11 +237,15 @@ export function FitnessCalculatorSidebar({
         }
         const { error } = await supabase.auth.updateUser({ data: payload })
         if (error) throw error
-        setLastSyncedAt(new Date())
+        const now = new Date()
+        setLastSyncedAt(now)
         setHasPendingChanges(false)
+        onLastSyncTimeChange?.(now)
+        onSyncStatusChange?.('success')
       } catch (e: unknown) {
         const message = e instanceof Error ? e.message : 'Failed to sync'
         setSyncError(message)
+        onSyncStatusChange?.('error')
       } finally {
         setIsSyncing(false)
       }
@@ -247,6 +261,7 @@ export function FitnessCalculatorSidebar({
     if (debounceTimerRef.current) window.clearTimeout(debounceTimerRef.current)
     setIsSyncing(true)
     setSyncError(null)
+    onSyncStatusChange?.('syncing')
     try {
       const payload: { fitspo_personal: Record<string, unknown> } = {
         fitspo_personal: {
@@ -263,11 +278,15 @@ export function FitnessCalculatorSidebar({
       }
       const { error } = await supabase.auth.updateUser({ data: payload })
       if (error) throw error
-      setLastSyncedAt(new Date())
+      const now = new Date()
+      setLastSyncedAt(now)
       setHasPendingChanges(false)
+      onLastSyncTimeChange?.(now)
+      onSyncStatusChange?.('success')
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'Failed to sync'
       setSyncError(message)
+      onSyncStatusChange?.('error')
     } finally {
       setIsSyncing(false)
     }
@@ -278,6 +297,46 @@ export function FitnessCalculatorSidebar({
   useEffect(() => { setAgeInput(String(age)) }, [age])
   useEffect(() => { setSkeletalMuscleMassInput(String(skeletalMuscleMass)) }, [skeletalMuscleMass])
   useEffect(() => { setBodyFatMassInput(String(bodyFatMass)) }, [bodyFatMass])
+
+  const formatSyncTime = (date: Date | null) => {
+    if (!date) return 'Never'
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffSeconds = Math.floor(diffMs / 1000)
+    const diffMinutes = Math.floor(diffSeconds / 60)
+    const diffHours = Math.floor(diffMinutes / 60)
+    
+    if (diffSeconds < 60) return 'Just now'
+    if (diffMinutes < 60) return `${diffMinutes}m ago`
+    if (diffHours < 24) return `${diffHours}h ago`
+    return date.toLocaleDateString()
+  }
+
+  const getSyncIcon = () => {
+    switch (true) {
+      case isSyncing:
+        return <RefreshCw className="h-3 w-3 animate-spin" />
+      case !syncError && lastSyncedAt !== null:
+        return <CheckCircle className="h-3 w-3 text-green-600" />
+      case syncError !== null:
+        return <AlertCircle className="h-3 w-3 text-red-600" />
+      default:
+        return <Cloud className="h-3 w-3" />
+    }
+  }
+
+  const getSyncStatus = () => {
+    switch (true) {
+      case isSyncing:
+        return 'Syncing...'
+      case !syncError && lastSyncedAt !== null:
+        return 'Synced'
+      case syncError !== null:
+        return 'Sync failed'
+      default:
+        return 'Ready'
+    }
+  }
 
   const getLastSyncLabel = (): string => {
     if (!lastSyncedAt) return 'a long time ago'
@@ -315,34 +374,34 @@ export function FitnessCalculatorSidebar({
         </div>
         {user?.email && currentPlan === 'Personal' && !collapsed && (
           <>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span
-                  className={[
-                    "inline-block size-2 rounded-full aspect-square shrink-0 flex-none",
-                    isSyncing
-                      ? "bg-amber-500 animate-pulse"
-                      : syncError
-                      ? "bg-red-500"
-                      : hasPendingChanges
-                      ? "bg-amber-500"
-                      : "bg-emerald-500",
-                  ].join(' ')}
-                  aria-label={isSyncing ? 'Syncing' : syncError ? 'Sync error' : hasPendingChanges ? 'Pending changes' : 'Synced'}
-                />
-                <span>
-                  {isSyncing
-                    ? 'Syncing…'
-                    : syncError
-                    ? 'Sync failed'
-                    : `Last sync: ${getLastSyncLabel()}`}
-                </span>
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Sync Status</Label>
+                <div className="p-3 rounded-md bg-muted/50 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {getSyncIcon()}
+                      <span className="text-xs font-medium">{getSyncStatus()}</span>
+                    </div>
+                    {!isSyncing && (
+                      <button
+                        onClick={handleManualSync}
+                        className="p-1 hover:bg-background rounded transition-colors"
+                        title="Manual sync"
+                        disabled={!user?.id}
+                      >
+                        <RefreshCw className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Clock className="h-3 w-3" />
+                    <span>Last sync: {formatSyncTime(lastSyncedAt)}</span>
+                  </div>
+                </div>
               </div>
-              <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={handleManualSync} disabled={isSyncing || !user?.id}>
-                Sync now
-              </Button>
+              <Separator className="my-1" />
             </div>
-            <Separator className="my-4" />
           </>
         )}
       </div>
@@ -622,6 +681,19 @@ export function FitnessCalculatorSidebar({
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            <div className="space-y-2 text-xs text-muted-foreground mt-6">
+              <div className="flex items-center gap-2">
+                <Calculator className="h-3.5 w-3.5" />
+                <span>Auto-sync enabled</span>
+              </div>
+              {currentPlan !== 'Personal' && (
+                <div className="flex items-center gap-2">
+                  <CloudOff className="h-3.5 w-3.5" />
+                  <span>Local storage only</span>
+                </div>
+              )}
             </div>
         </div>
       </div>
