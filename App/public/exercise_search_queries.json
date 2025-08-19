@@ -1,0 +1,175 @@
+{
+  "exercise_search_queries": [
+    {
+      "id": "bench-press",
+      "name": "Bench Press",
+      "search_queries": [
+        "bench press form tutorial",
+        "how to bench press properly",
+        "bench press technique guide"
+      ]
+    },
+    {
+      "id": "inclined-bench-press",
+      "name": "Inclined Bench Press",
+      "search_queries": [
+        "incline bench press form",
+        "incline bench press technique",
+        "incline chest press tutorial"
+      ]
+    },
+    {
+      "id": "dumbbell-flies",
+      "name": "Dumbbell Flies",
+      "search_queries": [
+        "dumbbell flies form",
+        "dumbbell chest flies technique",
+        "how to do dumbbell flies"
+      ]
+    },
+    {
+      "id": "shoulder-press",
+      "name": "Shoulder Press",
+      "search_queries": [
+        "shoulder press form tutorial",
+        "overhead press technique",
+        "shoulder press proper form"
+      ]
+    },
+    {
+      "id": "lateral-raises",
+      "name": "Lateral Raises",
+      "search_queries": [
+        "lateral raises form",
+        "side raises technique",
+        "lateral deltoid raises tutorial"
+      ]
+    },
+    {
+      "id": "squats",
+      "name": "Squats",
+      "search_queries": [
+        "squat form tutorial",
+        "proper squat technique",
+        "how to squat correctly"
+      ]
+    },
+    {
+      "id": "deadlift",
+      "name": "Deadlift",
+      "search_queries": [
+        "deadlift form tutorial",
+        "proper deadlift technique",
+        "how to deadlift safely"
+      ]
+    },
+    {
+      "id": "pull-ups",
+      "name": "Pull Ups",
+      "search_queries": [
+        "pull ups form tutorial",
+        "how to do pull ups",
+        "pull up technique guide"
+      ]
+    },
+    {
+      "id": "push-ups",
+      "name": "Push Ups",
+      "search_queries": [
+        "push ups form tutorial",
+        "perfect push up technique",
+        "how to do push ups correctly"
+      ]
+    },
+    {
+      "id": "sit-ups",
+      "name": "Sit Ups",
+      "search_queries": [
+        "sit ups form tutorial",
+        "proper sit up technique",
+        "how to do sit ups correctly"
+      ]
+    },
+    {
+      "id": "lunges",
+      "name": "Lunges",
+      "search_queries": [
+        "lunges form tutorial",
+        "proper lunge technique",
+        "how to do lunges correctly"
+      ]
+    },
+    {
+      "id": "leg-press",
+      "name": "Leg Press",
+      "search_queries": [
+        "leg press form tutorial",
+        "leg press machine technique",
+        "proper leg press form"
+      ]
+    },
+    {
+      "id": "calf-raises",
+      "name": "Calf Raises",
+      "search_queries": [
+        "calf raises form tutorial",
+        "standing calf raises technique",
+        "how to do calf raises"
+      ]
+    },
+    {
+      "id": "bicep-curls",
+      "name": "Bicep Curls",
+      "search_queries": [
+        "bicep curls form tutorial",
+        "proper bicep curl technique",
+        "how to do bicep curls"
+      ]
+    },
+    {
+      "id": "tricep-dips",
+      "name": "Tricep Dips",
+      "search_queries": [
+        "tricep dips form tutorial",
+        "proper tricep dips technique",
+        "how to do tricep dips"
+      ]
+    },
+    {
+      "id": "lat-pulldowns",
+      "name": "Lat Pulldowns",
+      "search_queries": [
+        "lat pulldown form tutorial",
+        "lat pulldown technique",
+        "how to do lat pulldowns"
+      ]
+    },
+    {
+      "id": "pectoral-fly",
+      "name": "Pectoral Fly",
+      "search_queries": [
+        "pec fly machine tutorial",
+        "chest fly technique",
+        "pectoral fly form guide"
+      ]
+    },
+    {
+      "id": "leg-curls",
+      "name": "Leg Curls",
+      "search_queries": [
+        "leg curls form tutorial",
+        "hamstring curls technique",
+        "how to do leg curls"
+      ]
+    },
+    {
+      "id": "leg-extensions",
+      "name": "Leg Extensions",
+      "search_queries": [
+        "leg extensions form tutorial",
+        "quad extensions technique",
+        "how to do leg extensions"
+      ]
+    }
+  ]
+}

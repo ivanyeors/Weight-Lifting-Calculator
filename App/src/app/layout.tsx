@@ -10,9 +10,9 @@ export const metadata: Metadata = {
   title: 'Fitspo — Fitness Calculator',
   description: 'Personalized fitness recommendations based on your body composition and experience level',
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-    apple: '/favicon.ico',
+    icon: '/logo-dark.svg',
+    shortcut: '/logo-dark.svg',
+    apple: '/logo-dark.svg',
   },
 }
 

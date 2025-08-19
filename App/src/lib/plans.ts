@@ -46,6 +46,7 @@ export const plans: Plan[] = [
       'Everything in Free',
       'Data saved in account',
       'SMM + BFM metrics calculations',
+      'Exercise video search (YouTube)',
       'Light + dark themes',
     ],
     cta: 'Subscribe',
@@ -66,6 +67,7 @@ export const plans: Plan[] = [
     description: 'For coaches, fitness trainers with multiple clients.',
     features: [
       'Everything in Personal',
+      'Exercise video search (YouTube)',
       '+2000 growing exercises updates in other categories',
       'Save multiple users/clients configuration',
       'Light + dark themes',

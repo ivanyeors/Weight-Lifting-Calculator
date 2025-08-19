@@ -8,9 +8,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useState, useRef, useEffect } from 'react'
-import { Dumbbell } from 'lucide-react'
+import { Dumbbell, Lock } from 'lucide-react'
 import { ExerciseDropdown } from "@/components/ExerciseDropdown"
 import { Button } from "@/components/ui/button"
+import { useUserTier } from "@/hooks/use-user-tier"
 
 // Front assets
 import FrontHead from '@/assets/body-vector/front-body/Head.svg'
@@ -45,13 +46,12 @@ interface MuscleContribution {
   involvement: number
 }
 
-type Exercise = { id: string; name: string; description: string; baseWeightFactor: number }
+
 
 interface WebBodyHighlighterProps {
   muscleGroups: MuscleContribution[]
   exerciseName: string
   // Optional props to enable header exercise dropdown without breaking existing callsites
-  exercises?: Exercise[]
   selectedExerciseId?: string
   setSelectedExerciseId?: (id: string) => void
   isLoadingExercises?: boolean
@@ -492,9 +492,10 @@ const BackBodySVG = ({ muscleData, onMuscleClick, onHover }: {
   )
 }
 
-export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, selectedExerciseId, setSelectedExerciseId, isLoadingExercises, exerciseLoadError }: WebBodyHighlighterProps) {
+export function WebBodyHighlighter({ muscleGroups, exerciseName, selectedExerciseId, setSelectedExerciseId, isLoadingExercises, exerciseLoadError }: WebBodyHighlighterProps) {
   const [side, setSide] = useState<'front' | 'back'>('front')
   const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null)
+  const { isPaidTier } = useUserTier()
 
   // Transform muscle groups data for the highlighter
   const muscleData: { [key: string]: { color: string; involvement: number } } = {}
@@ -521,13 +522,16 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, sele
   // Enhanced video carousel with animations
   const [isSearching, setIsSearching] = useState(false)
   const [videoUrls, setVideoUrls] = useState<string[]>([])
+  const [videoError, setVideoError] = useState<
+    | { code: 'missing_api_key' | 'quota_exceeded' | 'upstream_error' | 'no_results' | 'no_queries'; message: string }
+    | null
+  >(null)
   const [videoIndex, setVideoIndex] = useState(0)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [slideDirection, setSlideDirection] = useState<'left' | 'right' | null>(null)
   const carouselRef = useRef<HTMLDivElement>(null)
 
-  // Example YouTube Shorts ID from requirements
-  const placeholderYouTubeId = '803JIAWBj_c'
+  // No placeholder; show status cards instead
 
   const extractYouTubeId = (url: string): string | null => {
     try {
@@ -562,44 +566,36 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, sele
   }
 
   const searchVideos = async () => {
-    setIsSearching(true)
-    try {
-      // Optional n8n webhook: set NEXT_PUBLIC_N8N_WEBHOOK_URL to enable
-      // Expected response: { videos: string[] }
-      const webhook = process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL as string | undefined
-      let found: string[] | null = null
-      if (webhook) {
-        try {
-          const res = await fetch(webhook, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: exerciseName }),
-          })
-          if (res.ok) {
-            const data = await res.json().catch(() => null)
-            if (data && Array.isArray(data.videos)) {
-              found = data.videos as string[]
-            }
-          }
-        } catch {
-          // ignore webhook errors and fall back to placeholders
-        }
-      }
-      // Only keep YouTube links
-      if (Array.isArray(found)) {
-        found = found.filter((u) => /youtube\.com|youtu\.be/.test(u))
-      }
+    // Check if user has access to video search
+    if (!isPaidTier) {
+      return
+    }
 
-      if (!found || found.length === 0) {
-        // Fallback placeholders: YouTube Shorts
-        found = [
-          `https://www.youtube.com/shorts/${placeholderYouTubeId}`,
-          'https://www.youtube.com/shorts/JarZJ-Wuw0g',
-          'https://www.youtube.com/shorts/_GziHDdJY10',
-        ]
+    setIsSearching(true)
+    setVideoError(null)
+    setVideoUrls([])
+    try {
+      // Use the new YouTube API endpoint
+      const response = await fetch('/api/youtube/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          exerciseId: selectedExerciseId,
+          exerciseName: exerciseName 
+        }),
+      })
+
+      const data = await response.json().catch(() => ({}))
+      if (response.ok && data.videos && Array.isArray(data.videos)) {
+        setVideoUrls(data.videos)
+        setVideoIndex(0)
+        return
       }
-      setVideoUrls(found)
-      setVideoIndex(0)
+      // non-OK responses
+      setVideoError({ code: data.error || 'upstream_error', message: data.message || 'Video search failed. Try again later.' })
+    } catch (error) {
+      console.error('Video search error:', error)
+      setVideoError({ code: 'upstream_error', message: 'Video search failed. Try again later.' })
     } finally {
       setIsSearching(false)
     }
@@ -656,10 +652,9 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, sele
                 </CardDescription>
                 
                 {/* Exercise dropdown */}
-                {Array.isArray(exercises) && typeof setSelectedExerciseId === 'function' && typeof selectedExerciseId === 'string' && (
+                {typeof setSelectedExerciseId === 'function' && typeof selectedExerciseId === 'string' && (
                   <div className="mb-4">
                     <ExerciseDropdown
-                      exercises={exercises}
                       selectedExerciseId={selectedExerciseId}
                       onSelectExercise={setSelectedExerciseId}
                       isLoading={Boolean(isLoadingExercises)}
@@ -776,12 +771,21 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, sele
                   <div className="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 px-6 pt-0">
                     <div className="flex items-center justify-between gap-3">
                       <CardTitle className="text-base">Exercise Videos</CardTitle>
-                      <Button size="sm" onClick={searchVideos} disabled={isSearching}>
-                        {isSearching ? 'Searching…' : 'Search video'}
-                      </Button>
+                      {isPaidTier ? (
+                        <Button size="sm" onClick={searchVideos} disabled={isSearching}>
+                          {isSearching ? 'Searching…' : 'Search video'}
+                        </Button>
+                      ) : (
+                        <Button size="sm" asChild>
+                          <a href="/account?tab=billing#plans">
+                            <Lock className="h-3 w-3 mr-1" />
+                            Upgrade plan
+                          </a>
+                        </Button>
+                      )}
                     </div>
                     <CardDescription className="text-xs mt-1">
-                      Results for {exerciseName}
+                      {isPaidTier ? `Results for ${exerciseName}` : `Upgrade to Personal or Trainer plan to search exercise videos`}
                     </CardDescription>
                   </div>
                 </div>
@@ -789,8 +793,26 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, sele
                 {/* Video Content Section */}
                 <div className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm border-border/50 flex-1">
                   <div className="relative flex-1 flex flex-col px-6">
-                    {/* Enhanced Carousel container with smooth animations */}
-                    <div className="relative flex items-center justify-center flex-1 overflow-hidden min-h-[400px]" ref={carouselRef}>
+                    {!isPaidTier ? (
+                      /* Upgrade prompt for free users */
+                      <div className="flex items-center justify-center flex-1 min-h-[400px]">
+                        <div className="text-center space-y-4 max-w-md">
+                          <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+                            <Lock className="h-8 w-8 text-muted-foreground" />
+                          </div>
+                          <h3 className="text-lg font-semibold">Exercise Videos Available with Upgrade</h3>
+                          <p className="text-sm text-muted-foreground">
+                            Get access to curated exercise tutorial videos from YouTube when you upgrade to Personal or Trainer plan.
+                          </p>
+                          <Button asChild className="mt-4">
+                            <a href="/account?tab=billing#plans">Upgrade Now</a>
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Enhanced Carousel container with smooth animations */}
+                        <div className="relative flex items-center justify-center flex-1 overflow-hidden min-h-[400px]" ref={carouselRef}>
                       {/* Previous preview card - enhanced animations */}
                       {videoUrls.length > 1 && (
                         <div 
@@ -836,8 +858,8 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, sele
                           }`}
                           style={{ 
                             aspectRatio: '9/16',
-                            width: '200px',
-                            height: '350px',
+                            width: 'clamp(120px, 15vw, 200px)',
+                            height: 'clamp(210px, 26.25vw, 350px)',
                             right: '15%',
                             zIndex: 1,
                             transform: `translateX(50%) scale(${isTransitioning && slideDirection === 'left' ? 1.1 : 0.9})`,
@@ -868,7 +890,7 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, sele
                         }`}
                         style={{ 
                           aspectRatio: '9/16', 
-                          maxWidth: '60%',
+                          maxWidth: 'clamp(200px, 60%, 400px)',
                           zIndex: 2,
                           transform: isTransitioning 
                             ? slideDirection === 'left' 
@@ -883,7 +905,21 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, sele
                         }}
                       >
                         {videoUrls.length === 0 ? (
-                          <div className="w-full h-full bg-muted/20 animate-pulse" />
+                          <div className="w-full h-full bg-muted/20 flex items-center justify-center">
+                            <div className="text-center space-y-2 p-4">
+                              {!videoError && !isSearching && (
+                                <>
+                                  <p className="text-sm text-muted-foreground">Start by clicking on the search button</p>
+                                </>
+                              )}
+                              {videoError?.code === 'quota_exceeded' && (
+                                <p className="text-sm text-muted-foreground">Search limit reached (try again tomorrow)</p>
+                              )}
+                              {videoError && videoError.code !== 'quota_exceeded' && (
+                                <p className="text-sm text-muted-foreground">{videoError.message || 'Try again later'}</p>
+                              )}
+                            </div>
+                          </div>
                         ) : (
                           (() => {
                             const embedUrl = toYouTubeEmbedUrl(videoUrls[videoIndex])
@@ -930,7 +966,9 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, sele
                       >
                         Next
                       </Button>
-                    </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
