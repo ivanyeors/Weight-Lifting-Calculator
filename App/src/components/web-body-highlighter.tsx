@@ -638,12 +638,12 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, sele
   // Simple video search/render panel
   return (
     <TooltipProvider>
-      <Card className="bg-card/50 backdrop-blur border-border/50">
-        <CardContent className="p-6">
-          <div className="flex flex-col lg:flex-row gap-6">
+      <Card className="bg-card/50 backdrop-blur border-border/50 h-full">
+        <CardContent className="p-6 h-full">
+          <div className="flex flex-col lg:flex-row gap-6 h-full">
             {/* Left side: Muscle involvement container */}
-            <div className="lg:w-1/2">
-              <div className="flex flex-col gap-4">
+            <div className="lg:w-1/2 flex flex-col">
+              <div className="flex flex-col gap-4 flex-1">
                 {/* Title and Description */}
                 <div className="flex items-center justify-between mb-4 gap-3">
                   <div className="flex items-center space-x-2">
@@ -769,8 +769,8 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, sele
             </div>
 
             {/* Right side: Exercise video container */}
-            <div className="lg:w-1/2">
-              <div className="flex flex-col gap-4">
+            <div className="lg:w-1/2 flex flex-col">
+              <div className="flex flex-col gap-4 flex-1">
                 {/* Video Header Section */}
                 <div className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm border-border/50">
                   <div className="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 px-6 pt-0">
@@ -787,10 +787,10 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, sele
                 </div>
 
                 {/* Video Content Section */}
-                <div className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm border-border/50 h-full">
+                <div className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm border-border/50 flex-1">
                   <div className="relative flex-1 flex flex-col px-6">
                     {/* Enhanced Carousel container with smooth animations */}
-                    <div className="relative flex items-center justify-center flex-1 overflow-hidden" ref={carouselRef}>
+                    <div className="relative flex items-center justify-center flex-1 overflow-hidden min-h-[400px]" ref={carouselRef}>
                       {/* Previous preview card - enhanced animations */}
                       {videoUrls.length > 1 && (
                         <div 
@@ -801,8 +801,8 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, sele
                           }`}
                           style={{ 
                             aspectRatio: '9/16',
-                            width: '200px',
-                            height: '350px',
+                            width: 'clamp(120px, 15vw, 200px)',
+                            height: 'clamp(210px, 26.25vw, 350px)',
                             left: '15%',
                             zIndex: 1,
                             transform: `translateX(-50%) scale(${isTransitioning && slideDirection === 'right' ? 1.1 : 0.9})`,
