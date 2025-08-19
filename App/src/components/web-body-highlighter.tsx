@@ -1,4 +1,4 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card"
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -7,8 +7,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { useState } from 'react'
-import { Eye, Dumbbell } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { Dumbbell } from 'lucide-react'
 import { ExerciseDropdown } from "@/components/ExerciseDropdown"
 import { Button } from "@/components/ui/button"
 
@@ -516,39 +516,50 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, sele
   // Hover handler kept to satisfy props on SvgLayer consumers
   const handleHover = () => {}
 
-
-
   const selectedMuscleData = selectedMuscle ? muscleGroups.find(m => m.name === selectedMuscle) : null
 
-  // Simple video search/render panel
+  // Enhanced video carousel with animations
   const [isSearching, setIsSearching] = useState(false)
   const [videoUrls, setVideoUrls] = useState<string[]>([])
   const [videoIndex, setVideoIndex] = useState(0)
+  const [isTransitioning, setIsTransitioning] = useState(false)
+  const [slideDirection, setSlideDirection] = useState<'left' | 'right' | null>(null)
+  const carouselRef = useRef<HTMLDivElement>(null)
 
-  const placeholderShortcode = 'DNd1JdFK7Kk'
-  const placeholderInsta = `https://www.instagram.com/reel/${placeholderShortcode}/` // clean base
+  // Example YouTube Shorts ID from requirements
+  const placeholderYouTubeId = '803JIAWBj_c'
 
-  const toEmbedUrl = (url: string): string => {
+  const extractYouTubeId = (url: string): string | null => {
     try {
-      const u = new URL(url)
-      if (u.hostname.includes('instagram.com')) {
-        // Try to extract shortcode and use embed path
-        const parts = u.pathname.split('/').filter(Boolean)
-        const kind = parts[0]
-        const code = parts[1] || placeholderShortcode
-        if (kind === 'reel' || kind === 'p' || kind === 'tv') {
-          return `https://www.instagram.com/${kind}/${code}/embed`
-        }
-        return `https://www.instagram.com/reel/${placeholderShortcode}/embed`
-      }
-      return url
+      // Handle youtu.be short links
+      const shortMatch = url.match(/youtu\.be\/([A-Za-z0-9_-]{6,})/)
+      if (shortMatch && shortMatch[1]) return shortMatch[1]
+
+      // Handle youtube.com/watch?v=
+      const watchMatch = url.match(/[?&]v=([A-Za-z0-9_-]{6,})/)
+      if (watchMatch && watchMatch[1]) return watchMatch[1]
+
+      // Handle youtube.com/shorts/
+      const shortsMatch = url.match(/youtube\.com\/shorts\/([A-Za-z0-9_-]{6,})/)
+      if (shortsMatch && shortsMatch[1]) return shortsMatch[1]
     } catch {
-      return placeholderInsta + 'embed'
+      // ignore parsing errors
     }
+    return null
   }
 
-  const currentVideoUrl = videoUrls.length > 0 ? videoUrls[videoIndex] : placeholderInsta
-  const embeddedUrl = toEmbedUrl(currentVideoUrl)
+  const toYouTubeEmbedUrl = (url: string): string | null => {
+    const id = extractYouTubeId(url)
+    if (!id) return null
+    return `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`
+  }
+
+  const toYouTubeThumbnailUrl = (url: string): string | null => {
+    const id = extractYouTubeId(url)
+    if (!id) return null
+    // Use high-quality default; falls back automatically if not available
+    return `https://img.youtube.com/vi/${id}/hqdefault.jpg`
+  }
 
   const searchVideos = async () => {
     setIsSearching(true)
@@ -574,12 +585,17 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, sele
           // ignore webhook errors and fall back to placeholders
         }
       }
+      // Only keep YouTube links
+      if (Array.isArray(found)) {
+        found = found.filter((u) => /youtube\.com|youtu\.be/.test(u))
+      }
+
       if (!found || found.length === 0) {
-        // Fallback placeholders (3-5 variations of the same reel for demo)
+        // Fallback placeholders: YouTube Shorts
         found = [
-          `https://www.instagram.com/reel/${placeholderShortcode}/`,
-          `https://www.instagram.com/reel/${placeholderShortcode}/?variant=2`,
-          `https://www.instagram.com/reel/${placeholderShortcode}/?variant=3`,
+          `https://www.youtube.com/shorts/${placeholderYouTubeId}`,
+          'https://www.youtube.com/shorts/JarZJ-Wuw0g',
+          'https://www.youtube.com/shorts/_GziHDdJY10',
         ]
       }
       setVideoUrls(found)
@@ -590,100 +606,174 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, sele
   }
 
   const nextVideo = () => {
-    if (videoUrls.length <= 1) return
-    setVideoIndex((i) => (i + 1) % videoUrls.length)
+    if (videoUrls.length <= 1 || isTransitioning) return
+    setIsTransitioning(true)
+    setSlideDirection('left')
+    
+    setTimeout(() => {
+      setVideoIndex((i) => (i + 1) % videoUrls.length)
+      setIsTransitioning(false)
+      setSlideDirection(null)
+    }, 300)
   }
 
   const prevVideo = () => {
-    if (videoUrls.length <= 1) return
-    setVideoIndex((i) => (i - 1 + videoUrls.length) % videoUrls.length)
+    if (videoUrls.length <= 1 || isTransitioning) return
+    setIsTransitioning(true)
+    setSlideDirection('right')
+    
+    setTimeout(() => {
+      setVideoIndex((i) => (i - 1 + videoUrls.length) % videoUrls.length)
+      setIsTransitioning(false)
+      setSlideDirection(null)
+    }, 300)
   }
 
+  // Reset transition state when videoUrls change
+  useEffect(() => {
+    setIsTransitioning(false)
+    setSlideDirection(null)
+  }, [videoUrls])
+
+  // Simple video search/render panel
   return (
     <TooltipProvider>
       <Card className="bg-card/50 backdrop-blur border-border/50">
-      <CardContent className="p-6">
-        <CardHeader className="px-0 pt-0">
-        <div className="flex items-center justify-between mb-4 gap-3">
-          <div className="flex items-center space-x-2">
-            <Dumbbell className="h-5 w-5 text-primary" />
-            <CardTitle className="text-lg font-semibold">Muscle Involvement</CardTitle>
-          </div>
-          {/* Optional exercise dropdown (top-right) */}
-          {Array.isArray(exercises) && typeof setSelectedExerciseId === 'function' && typeof selectedExerciseId === 'string' && (
-            <ExerciseDropdown
-              exercises={exercises}
-              selectedExerciseId={selectedExerciseId}
-              onSelectExercise={setSelectedExerciseId}
-              isLoading={Boolean(isLoadingExercises)}
-              error={exerciseLoadError ?? null}
-              align="end"
-              side="bottom"
-              sideOffset={6}
-              contentClassName="min-w-[300px]"
-            />
-          )}
-        </div>
-        <CardDescription className="text-sm text-muted-foreground mb-4">
-          Interactive muscle activation for {exerciseName.toLowerCase()}
-        </CardDescription>
-        
-        <Tabs defaultValue={side} onValueChange={(value) => setSide(value as 'front' | 'back')}>
-          <TabsList className="grid w-fit grid-cols-2">
-            <TabsTrigger value="front" className="flex items-center space-x-1">
-              <Eye className="h-4 w-4" />
-              <span>Front</span>
-            </TabsTrigger>
-            <TabsTrigger value="back" className="flex items-center space-x-1">
-              <Eye className="h-4 w-4" />
-              <span>Back</span>
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="front" className="mt-6">
-            <div className="flex flex-col lg:flex-row gap-6">
-              {/* Left side: Body vector and selected muscle stacked */}
-              <div className="flex flex-col gap-4 lg:w-1/2 lg:justify-between">
-                {/* Body Highlighter */}
-                <div className="flex justify-center">
-                  <div className="max-w-[280px] w-full">
-                    <FrontBodySVG muscleData={muscleData} onMuscleClick={handleMuscleClick} onHover={handleHover} />
+        <CardContent className="p-6">
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Left side: Muscle involvement container */}
+            <div className="lg:w-1/2">
+              <div className="flex flex-col gap-4">
+                {/* Title and Description */}
+                <div className="flex items-center justify-between mb-4 gap-3">
+                  <div className="flex items-center space-x-2">
+                    <Dumbbell className="h-5 w-5 text-primary" />
+                    <CardTitle className="text-lg font-semibold">Muscle Involvement</CardTitle>
                   </div>
                 </div>
+                <CardDescription className="text-sm text-muted-foreground mb-4">
+                  Interactive muscle activation for {exerciseName.toLowerCase()}
+                </CardDescription>
                 
-                {/* Selected Muscle Card - pushed to bottom */}
-                {selectedMuscleData && (
-                  <div className="p-4 bg-muted/30 rounded-lg border border-border/30 max-w-[280px] mx-auto">
-                    <h4 className="font-medium text-sm mb-2">Selected Muscle</h4>
-                    <div className="flex items-center space-x-2 flex-wrap gap-2">
-                      <Badge variant="secondary">
-                        {selectedMuscleData.name}
-                      </Badge>
-                      <Badge 
-                        variant="outline" 
-                        style={{ 
-                          backgroundColor: getInvolvementColor(selectedMuscleData.involvement),
-                          color: 'white',
-                          borderColor: getInvolvementColor(selectedMuscleData.involvement)
-                        }}
-                      >
-                        {getIntensityDescription(selectedMuscleData.involvement)}
-                      </Badge>
-                      <Badge variant="outline">
-                        Level: {selectedMuscleData.involvement}
-                      </Badge>
-                      <Badge variant="outline">
-                        {selectedMuscleData.percentage.toFixed(1)}%
-                      </Badge>
-                    </div>
+                {/* Exercise dropdown */}
+                {Array.isArray(exercises) && typeof setSelectedExerciseId === 'function' && typeof selectedExerciseId === 'string' && (
+                  <div className="mb-4">
+                    <ExerciseDropdown
+                      exercises={exercises}
+                      selectedExerciseId={selectedExerciseId}
+                      onSelectExercise={setSelectedExerciseId}
+                      isLoading={Boolean(isLoadingExercises)}
+                      error={exerciseLoadError ?? null}
+                      align="start"
+                      side="bottom"
+                      sideOffset={6}
+                      contentClassName="min-w-[300px]"
+                    />
                   </div>
                 )}
-              </div>
 
-              {/* Right side: Video search & viewer */}
-              <div className="flex-1 lg:w-1/2">
-                <Card className="border-border/50">
-                  <CardHeader className="pb-3">
+                {/* Tabs for front/back view */}
+                <Tabs defaultValue={side} onValueChange={(value) => setSide(value as 'front' | 'back')}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="front">Front</TabsTrigger>
+                    <TabsTrigger value="back">Back</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="front" className="mt-6">
+                    <div className="flex flex-col gap-4">
+                      {/* Body Highlighter */}
+                      <div className="flex justify-center">
+                        <div className="max-w-[280px] w-full">
+                          <FrontBodySVG muscleData={muscleData} onMuscleClick={handleMuscleClick} onHover={handleHover} />
+                        </div>
+                      </div>
+                      
+                      {/* Selected Muscle Card */}
+                      <div className="mt-4 p-4 bg-muted/30 rounded-lg border border-border/30 w-full">
+                        <h4 className="font-medium text-sm mb-2">Selected Muscle</h4>
+                        {selectedMuscleData ? (
+                          <div className="flex items-center space-x-2 flex-wrap gap-2">
+                            <Badge variant="secondary">
+                              {selectedMuscleData.name}
+                            </Badge>
+                            <Badge 
+                              variant="outline" 
+                              style={{ 
+                                backgroundColor: getInvolvementColor(selectedMuscleData.involvement),
+                                color: 'white',
+                                borderColor: getInvolvementColor(selectedMuscleData.involvement)
+                              }}
+                            >
+                              {getIntensityDescription(selectedMuscleData.involvement)}
+                            </Badge>
+                            <Badge variant="outline">
+                              Level: {selectedMuscleData.involvement}
+                            </Badge>
+                            <Badge variant="outline">
+                              {selectedMuscleData.percentage.toFixed(1)}%
+                            </Badge>
+                          </div>
+                        ) : (
+                          <div className="text-sm text-muted-foreground">
+                            Click on a muscle to see details
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="back" className="mt-6">
+                    <div className="flex flex-col gap-4">
+                      {/* Body Highlighter */}
+                      <div className="flex justify-center">
+                        <div className="max-w-[280px] w-full">
+                          <BackBodySVG muscleData={muscleData} onMuscleClick={handleMuscleClick} onHover={handleHover} />
+                        </div>
+                      </div>
+
+                      {/* Selected Muscle Card */}
+                      <div className="mt-4 p-4 bg-muted/30 rounded-lg border border-border/30 w-full">
+                        <h4 className="font-medium text-sm mb-2">Selected Muscle</h4>
+                        {selectedMuscleData ? (
+                          <div className="flex items-center space-x-2 flex-wrap gap-2">
+                            <Badge variant="secondary">
+                              {selectedMuscleData.name}
+                            </Badge>
+                            <Badge 
+                              variant="outline" 
+                              style={{ 
+                                backgroundColor: getInvolvementColor(selectedMuscleData.involvement),
+                                color: 'white',
+                                borderColor: getInvolvementColor(selectedMuscleData.involvement)
+                              }}
+                            >
+                              {getIntensityDescription(selectedMuscleData.involvement)}
+                            </Badge>
+                            <Badge variant="outline">
+                              Level: {selectedMuscleData.involvement}
+                            </Badge>
+                            <Badge variant="outline">
+                              {selectedMuscleData.percentage.toFixed(1)}%
+                            </Badge>
+                          </div>
+                        ) : (
+                          <div className="text-sm text-muted-foreground">
+                            Click on a muscle to see details
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </div>
+            </div>
+
+            {/* Right side: Exercise video container */}
+            <div className="lg:w-1/2">
+              <div className="flex flex-col gap-4">
+                {/* Video Header Section */}
+                <div className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm border-border/50">
+                  <div className="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 px-6 pt-0">
                     <div className="flex items-center justify-between gap-3">
                       <CardTitle className="text-base">Exercise Videos</CardTitle>
                       <Button size="sm" onClick={searchVideos} disabled={isSearching}>
@@ -693,222 +783,161 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, exercises, sele
                     <CardDescription className="text-xs mt-1">
                       Results for {exerciseName}
                     </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="w-full bg-black rounded-md overflow-hidden mx-auto" style={{ aspectRatio: '9/16', maxWidth: '70%' }}>
-                      {videoUrls.length === 0 ? (
-                        <div className="x1ey2m1c x9f619 xtijo5x x1o0tod x10l6tqk x13vifvy x1ypdohk" role="presentation" style={{ width: '100%', height: '100%' }}>
-                          <div className="xbudbmw x9uk3rv xa2bojp x10l6tqk xwa60dl" style={{ width: '100%', height: '100%' }}>
-                            <div className="x1yomw13 x1dhbnvk x4iexvp xfem2s5 xv2xd2s xg79w0" style={{ width: '100%', height: '100%' }}></div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="x5yr21d x10l6tqk x13vifvy xh8yej3" data-visualcompletion="ignore" style={{ width: '100%', height: '100%', position: 'relative' }}>
-                          <img 
-                            className="x15mokao x1ga7v0g x16uus16 xbiv7yw x5yr21d xl1xv1r xh8yej3" 
-                            alt="" 
-                            referrerPolicy="origin-when-cross-origin" 
-                            src="https://scontent.cdninstagram.com/v/t51.82787-15/534315472_18285042016282299_6602308732763501482_n.jpg?stp=dst-jpg_e15_tt6&amp;_nc_cat=105&amp;ig_cache_key=MzcwMTM0ODIxNDkzNDA1NzYzNjE4Mjg1MDQyMDEwMjgyMjk5.3-ccb1-7&amp;ccb=1-7&amp;_nc_sid=58cdad&amp;efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjU0MHg5NjAuc2RyLkMzIn0%3D&amp;_nc_ohc=l1J7rOTpbMcQ7kNvwGBi9cg&amp;_nc_oc=AdmiK1B8wvtSLVdff9ZFTmjdk9e0MrJ84mTuXWjKjcpOchQjpeM9pJp3H7YeDcjxtuA&amp;_nc_ad=z-m&amp;_nc_cid=0&amp;_nc_zt=23&amp;_nc_ht=scontent.cdninstagram.com&amp;_nc_gid=N8FldTjgfFtNH-oJvKslCg&amp;oh=00_AfXEBcsDB2xIcfNtsZY6IQvyKDQQl0-W8W-cToGXh6Izww&amp;oe=68A91E08"
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          />
-                          <div className="x1ey2m1c x9f619 xtijo5x x1o0tod x10l6tqk x13vifvy x1ypdohk" role="presentation" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
-                            <div className="xbudbmw x9uk3rv xa2bojp x10l6tqk xwa60dl" style={{ width: '100%', height: '100%' }}>
-                              <div className="x1yomw13 x1dhbnvk x4iexvp xfem2s5 xv2xd2s xg79w0" style={{ width: '100%', height: '100%' }}></div>
-                            </div>
-                          </div>
-                          <div className="html-div xdj266r x14z9mp xat24cr x1lziwak xexx8yu xyri2b x18d9i69 x1c1uobl x9f619 xjbqb8w x78zum5 x15mokao x1ga7v0g x16uus16 xbiv7yw x10l6tqk x1ey2m1c xtijo5x x1plvlek xryxfnj x1c4vz4f x2lah0s xdt5ytf xqjyukv x1qjc9v5 x1oa3qoh x1nhvcw1" style={{ position: 'absolute', top: '10px', right: '10px' }}>
-                            <button aria-label="Toggle audio" className=" _aswp _aswq _aswu _asw_ _asx2" type="button" style={{ background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                              <div className="html-div x9f619 x78zum5 x1c9tyrk xeusxvb x1pahc9y x1ertn4p x14vqqas xbmvrgn xod5an3 x1diwwjn x1y1aw1k xf159sx xwib8y2 xmzvs34 x1uhb9sk x1plvlek xryxfnj x1c4vz4f x2lah0s xdt5ytf xqjyukv x1qjc9v5 x1oa3qoh x1nhvcw1 x18l40ae">
-                                <svg aria-label="Audio is muted" className="x1lliihq x1n2onr6 x9bdzbf" fill="currentColor" height="12" role="img" viewBox="0 0 48 48" width="12" style={{ color: 'white' }}>
-                                  <title>Audio is muted</title>
-                                  <path clipRule="evenodd" d="M1.5 13.3c-.8 0-1.5.7-1.5 1.5v18.4c0 .8.7 1.5 1.5 1.5h8.7l12.9 12.9c.9.9 2.5.3 2.5-1v-9.8c0-.4-.2-.8-.4-1.1l-22-22c-.3-.3-.7-.4-1.1-.4h-.6zm46.8 31.4-5.5-5.5C44.9 36.6 48 31.4 48 24c0-11.4-7.2-17.4-7.2-17.4-.6-.6-1.6-.6-2.2 0L37.2 8c-.6.6-.6 1.6 0 2.2 0 0 5.7 5 5.7 13.8 0 5.4-2.1 9.3-3.8 11.6L35.5 32c1.1-1.7 2.3-4.4 2.3-8 0-6.8-4.1-10.3-4.1-10.3-.6-.6-1.6-.6-2.2 0l-1.4 1.4c-.6.6-.6 1.6 0 2.2 0 0 2.6 2 2.6 6.7 0 1.8-.4 3.2-.9 4.3L25.5 22V1.4c0-1.3-1.6-1.9-2.5-1L13.5 10 3.3-.3c-.6-.6-1.5-.6-2.1 0L-.2 1.1c-.6.6-.6 1.5 0 2.1L4 7.6l26.8 26.8 13.9 13.9c.6.6 1.5.6 2.1 0l1.4-1.4c.7-.6.7-1.6.1-2.2z" fillRule="evenodd"></path>
-                                </svg>
-                              </div>
-                            </button>
-                          </div>
-                          <div className="xwepwai x12ol6y4 x180vkcf x1khw62d x709u02 x972fbf x10w94by x1qhh985 x14e42zd x1ypdohk x14vqqas xbmvrgn xod5an3 x1diwwjn x13dflua x19991ni x1ey2m1c x1o0tod x10l6tqk x1hc1fzr" style={{ position: 'absolute', bottom: '10px', right: '10px' }}>
-                            <button className=" _aswp _aswq _aswu _asw_ _asx2" type="button" style={{ background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                              <div className="html-div xdj266r x14z9mp xat24cr x1lziwak x9f619 xjbqb8w x78zum5 x15mokao x1ga7v0g x16uus16 xbiv7yw xf159sx xmzvs34 xwib8y2 x1y1aw1k x1n2onr6 x1plvlek xryxfnj x1c4vz4f x2lah0s x1q0g3np xqjyukv x6s0dn4 x1oa3qoh xl56j7k">
-                                <svg aria-label="Tags" className="x1lliihq x1n2onr6 x9bdzbf" fill="currentColor" height="12" role="img" viewBox="0 0 24 24" width="12" style={{ color: 'white' }}>
-                                  <title>Tags</title>
-                                  <path d="M21.334 23H2.666a1 1 0 0 1-1-1v-1.354a6.279 6.279 0 0 1 6.272-6.272h8.124a6.279 6.279 0 0 1 6.271 6.271V22a1 1 0 0 1-1 1ZM12 13.269a6 6 0 1 1 6-6 6.007 6.007 0 0 1-6 6Z"></path>
-                                </svg>
-                              </div>
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <div className="mt-3 flex items-center justify-between">
-                      <Button variant="outline" size="sm" onClick={prevVideo} disabled={videoUrls.length <= 1}>
-                        Previous
-                      </Button>
-                      <div className="text-xs text-muted-foreground">
-                        {videoUrls.length > 0 ? `${videoIndex + 1} / ${videoUrls.length}` : '—'}
-                      </div>
-                      <Button variant="outline" size="sm" onClick={nextVideo} disabled={videoUrls.length <= 1}>
-                        Next
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="back" className="mt-6">
-            <div className="flex flex-col lg:flex-row gap-6">
-              {/* Left side: Body vector and selected muscle stacked */}
-              <div className="flex flex-col gap-4 lg:w-1/2 lg:justify-between">
-                {/* Body Highlighter */}
-                <div className="flex justify-center">
-                  <div className="max-w-[280px] w-full">
-                    <BackBodySVG muscleData={muscleData} onMuscleClick={handleMuscleClick} onHover={handleHover} />
                   </div>
                 </div>
 
-                {/* Selected Muscle Card - pushed to bottom */}
-                {selectedMuscleData && (
-                  <div className="p-4 bg-muted/30 rounded-lg border border-border/30 max-w-[280px] mx-auto">
-                    <h4 className="font-medium text-sm mb-2">Selected Muscle</h4>
-                    <div className="flex items-center space-x-2 flex-wrap gap-2">
-                      <Badge variant="secondary">
-                        {selectedMuscleData.name}
-                      </Badge>
-                      <Badge 
-                        variant="outline" 
-                        style={{ 
-                          backgroundColor: getInvolvementColor(selectedMuscleData.involvement),
-                          color: 'white',
-                          borderColor: getInvolvementColor(selectedMuscleData.involvement)
-                        }}
-                      >
-                        {getIntensityDescription(selectedMuscleData.involvement)}
-                      </Badge>
-                      <Badge variant="outline">
-                        Level: {selectedMuscleData.involvement}
-                      </Badge>
-                      <Badge variant="outline">
-                        {selectedMuscleData.percentage.toFixed(1)}%
-                      </Badge>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Right side: Video search & viewer */}
-              <div className="flex-1 lg:w-1/2">
-                <Card className="border-border/50">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <CardTitle className="text-base">Exercise Videos</CardTitle>
-                      <Button size="sm" onClick={searchVideos} disabled={isSearching}>
-                        {isSearching ? 'Searching…' : 'Search video'}
-                      </Button>
-                    </div>
-                    <CardDescription className="text-xs mt-1">
-                      Results for {exerciseName}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="w-full bg-black rounded-md overflow-hidden mx-auto" style={{ aspectRatio: '9/16', maxWidth: '70%' }}>
-                      {videoUrls.length === 0 ? (
-                        <div className="x1ey2m1c x9f619 xtijo5x x1o0tod x10l6tqk x13vifvy x1ypdohk" role="presentation" style={{ width: '100%', height: '100%' }}>
-                          <div className="xbudbmw x9uk3rv xa2bojp x10l6tqk xwa60dl" style={{ width: '100%', height: '100%' }}>
-                            <div className="x1yomw13 x1dhbnvk x4iexvp xfem2s5 xv2xd2s xg79w0" style={{ width: '100%', height: '100%' }}></div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="x5yr21d x10l6tqk x13vifvy xh8yej3" data-visualcompletion="ignore" style={{ width: '100%', height: '100%', position: 'relative' }}>
-                          <img 
-                            className="x15mokao x1ga7v0g x16uus16 xbiv7yw x5yr21d xl1xv1r xh8yej3" 
-                            alt="" 
-                            referrerPolicy="origin-when-cross-origin" 
-                            src="https://scontent.cdninstagram.com/v/t51.82787-15/534315472_18285042016282299_6602308732763501482_n.jpg?stp=dst-jpg_e15_tt6&amp;_nc_cat=105&amp;ig_cache_key=MzcwMTM0ODIxNDkzNDA1NzYzNjE4Mjg1MDQyMDEwMjgyMjk5.3-ccb1-7&amp;ccb=1-7&amp;_nc_sid=58cdad&amp;efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjU0MHg5NjAuc2RyLkMzIn0%3D&amp;_nc_ohc=l1J7rOTpbMcQ7kNvwGBi9cg&amp;_nc_oc=AdmiK1B8wvtSLVdff9ZFTmjdk9e0MrJ84mTuXWjKjcpOchQjpeM9pJp3H7YeDcjxtuA&amp;_nc_ad=z-m&amp;_nc_cid=0&amp;_nc_zt=23&amp;_nc_ht=scontent.cdninstagram.com&amp;_nc_gid=N8FldTjgfFtNH-oJvKslCg&amp;oh=00_AfXEBcsDB2xIcfNtsZY6IQvyKDQQl0-W8W-cToGXh6Izww&amp;oe=68A91E08"
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          />
-                          <div className="x1ey2m1c x9f619 xtijo5x x1o0tod x10l6tqk x13vifvy x1ypdohk" role="presentation" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
-                            <div className="xbudbmw x9uk3rv xa2bojp x10l6tqk xwa60dl" style={{ width: '100%', height: '100%' }}>
-                              <div className="x1yomw13 x1dhbnvk x4iexvp xfem2s5 xv2xd2s xg79w0" style={{ width: '100%', height: '100%' }}></div>
-                            </div>
-                          </div>
-                          <div className="html-div xdj266r x14z9mp xat24cr x1lziwak xexx8yu xyri2b x18d9i69 x1c1uobl x9f619 xjbqb8w x78zum5 x15mokao x1ga7v0g x16uus16 xbiv7yw x10l6tqk x1ey2m1c xtijo5x x1plvlek xryxfnj x1c4vz4f x2lah0s xdt5ytf xqjyukv x1qjc9v5 x1oa3qoh x1nhvcw1" style={{ position: 'absolute', top: '10px', right: '10px' }}>
-                            <button aria-label="Toggle audio" className=" _aswp _aswq _aswu _asw_ _asx2" type="button" style={{ background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                              <div className="html-div x9f619 x78zum5 x1c9tyrk xeusxvb x1pahc9y x1ertn4p x14vqqas xbmvrgn xod5an3 x1diwwjn x1y1aw1k xf159sx xwib8y2 xmzvs34 x1uhb9sk x1plvlek xryxfnj x1c4vz4f x2lah0s xdt5ytf xqjyukv x1qjc9v5 x1oa3qoh x1nhvcw1 x18l40ae">
-                                <svg aria-label="Audio is muted" className="x1lliihq x1n2onr6 x9bdzbf" fill="currentColor" height="12" role="img" viewBox="0 0 48 48" width="12" style={{ color: 'white' }}>
-                                  <title>Audio is muted</title>
-                                  <path clipRule="evenodd" d="M1.5 13.3c-.8 0-1.5.7-1.5 1.5v18.4c0 .8.7 1.5 1.5 1.5h8.7l12.9 12.9c.9.9 2.5.3 2.5-1v-9.8c0-.4-.2-.8-.4-1.1l-22-22c-.3-.3-.7-.4-1.1-.4h-.6zm46.8 31.4-5.5-5.5C44.9 36.6 48 31.4 48 24c0-11.4-7.2-17.4-7.2-17.4-.6-.6-1.6-.6-2.2 0L37.2 8c-.6.6-.6 1.6 0 2.2 0 0 5.7 5 5.7 13.8 0 5.4-2.1 9.3-3.8 11.6L35.5 32c1.1-1.7 2.3-4.4 2.3-8 0-6.8-4.1-10.3-4.1-10.3-.6-.6-1.6-.6-2.2 0l-1.4 1.4c-.6.6-.6 1.6 0 2.2 0 0 2.6 2 2.6 6.7 0 1.8-.4 3.2-.9 4.3L25.5 22V1.4c0-1.3-1.6-1.9-2.5-1L13.5 10 3.3-.3c-.6-.6-1.5-.6-2.1 0L-.2 1.1c-.6.6-.6 1.5 0 2.1L4 7.6l26.8 26.8 13.9 13.9c.6.6 1.5.6 2.1 0l1.4-1.4c.7-.6.7-1.6.1-2.2z" fillRule="evenodd"></path>
-                                </svg>
+                {/* Video Content Section */}
+                <div className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm border-border/50 h-full">
+                  <div className="relative flex-1 flex flex-col px-6">
+                    {/* Enhanced Carousel container with smooth animations */}
+                    <div className="relative flex items-center justify-center flex-1 overflow-hidden" ref={carouselRef}>
+                      {/* Previous preview card - enhanced animations */}
+                      {videoUrls.length > 1 && (
+                        <div 
+                          className={`absolute bg-black rounded-md overflow-hidden cursor-pointer transition-all duration-500 ease-out ${
+                            isTransitioning && slideDirection === 'right' 
+                              ? 'opacity-80 scale-110' 
+                              : 'opacity-40 hover:opacity-60 hover:scale-105'
+                          }`}
+                          style={{ 
+                            aspectRatio: '9/16',
+                            width: '200px',
+                            height: '350px',
+                            left: '15%',
+                            zIndex: 1,
+                            transform: `translateX(-50%) scale(${isTransitioning && slideDirection === 'right' ? 1.1 : 0.9})`,
+                            transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
+                          }}
+                          onClick={prevVideo}
+                        >
+                          {(() => {
+                            const prevIdx = (videoIndex - 1 + videoUrls.length) % videoUrls.length
+                            const thumb = toYouTubeThumbnailUrl(videoUrls[prevIdx])
+                            if (!thumb) {
+                              return <div className="w-full h-full bg-muted/20" />
+                            }
+                            return (
+                              <div className="w-full h-full relative">
+                                <img src={thumb} alt="Previous video preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)' }} />
                               </div>
-                            </button>
-                          </div>
-                          <div className="xwepwai x12ol6y4 x180vkcf x1khw62d x709u02 x972fbf x10w94by x1qhh985 x14e42zd x1ypdohk x14vqqas xbmvrgn xod5an3 x1diwwjn x13dflua x19991ni x1ey2m1c x1o0tod x10l6tqk x1hc1fzr" style={{ position: 'absolute', bottom: '10px', right: '10px' }}>
-                            <button className=" _aswp _aswq _aswu _asw_ _asx2" type="button" style={{ background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                              <div className="html-div xdj266r x14z9mp xat24cr x1lziwak x9f619 xjbqb8w x78zum5 x15mokao x1ga7v0g x16uus16 xbiv7yw xf159sx xmzvs34 xwib8y2 x1y1aw1k x1n2onr6 x1plvlek xryxfnj x1c4vz4f x2lah0s x1q0g3np xqjyukv x6s0dn4 x1oa3qoh xl56j7k">
-                                <svg aria-label="Tags" className="x1lliihq x1n2onr6 x9bdzbf" fill="currentColor" height="12" role="img" viewBox="0 0 24 24" width="12" style={{ color: 'white' }}>
-                                  <title>Tags</title>
-                                  <path d="M21.334 23H2.666a1 1 0 0 1-1-1v-1.354a6.279 6.279 0 0 1 6.272-6.272h8.124a6.279 6.279 0 0 1 6.271 6.271V22a1 1 0 0 1-1 1ZM12 13.269a6 6 0 1 1 6-6 6.007 6.007 0 0 1-6 6Z"></path>
-                                </svg>
-                              </div>
-                            </button>
-                          </div>
+                            )
+                          })()}
                         </div>
                       )}
+                      
+                      {/* Next preview card - enhanced animations */}
+                      {videoUrls.length > 1 && (
+                        <div 
+                          className={`absolute bg-black rounded-md overflow-hidden cursor-pointer transition-all duration-500 ease-out ${
+                            isTransitioning && slideDirection === 'left' 
+                              ? 'opacity-80 scale-110' 
+                              : 'opacity-40 hover:opacity-60 hover:scale-105'
+                          }`}
+                          style={{ 
+                            aspectRatio: '9/16',
+                            width: '200px',
+                            height: '350px',
+                            right: '15%',
+                            zIndex: 1,
+                            transform: `translateX(50%) scale(${isTransitioning && slideDirection === 'left' ? 1.1 : 0.9})`,
+                            transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
+                          }}
+                          onClick={nextVideo}
+                        >
+                          {(() => {
+                            const nextIdx = (videoIndex + 1) % videoUrls.length
+                            const thumb = toYouTubeThumbnailUrl(videoUrls[nextIdx])
+                            if (!thumb) {
+                              return <div className="w-full h-full bg-muted/20" />
+                            }
+                            return (
+                              <div className="w-full h-full relative">
+                                <img src={thumb} alt="Next video preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)' }} />
+                              </div>
+                            )
+                          })()}
+                        </div>
+                      )}
+                      
+                      {/* Main video card - enhanced with slide animations */}
+                      <div 
+                        className={`relative bg-black rounded-md overflow-hidden transition-all duration-500 ease-out ${
+                          isTransitioning ? 'pointer-events-none' : ''
+                        }`}
+                        style={{ 
+                          aspectRatio: '9/16', 
+                          maxWidth: '60%',
+                          zIndex: 2,
+                          transform: isTransitioning 
+                            ? slideDirection === 'left' 
+                              ? 'translateX(-100%) scale(0.9)' 
+                              : slideDirection === 'right' 
+                                ? 'translateX(100%) scale(0.9)' 
+                                : 'translateX(0) scale(1)'
+                            : 'translateX(0) scale(1)',
+                          opacity: isTransitioning ? 0.7 : 1,
+                          filter: isTransitioning ? 'brightness(0%)' : 'brightness(100%)',
+                          transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
+                        }}
+                      >
+                        {videoUrls.length === 0 ? (
+                          <div className="w-full h-full bg-muted/20 animate-pulse" />
+                        ) : (
+                          (() => {
+                            const embedUrl = toYouTubeEmbedUrl(videoUrls[videoIndex])
+                            if (!embedUrl) {
+                              return (
+                                <div className="w-full h-full bg-muted/20" />
+                              )
+                            }
+                            return (
+                              <iframe
+                                src={embedUrl}
+                                title="YouTube video player"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowFullScreen
+                                frameBorder={0}
+                                style={{ width: '100%', height: '100%' }}
+                              />
+                            )
+                          })()
+                        )}
+                      </div>
                     </div>
+                    
+                    {/* Enhanced navigation buttons with animations */}
                     <div className="mt-3 flex items-center justify-between">
-                      <Button variant="outline" size="sm" onClick={prevVideo} disabled={videoUrls.length <= 1}>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={prevVideo} 
+                        disabled={videoUrls.length <= 1 || isTransitioning}
+                        className="transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
                         Previous
                       </Button>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-xs text-muted-foreground transition-opacity duration-200">
                         {videoUrls.length > 0 ? `${videoIndex + 1} / ${videoUrls.length}` : '—'}
                       </div>
-                      <Button variant="outline" size="sm" onClick={nextVideo} disabled={videoUrls.length <= 1}>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={nextVideo} 
+                        disabled={videoUrls.length <= 1 || isTransitioning}
+                        className="transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
                         Next
                       </Button>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </div>
-            </div>
-          </TabsContent>
-          
-          {/* Legend */}
-          <div className="mt-6 p-4 bg-muted/30 rounded-lg border border-border/30">
-            <div className="text-sm font-medium mb-3 text-foreground">Muscle Intensity Scale</div>
-            <div className="grid grid-cols-3 gap-2 text-xs">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'hsl(0 100% 50%)' }} />
-                <span className="text-muted-foreground">Very High (4.5+)</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'hsl(0 85% 60%)' }} />
-                <span className="text-muted-foreground">High (4+)</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'hsl(30 85% 50%)' }} />
-                <span className="text-muted-foreground">Med-High (3+)</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'hsl(60 75% 50%)' }} />
-                <span className="text-muted-foreground">Medium (2+)</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'hsl(120 60% 45%)' }} />
-                <span className="text-muted-foreground">Low+ (1.5+)</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'hsl(200 60% 60%)' }} />
-                <span className="text-muted-foreground">Low (1+)</span>
-              </div>
-            </div>
-            <div className="mt-3 text-xs text-muted-foreground">
-              💡 Higher intensity muscles show with brighter colors and glow effects
             </div>
           </div>
-        </Tabs>
-        </CardHeader>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
     </TooltipProvider>
   )
 }
