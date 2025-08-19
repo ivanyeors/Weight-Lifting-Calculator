@@ -37,7 +37,18 @@ export const loadExercisesFromLocalFile = async (): Promise<ExternalExercise[]> 
  */
 export const loadExercisesFromManifest = async (): Promise<ExternalExercise[]> => {
   // Helper to resolve URLs against Next.js base path (works for GitHub Pages subpath deploys)
-  const publicUrl = (p: string) => `${process.env.NEXT_PUBLIC_BASE_URL || ''}${p.replace(/^\/+/, '')}`
+  const publicUrl = (p: string) => {
+    const path = `/${p.replace(/^\/+/, '')}`
+    // Prefer explicit env base, otherwise try Next.js runtime assetPrefix in browser
+    let base = process.env.NEXT_PUBLIC_BASE_URL || ''
+    if (!base && typeof window !== 'undefined') {
+      // __NEXT_DATA__.assetPrefix is set when basePath/assetPrefix are configured (e.g., GitHub Pages)
+      const anyWindow = window as unknown as { __NEXT_DATA__?: { assetPrefix?: string } }
+      base = anyWindow.__NEXT_DATA__?.assetPrefix || ''
+    }
+    if (!base) return path
+    return `${base.replace(/\/+$/, '')}${path}`
+  }
   // 1) Read manifest
   const manifestResponse = await fetch(publicUrl('manifest.json'))
   if (!manifestResponse.ok) {

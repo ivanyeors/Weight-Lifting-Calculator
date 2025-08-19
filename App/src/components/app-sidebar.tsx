@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Sidebar,
   SidebarContent,
@@ -8,6 +8,11 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
+  SidebarTrigger,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import {
   DropdownMenu,
@@ -19,78 +24,22 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Slider } from "@/components/ui/slider"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { LoginForm } from "@/components/login-form"
 import { supabase } from '@/lib/supabaseClient'
 
-import { User, Dumbbell, Activity, ChevronDown, UserCheck, Users } from "lucide-react"
-import { ExerciseDropdown } from "@/components/ExerciseDropdown"
+import { Calculator, MapPin, ClipboardList, Dumbbell, AppWindow, ChevronDown } from "lucide-react"
+import { useTheme } from "next-themes"
 
-interface Exercise {
-  id: string
-  name: string
-  description: string
-  muscleInvolvement: { [muscleName: string]: number }
-  baseWeightFactor: number
-}
+type UserInfo = { id: string; email: string | null; name: string | null; avatarUrl: string | null }
 
-interface AppSidebarProps {
-  // User input states
-  bodyWeight: number
-  setBodyWeight: (value: number) => void
-  height: number
-  setHeight: (value: number) => void
-  age: number
-  setAge: (value: number) => void
-  gender: string
-  setGender: (value: string) => void
-  experience: string
-  setExperience: (value: string) => void
-  skeletalMuscleMass: number
-  setSkeletalMuscleMass: (value: number) => void
-  bodyFatMass: number
-  setBodyFatMass: (value: number) => void
-  selectedExerciseId: string
-  setSelectedExerciseId: (value: string) => void
-  
-  // Exercise data
-  exercises: Exercise[]
-  isLoadingExercises: boolean
-  exerciseLoadError: string | null
-  
-  // Experience factors
-  experienceFactors: { [key: string]: { factor: number; label: string } }
-}
-
-export function AppSidebar({
-  bodyWeight,
-  setBodyWeight,
-  height,
-  setHeight,
-  age,
-  setAge,
-  gender,
-  setGender,
-  experience,
-  setExperience,
-  skeletalMuscleMass,
-  setSkeletalMuscleMass,
-  bodyFatMass,
-  setBodyFatMass,
-  selectedExerciseId,
-  setSelectedExerciseId,
-  exercises,
-  isLoadingExercises,
-  exerciseLoadError,
-  experienceFactors,
-}: AppSidebarProps) {
-  type UserInfo = { id: string; email: string | null; name: string | null; avatarUrl: string | null }
+export function AppSidebar() {
   const [user, setUser] = useState<UserInfo | null>(null)
+  const [isLoginOpen, setIsLoginOpen] = useState(false)
+  const [currentPlan, setCurrentPlan] = useState<string>('Free')
+  const { theme, resolvedTheme } = useTheme()
+  const { state } = useSidebar()
 
   useEffect(() => {
     const init = async () => {
@@ -106,11 +55,16 @@ export function AppSidebar({
             }
           : null
       )
+      const metaPlan = (u?.user_metadata?.plan as string | undefined) || null
+      const storedPlan = typeof window !== 'undefined'
+        ? ((localStorage.getItem('fitspo:plan') as string | null) || (localStorage.getItem('stronk:plan') as string | null))
+        : null
+      setCurrentPlan(metaPlan || storedPlan || 'Free')
     }
     void init()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      const u = session?.user ?? null
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      const u = s?.user ?? null
       setUser(
         u
           ? {
@@ -121,40 +75,7 @@ export function AppSidebar({
             }
           : null
       )
-    })
-    return () => subscription.unsubscribe()
-  }, [])
-  
-  const [bodyWeightInput, setBodyWeightInput] = useState(String(bodyWeight))
-  const [heightInput, setHeightInput] = useState(String(height))
-  const [ageInput, setAgeInput] = useState(String(age))
-  const [skeletalMuscleMassInput, setSkeletalMuscleMassInput] = useState(String(skeletalMuscleMass))
-  const [bodyFatMassInput, setBodyFatMassInput] = useState(String(bodyFatMass))
-  const [isLoginOpen, setIsLoginOpen] = useState(false)
-  const [currentPlan, setCurrentPlan] = useState<string>('Free')
-  const [isSyncing, setIsSyncing] = useState(false)
-  const [syncError, setSyncError] = useState<string | null>(null)
-  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null)
-  const [hasPendingChanges, setHasPendingChanges] = useState(false)
-  const debounceTimerRef = useRef<number | null>(null)
-
-  // Close login sheet on successful sign-in
-  useEffect(() => { if (user && isLoginOpen) setIsLoginOpen(false) }, [user, isLoginOpen])
-
-  // Sync current plan from Supabase and localStorage
-  useEffect(() => {
-    const fetchPlan = async () => {
-      const { data } = await supabase.auth.getSession()
-      const metaPlan = (data.session?.user?.user_metadata?.plan as string | undefined) || null
-      const storedPlan = typeof window !== 'undefined'
-        ? ((localStorage.getItem('fitspo:plan') as string | null) || (localStorage.getItem('stronk:plan') as string | null))
-        : null
-      setCurrentPlan(metaPlan || storedPlan || 'Free')
-    }
-    void fetchPlan()
-
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
-      const uPlan = (s?.user?.user_metadata?.plan as string | undefined) || null
+      const uPlan = (u?.user_metadata?.plan as string | undefined) || null
       const lsPlan = typeof window !== 'undefined'
         ? ((localStorage.getItem('fitspo:plan') as string | null) || (localStorage.getItem('stronk:plan') as string | null))
         : null
@@ -163,470 +84,106 @@ export function AppSidebar({
     return () => sub.subscription.unsubscribe()
   }, [])
 
-  // Load saved personal details for Personal tier on sign-in
-  useEffect(() => {
-    const loadPersonalDetails = async () => {
-      if (!user?.id || currentPlan !== 'Personal') return
-      const { data } = await supabase.auth.getSession()
-      const u = data.session?.user
-      const savedNew = (u?.user_metadata?.fitspo_personal as any) || null
-      const savedOld = (u?.user_metadata?.stronk_personal as any) || null
-      const saved = savedNew || savedOld || null
-      // Seamless migration: if old exists and new doesn't, copy to new key
-      if (!savedNew && savedOld) {
-        try {
-          await supabase.auth.updateUser({ data: { fitspo_personal: savedOld } as any })
-        } catch {}
-      }
-      if (saved) {
-        if (typeof saved.bodyWeight === 'number') setBodyWeight(saved.bodyWeight)
-        if (typeof saved.height === 'number') setHeight(saved.height)
-        if (typeof saved.age === 'number') setAge(saved.age)
-        if (typeof saved.gender === 'string') setGender(saved.gender)
-        if (typeof saved.experience === 'string') setExperience(saved.experience)
-        if (typeof saved.skeletalMuscleMass === 'number') setSkeletalMuscleMass(saved.skeletalMuscleMass)
-        if (typeof saved.bodyFatMass === 'number') setBodyFatMass(saved.bodyFatMass)
-        if (typeof saved.selectedExerciseId === 'string') setSelectedExerciseId(saved.selectedExerciseId)
-        if (typeof saved.updatedAt === 'string') {
-          const dt = new Date(saved.updatedAt)
-          if (!Number.isNaN(dt.getTime())) setLastSyncedAt(dt)
-        }
-        setHasPendingChanges(false)
-      }
-    }
-    void loadPersonalDetails()
-  }, [user?.id, currentPlan])
-
-  // Ensure migration runs even outside Personal plan context
-  useEffect(() => {
-    const migrateIfNeeded = async () => {
-      if (!user?.id) return
-      const { data } = await supabase.auth.getSession()
-      const u = data.session?.user
-      const savedNew = (u?.user_metadata?.fitspo_personal as any) || null
-      const savedOld = (u?.user_metadata?.stronk_personal as any) || null
-      if (!savedNew && savedOld) {
-        try {
-          await supabase.auth.updateUser({ data: { fitspo_personal: savedOld } as any })
-        } catch {}
-      }
-    }
-    void migrateIfNeeded()
-  }, [user?.id])
-
-  // Debounced auto-sync to Supabase for Personal tier
-  useEffect(() => {
-    if (!user?.id || currentPlan !== 'Personal') return
-    setHasPendingChanges(true)
-    if (debounceTimerRef.current) window.clearTimeout(debounceTimerRef.current)
-    debounceTimerRef.current = window.setTimeout(async () => {
-      setIsSyncing(true)
-      setSyncError(null)
-      try {
-        const payload = {
-          fitspo_personal: {
-            bodyWeight,
-            height,
-            age,
-            gender,
-            experience,
-            skeletalMuscleMass,
-            bodyFatMass,
-            selectedExerciseId,
-            updatedAt: new Date().toISOString(),
-          },
-        }
-        const { error } = await supabase.auth.updateUser({ data: payload as any })
-        if (error) throw error
-        setLastSyncedAt(new Date())
-        setHasPendingChanges(false)
-      } catch (e: any) {
-        setSyncError(e?.message || 'Failed to sync')
-      } finally {
-        setIsSyncing(false)
-      }
-    }, 800)
-
-    return () => {
-      if (debounceTimerRef.current) window.clearTimeout(debounceTimerRef.current)
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bodyWeight, height, age, gender, experience, skeletalMuscleMass, bodyFatMass, selectedExerciseId, user?.id, currentPlan])
-
-  const handleManualSync = async () => {
-    if (!user?.id || currentPlan !== 'Personal') return
-    if (debounceTimerRef.current) window.clearTimeout(debounceTimerRef.current)
-    setIsSyncing(true)
-    setSyncError(null)
-    try {
-      const payload = {
-        fitspo_personal: {
-          bodyWeight,
-          height,
-          age,
-          gender,
-          experience,
-          skeletalMuscleMass,
-          bodyFatMass,
-          selectedExerciseId,
-          updatedAt: new Date().toISOString(),
-        },
-      }
-      const { error } = await supabase.auth.updateUser({ data: payload as any })
-      if (error) throw error
-      setLastSyncedAt(new Date())
-      setHasPendingChanges(false)
-    } catch (e: any) {
-      setSyncError(e?.message || 'Failed to sync')
-    } finally {
-      setIsSyncing(false)
-    }
-  }
-
-  useEffect(() => { setBodyWeightInput(String(bodyWeight)) }, [bodyWeight])
-  useEffect(() => { setHeightInput(String(height)) }, [height])
-  useEffect(() => { setAgeInput(String(age)) }, [age])
-  useEffect(() => { setSkeletalMuscleMassInput(String(skeletalMuscleMass)) }, [skeletalMuscleMass])
-  useEffect(() => { setBodyFatMassInput(String(bodyFatMass)) }, [bodyFatMass])
-
-  
+  useEffect(() => { if (user && isLoginOpen) setIsLoginOpen(false) }, [user, isLoginOpen])
 
   return (
-    <Sidebar>
+    <Sidebar collapsible="icon">
       <SidebarHeader className="p-4">
-        <div className="flex items-center space-x-2 mb-4">
-          <Dumbbell className="h-8 w-8 text-primary" />
-          <div>
-            <h2 className="text-lg font-semibold">Fitspo</h2>
-            <p className="text-sm text-muted-foreground">Fitness Calculator</p>
+        {state === 'collapsed' ? (
+          <div className="flex flex-col items-center gap-2">
+            <img
+              src={(resolvedTheme || theme) === 'dark' ? '/logo-dark.svg' : '/logo-light.svg'}
+              alt="Fitspo Logo"
+              className="h-6 w-6 rounded-[8px]"
+            />
+            <SidebarTrigger className="h-8 w-8 p-0" />
           </div>
-        </div>
-        {user?.email && currentPlan === 'Personal' && (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span
-                className={[
-                  "inline-block size-2 rounded-full aspect-square shrink-0 flex-none",
-                  isSyncing
-                    ? "bg-amber-500 animate-pulse"
-                    : syncError
-                    ? "bg-red-500"
-                    : hasPendingChanges
-                    ? "bg-amber-500"
-                    : "bg-emerald-500",
-                ].join(' ')}
-                aria-label={isSyncing ? 'Syncing' : syncError ? 'Sync error' : hasPendingChanges ? 'Pending changes' : 'Synced'}
+        ) : (
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center space-x-2">
+              <img
+                src={(resolvedTheme || theme) === 'dark' ? '/logo-dark.svg' : '/logo-light.svg'}
+                alt="Fitspo Logo"
+                className="h-6 w-6 rounded-[8px]"
               />
-              <span>
-                {isSyncing
-                  ? 'Syncing…'
-                  : syncError
-                  ? 'Sync failed'
-                  : `Last sync: ${lastSyncedAt ? lastSyncedAt.toLocaleString() : 'never'}`}
-              </span>
+              <div>
+                <h2 className="text-base font-semibold">Fitspo</h2>
+                <p className="text-xs text-muted-foreground">Your fitness database</p>
+              </div>
             </div>
-            <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={handleManualSync} disabled={isSyncing || !user?.id}>
-              Sync now
-            </Button>
+            <SidebarTrigger className="h-8 w-8 p-0" />
           </div>
         )}
-
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="flex items-center">
-            <Activity className="mr-2 h-4 w-4" />
-            Exercises
+            Calculations
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <div className="px-3 py-2">
-              <ExerciseDropdown
-                exercises={exercises}
-                selectedExerciseId={selectedExerciseId}
-                onSelectExercise={setSelectedExerciseId}
-                isLoading={isLoadingExercises}
-                error={exerciseLoadError}
-              />
-            </div>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <a href="/fitness-calculator" className="flex items-center gap-2">
+                    <Calculator />
+                    <span>Fitness Calculator</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
         <SidebarGroup>
           <SidebarGroupLabel className="flex items-center">
-            <User className="mr-2 h-4 w-4" />
-            Personal Details
+            Database
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <div className="px-3 py-2 space-y-5">
-              {/* Body Weight */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium">Body Weight</Label>
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      min={40}
-                      max={150}
-                      value={bodyWeightInput}
-                      onChange={(e) => setBodyWeightInput(e.target.value)}
-                      onBlur={() => {
-                        const parsed = Number(bodyWeightInput)
-                        if (!Number.isNaN(parsed)) {
-                          const clamped = Math.min(150, Math.max(40, parsed))
-                          setBodyWeight(clamped)
-                        } else {
-                          setBodyWeightInput(String(bodyWeight))
-                        }
-                      }}
-                      onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
-                      className="h-8 w-14 text-right"
-                    />
-                    <span className="text-xs text-muted-foreground">kg</span>
-                  </div>
-                </div>
-                <div className="px-1">
-                  <Slider
-                    min={40}
-                    max={150}
-                    step={1}
-                    value={[bodyWeight]}
-                    onValueChange={(value) => setBodyWeight(value[0])}
-                    className="w-full cursor-pointer"
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground mt-1 px-1">
-                    <span>40kg</span>
-                    <span>150kg</span>
-                  </div>
-                </div>
-              </div>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <a href="/exercise-library" className="flex items-center gap-2">
+                    <Dumbbell />
+                    <span>Exercise Library</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <a href="/workout-plans" className="flex items-center gap-2">
+                    <ClipboardList />
+                    <span>Workout Plans</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <a href="/locations" className="flex items-center gap-2">
+                    <MapPin />
+                    <span>Locations</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
-              {/* Height */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium">Height</Label>
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      min={140}
-                      max={220}
-                      value={heightInput}
-                      onChange={(e) => setHeightInput(e.target.value)}
-                      onBlur={() => {
-                        const parsed = Number(heightInput)
-                        if (!Number.isNaN(parsed)) {
-                          const clamped = Math.min(220, Math.max(140, parsed))
-                          setHeight(clamped)
-                        } else {
-                          setHeightInput(String(height))
-                        }
-                      }}
-                      onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
-                      className="h-8 w-14 text-right"
-                    />
-                    <span className="text-xs text-muted-foreground">cm</span>
-                  </div>
-                </div>
-                <div className="px-1">
-                  <Slider
-                    min={140}
-                    max={220}
-                    step={1}
-                    value={[height]}
-                    onValueChange={(value) => setHeight(value[0])}
-                    className="w-full cursor-pointer"
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground mt-1 px-1">
-                    <span>140cm</span>
-                    <span>220cm</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Age */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium">Age</Label>
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      min={15}
-                      max={80}
-                      value={ageInput}
-                      onChange={(e) => setAgeInput(e.target.value)}
-                      onBlur={() => {
-                        const parsed = Number(ageInput)
-                        if (!Number.isNaN(parsed)) {
-                          const clamped = Math.min(80, Math.max(15, parsed))
-                          setAge(clamped)
-                        } else {
-                          setAgeInput(String(age))
-                        }
-                      }}
-                      onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
-                      className="h-8 w-14 text-right"
-                    />
-                    <span className="text-xs text-muted-foreground">years</span>
-                  </div>
-                </div>
-                <div className="px-1">
-                  <Slider
-                    min={15}
-                    max={80}
-                    step={1}
-                    value={[age]}
-                    onValueChange={(value) => setAge(value[0])}
-                    className="w-full cursor-pointer"
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground mt-1 px-1">
-                    <span>15</span>
-                    <span>80</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Skeletal Muscle Mass (SMM) */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium">Skeletal Muscle Mass (SMM)</Label>
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      min={10}
-                      max={200}
-                      value={skeletalMuscleMassInput}
-                      onChange={(e) => setSkeletalMuscleMassInput(e.target.value)}
-                      onBlur={() => {
-                        const parsed = Number(skeletalMuscleMassInput)
-                        if (!Number.isNaN(parsed)) {
-                          const clamped = Math.min(200, Math.max(10, parsed))
-                          setSkeletalMuscleMass(clamped)
-                        } else {
-                          setSkeletalMuscleMassInput(String(skeletalMuscleMass))
-                        }
-                      }}
-                      onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
-                      className="h-8 w-14 text-right"
-                    />
-                    <span className="text-xs text-muted-foreground">kg</span>
-                  </div>
-                </div>
-                <div className="px-1">
-                  <Slider
-                    min={10}
-                    max={200}
-                    step={1}
-                    value={[skeletalMuscleMass]}
-                    onValueChange={(value) => setSkeletalMuscleMass(value[0])}
-                    className="w-full cursor-pointer"
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground mt-1 px-1">
-                    <span>10kg</span>
-                    <span>200kg</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Body Fat Mass (BFM) */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium">Body Fat Mass (BFM)</Label>
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      min={2}
-                      max={200}
-                      value={bodyFatMassInput}
-                      onChange={(e) => setBodyFatMassInput(e.target.value)}
-                      onBlur={() => {
-                        const parsed = Number(bodyFatMassInput)
-                        if (!Number.isNaN(parsed)) {
-                          const clamped = Math.min(200, Math.max(2, parsed))
-                          setBodyFatMass(clamped)
-                        } else {
-                          setBodyFatMassInput(String(bodyFatMass))
-                        }
-                      }}
-                      onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
-                      className="h-8 w-14 text-right"
-                    />
-                    <span className="text-xs text-muted-foreground">kg</span>
-                  </div>
-                </div>
-                <div className="px-1">
-                  <Slider
-                    min={2}
-                    max={200}
-                    step={1}
-                    value={[bodyFatMass]}
-                    onValueChange={(value) => setBodyFatMass(value[0])}
-                    className="w-full cursor-pointer"
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground mt-1 px-1">
-                    <span>2kg</span>
-                    <span>200kg</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Gender */}
-              <div className="space-y-3">
-                <Label className="text-sm font-medium">Gender</Label>
-                <Select value={gender} onValueChange={setGender}>
-                  <SelectTrigger className="w-full h-10 bg-background border-border hover:bg-accent hover:text-accent-foreground transition-colors">
-                    <SelectValue placeholder="Select gender" />
-                  </SelectTrigger>
-                  <SelectContent className="w-full">
-                    <SelectItem value="male" className="cursor-pointer">
-                      <div className="flex items-center justify-center space-x-2">
-                        <UserCheck className="h-4 w-4" />
-                        <span>Male</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="female" className="cursor-pointer">
-                      <div className="flex items-center justify-center space-x-2">
-                        <Users className="h-4 w-4" />
-                        <span>Female</span>
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Experience Level */}
-              <div className="space-y-3">
-                <Label className="text-sm font-medium">Experience Level</Label>
-                <Select value={experience} onValueChange={setExperience}>
-                  <SelectTrigger className="w-full h-10 bg-background border-border hover:bg-accent hover:text-accent-foreground transition-colors">
-                    <SelectValue placeholder="Select experience" />
-                  </SelectTrigger>
-                  <SelectContent className="w-full max-h-60">
-                    {Object.entries(experienceFactors).map(([key, value]) => (
-                      <SelectItem key={key} value={key} className="cursor-pointer py-3">
-                        <div className="flex flex-col items-start">
-                          <span className="font-medium">
-                            {(() => {
-                              const match = value.label.match(/\(([^)]+)\)/)
-                              const inside = match ? match[1] : ''
-                              const parts = inside.split(',').map(s => s.trim()).filter(Boolean)
-                              return parts.length ? parts[parts.length - 1] : value.label
-                            })()}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {value.label.split('(')[0].trim()}
-                          </span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+        <SidebarGroup>
+          <SidebarGroupLabel className="flex items-center">
+            App
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <a href="/fitspo-app" className="flex items-center gap-2">
+                    <AppWindow />
+                    <span>Fitspo App</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>

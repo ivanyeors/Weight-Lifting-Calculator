@@ -3,6 +3,8 @@ import { Inter } from 'next/font/google'
 import '../index.css'
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/app-sidebar"
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -25,7 +27,12 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {children}
+          <SidebarProvider>
+            <AppSidebar />
+            <SidebarInset>
+              {children}
+            </SidebarInset>
+          </SidebarProvider>
           <Toaster />
         </ThemeProvider>
       </body>

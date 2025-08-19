@@ -1,3 +1,5 @@
+'use client'
+
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card"
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -8,8 +10,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useState, useRef, useEffect } from 'react'
-import { Dumbbell, Lock } from 'lucide-react'
-import { ExerciseDropdown } from "@/components/ExerciseDropdown"
+import { Dumbbell, Lock, Activity } from 'lucide-react'
+import { ExerciseDropdown } from "@/app/fitness-calculator/ExerciseDropdown"
 import { Button } from "@/components/ui/button"
 import { useUserTier } from "@/hooks/use-user-tier"
 
@@ -106,8 +108,6 @@ const getIntensityDescription = (involvement: number) => {
   if (involvement >= 1) return 'Low'
   return 'Minimal'
 }
-
-// Glow effect removed
 
 // Shared layer type for placement
 type LayerPlacement = { topPct: number; leftPct: number; widthPct: number }
@@ -531,23 +531,16 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, selectedExercis
   const [slideDirection, setSlideDirection] = useState<'left' | 'right' | null>(null)
   const carouselRef = useRef<HTMLDivElement>(null)
 
-  // No placeholder; show status cards instead
-
   const extractYouTubeId = (url: string): string | null => {
     try {
-      // Handle youtu.be short links
       const shortMatch = url.match(/youtu\.be\/([A-Za-z0-9_-]{6,})/)
       if (shortMatch && shortMatch[1]) return shortMatch[1]
-
-      // Handle youtube.com/watch?v=
       const watchMatch = url.match(/[?&]v=([A-Za-z0-9_-]{6,})/)
       if (watchMatch && watchMatch[1]) return watchMatch[1]
-
-      // Handle youtube.com/shorts/
       const shortsMatch = url.match(/youtube\.com\/shorts\/([A-Za-z0-9_-]{6,})/)
       if (shortsMatch && shortsMatch[1]) return shortsMatch[1]
     } catch {
-      // ignore parsing errors
+      return null
     }
     return null
   }
@@ -561,21 +554,15 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, selectedExercis
   const toYouTubeThumbnailUrl = (url: string): string | null => {
     const id = extractYouTubeId(url)
     if (!id) return null
-    // Use high-quality default; falls back automatically if not available
     return `https://img.youtube.com/vi/${id}/hqdefault.jpg`
   }
 
   const searchVideos = async () => {
-    // Check if user has access to video search
-    if (!isPaidTier) {
-      return
-    }
-
+    if (!isPaidTier) return
     setIsSearching(true)
     setVideoError(null)
     setVideoUrls([])
     try {
-      // Use the new YouTube API endpoint
       const response = await fetch('/api/youtube/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -591,7 +578,6 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, selectedExercis
         setVideoIndex(0)
         return
       }
-      // non-OK responses
       setVideoError({ code: data.error || 'upstream_error', message: data.message || 'Video search failed. Try again later.' })
     } catch (error) {
       console.error('Video search error:', error)
@@ -605,7 +591,6 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, selectedExercis
     if (videoUrls.length <= 1 || isTransitioning) return
     setIsTransitioning(true)
     setSlideDirection('left')
-    
     setTimeout(() => {
       setVideoIndex((i) => (i + 1) % videoUrls.length)
       setIsTransitioning(false)
@@ -617,7 +602,6 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, selectedExercis
     if (videoUrls.length <= 1 || isTransitioning) return
     setIsTransitioning(true)
     setSlideDirection('right')
-    
     setTimeout(() => {
       setVideoIndex((i) => (i - 1 + videoUrls.length) % videoUrls.length)
       setIsTransitioning(false)
@@ -625,13 +609,11 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, selectedExercis
     }, 300)
   }
 
-  // Reset transition state when videoUrls change
   useEffect(() => {
     setIsTransitioning(false)
     setSlideDirection(null)
   }, [videoUrls])
 
-  // Simple video search/render panel
   return (
     <TooltipProvider>
       <Card className="bg-card/50 backdrop-blur border-border/50 h-full">
@@ -654,6 +636,10 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, selectedExercis
                 {/* Exercise dropdown */}
                 {typeof setSelectedExerciseId === 'function' && typeof selectedExerciseId === 'string' && (
                   <div className="mb-4">
+                    <div className="flex items-center mb-2">
+                      <Activity className="mr-2 h-4 w-4" />
+                      <span className="text-sm font-medium">Select Exercise</span>
+                    </div>
                     <ExerciseDropdown
                       selectedExerciseId={selectedExerciseId}
                       onSelectExercise={setSelectedExerciseId}
@@ -662,7 +648,7 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, selectedExercis
                       align="start"
                       side="bottom"
                       sideOffset={6}
-                      contentClassName="min-w-[300px]"
+                      contentClassName="min-w-[400px]"
                     />
                   </div>
                 )}
@@ -979,3 +965,5 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, selectedExercis
     </TooltipProvider>
   )
 }
+
+
