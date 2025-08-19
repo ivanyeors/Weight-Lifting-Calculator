@@ -193,8 +193,37 @@ export default function AccountPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="text-sm text-muted-foreground">Loading account…</div>
+      <div className="container mx-auto p-4 md:p-8">
+        <div className="mb-6 flex items-center gap-3">
+          <Button variant="ghost" disabled>
+            ← Back
+          </Button>
+          <div>
+            <div className="h-8 w-32 mb-2 bg-muted animate-pulse rounded" />
+            <div className="h-4 w-64 bg-muted animate-pulse rounded" />
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="h-6 w-24 mb-2 bg-muted animate-pulse rounded" />
+              <div className="h-4 w-48 bg-muted animate-pulse rounded" />
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <div className="h-4 w-20 bg-muted animate-pulse rounded" />
+                  <div className="h-10 w-full bg-muted animate-pulse rounded" />
+                </div>
+                <div className="space-y-2">
+                  <div className="h-4 w-32 bg-muted animate-pulse rounded" />
+                  <div className="h-10 w-full bg-muted animate-pulse rounded" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     )
   }
