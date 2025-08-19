@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator"
 
 import { LoginForm } from "@/components/login-form"
 import { PricingPlansClient } from "@/components/pricing-plans-client"
+import { ThemeSelectionCard } from "@/components/theme-selection-card"
 import { plans } from "@/lib/plans"
 import { toast } from "sonner"
 
@@ -323,6 +324,8 @@ export default function AccountPage() {
               </div>
             </CardContent>
           </Card>
+
+          <ThemeSelectionCard />
 
           <Card>
             <CardHeader>
