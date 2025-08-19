@@ -128,7 +128,7 @@ export function AppSidebar() {
                 <SidebarMenuButton asChild isActive={pathname === '/fitness-calculator'}>
                   <a href="/fitness-calculator" className={`flex items-center gap-2 ${pathname === '/fitness-calculator' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''}`}>
                     <Calculator />
-                    <span>Fitness Calculator</span>
+                    <span>Weight Calculator</span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
