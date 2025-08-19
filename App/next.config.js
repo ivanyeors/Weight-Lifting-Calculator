@@ -10,9 +10,18 @@ const nextConfig = {
   basePath: isProd ? repoName : undefined,
   assetPrefix: isProd ? `${repoName}/` : undefined,
   trailingSlash: true,
-  output: 'export',
+  output: isProd ? 'export' : undefined,
   images: {
     unoptimized: true
+  },
+  async redirects() {
+    return [
+      {
+        source: '/favicon.ico',
+        destination: '/logo-dark.svg',
+        permanent: true,
+      },
+    ]
   },
   webpack(config) {
     config.module.rules.push({
