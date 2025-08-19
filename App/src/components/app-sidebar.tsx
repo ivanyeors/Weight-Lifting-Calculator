@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import {
   Sidebar,
   SidebarContent,
@@ -40,6 +41,7 @@ export function AppSidebar() {
   const [currentPlan, setCurrentPlan] = useState<string>('Free')
   const { theme, resolvedTheme } = useTheme()
   const { state } = useSidebar()
+  const pathname = usePathname()
 
   useEffect(() => {
     const init = async () => {
@@ -94,7 +96,7 @@ export function AppSidebar() {
             <img
               src={(resolvedTheme || theme) === 'dark' ? '/logo-dark.svg' : '/logo-light.svg'}
               alt="Fitspo Logo"
-              className="h-6 w-6 rounded-[8px]"
+              className="h-8 w-8 rounded-[8px]"
             />
             <SidebarTrigger className="h-8 w-8 p-0" />
           </div>
@@ -104,11 +106,10 @@ export function AppSidebar() {
               <img
                 src={(resolvedTheme || theme) === 'dark' ? '/logo-dark.svg' : '/logo-light.svg'}
                 alt="Fitspo Logo"
-                className="h-6 w-6 rounded-[8px]"
+                className="h-8 w-8 rounded-[8px]"
               />
               <div>
                 <h2 className="text-base font-semibold">Fitspo</h2>
-                <p className="text-xs text-muted-foreground">Your fitness database</p>
               </div>
             </div>
             <SidebarTrigger className="h-8 w-8 p-0" />
@@ -124,8 +125,8 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <a href="/fitness-calculator" className="flex items-center gap-2">
+                <SidebarMenuButton asChild isActive={pathname === '/fitness-calculator'}>
+                  <a href="/fitness-calculator" className={`flex items-center gap-2 ${pathname === '/fitness-calculator' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''}`}>
                     <Calculator />
                     <span>Fitness Calculator</span>
                   </a>
@@ -142,24 +143,24 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <a href="/exercise-library" className="flex items-center gap-2">
+                <SidebarMenuButton asChild isActive={pathname === '/exercise-library'}>
+                  <a href="/exercise-library" className={`flex items-center gap-2 ${pathname === '/exercise-library' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''}`}>
                     <Dumbbell />
                     <span>Exercise Library</span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <a href="/workout-plans" className="flex items-center gap-2">
+                <SidebarMenuButton asChild isActive={pathname === '/workout-plans'}>
+                  <a href="/workout-plans" className={`flex items-center gap-2 ${pathname === '/workout-plans' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''}`}>
                     <ClipboardList />
                     <span>Workout Plans</span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <a href="/locations" className="flex items-center gap-2">
+                <SidebarMenuButton asChild isActive={pathname === '/locations'}>
+                  <a href="/locations" className={`flex items-center gap-2 ${pathname === '/locations' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''}`}>
                     <MapPin />
                     <span>Locations</span>
                   </a>
@@ -176,8 +177,8 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <a href="/fitspo-app" className="flex items-center gap-2">
+                <SidebarMenuButton asChild isActive={pathname === '/fitspo-app'}>
+                  <a href="/fitspo-app" className={`flex items-center gap-2 ${pathname === '/fitspo-app' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''}`}>
                     <AppWindow />
                     <span>Fitspo App</span>
                   </a>
@@ -188,67 +189,69 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-4">
-        {user ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full justify-between h-12 bg-background border-border hover:bg-accent hover:text-accent-foreground transition-colors"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <Avatar className="size-8">
-                    {user.avatarUrl ? (
-                      <AvatarImage src={user.avatarUrl} alt={user.name || user.email || 'User'} />
-                    ) : (
-                      <AvatarFallback>
-                        {(user.name || user.email || '?').slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    )}
-                  </Avatar>
-                  <div className="flex flex-col text-left min-w-0">
-                    <span className="text-sm font-medium truncate">{user.name || user.email || 'Account'}</span>
-                    {user.email && (
-                      <span className="text-xs text-muted-foreground truncate">{user.email}</span>
-                    )}
+      {state === 'collapsed' ? null : (
+        <SidebarFooter className="p-4">
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between h-12 bg-background border-border hover:bg-accent hover:text-accent-foreground transition-colors"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Avatar className="size-8">
+                      {user.avatarUrl ? (
+                        <AvatarImage src={user.avatarUrl} alt={user.name || user.email || 'User'} />
+                      ) : (
+                        <AvatarFallback>
+                          {(user.name || user.email || '?').slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
+                    <div className="flex flex-col text-left min-w-0">
+                      <span className="text-sm font-medium truncate">{user.name || user.email || 'Account'}</span>
+                      {user.email && (
+                        <span className="text-xs text-muted-foreground truncate">{user.email}</span>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <ChevronDown className="h-4 w-4 opacity-70" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] min-w-[260px]" align="end" side="right" sideOffset={4} alignOffset={0}>
-              <DropdownMenuLabel className="flex items-center justify-between gap-2">
-                <span className="truncate">{user?.name || user?.email || 'Account'}</span>
-                <Badge variant="secondary" className="ml-2 shrink-0">{currentPlan}</Badge>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onSelect={(e) => { e.preventDefault(); window.location.href = '/account' }}
-                className="cursor-pointer"
-              >
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={(e) => { e.preventDefault(); window.location.href = '/account?tab=billing' }}
-                className="cursor-pointer"
-              >
-                Pricing
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onSelect={async (e) => { e.preventDefault(); await supabase.auth.signOut(); }}
-                className="cursor-pointer text-red-600 focus:text-red-600"
-              >
-                Logout
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          <Button className="w-full" onClick={() => setIsLoginOpen(true)}>
-            Login
-          </Button>
-        )}
-      </SidebarFooter>
+                  <ChevronDown className="h-4 w-4 opacity-70" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] min-w-[260px]" align="end" side="right" sideOffset={4} alignOffset={0}>
+                <DropdownMenuLabel className="flex items-center justify-between gap-2">
+                  <span className="truncate">{user?.name || user?.email || 'Account'}</span>
+                  <Badge variant="secondary" className="ml-2 shrink-0">{currentPlan}</Badge>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onSelect={(e) => { e.preventDefault(); window.location.href = '/account' }}
+                  className="cursor-pointer"
+                >
+                  Account
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={(e) => { e.preventDefault(); window.location.href = '/account?tab=billing' }}
+                  className="cursor-pointer"
+                >
+                  Pricing
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onSelect={async (e) => { e.preventDefault(); await supabase.auth.signOut(); }}
+                  className="cursor-pointer text-red-600 focus:text-red-600"
+                >
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button className="w-full" onClick={() => setIsLoginOpen(true)}>
+              Login
+            </Button>
+          )}
+        </SidebarFooter>
+      )}
 
       <Sheet open={isLoginOpen} onOpenChange={setIsLoginOpen}>
         <SheetContent side="bottom" animation="fade" className="p-0 inset-0 w-screen sm:h-dvh h-svh max-w-none rounded-none border-0">
