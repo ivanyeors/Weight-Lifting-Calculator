@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -13,15 +13,29 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Activity, ChevronDown, Search } from "lucide-react"
 
+type ExerciseMeta = {
+  id: string
+  name: string
+  description: string
+}
+
+type ExerciseTrainingData = {
+  id: string
+  muscleGroups: string[]
+  baseWeightFactor: number
+  muscleInvolvement: Record<string, number>
+}
+
 type Exercise = {
   id: string
   name: string
   description: string
   baseWeightFactor: number
+  muscleGroups?: string[]
+  muscleInvolvement?: Record<string, number>
 }
 
 export function ExerciseDropdown({
-  exercises,
   selectedExerciseId,
   onSelectExercise,
   isLoading = false,
@@ -33,7 +47,6 @@ export function ExerciseDropdown({
   alignOffset = 0,
   contentClassName,
 }: {
-  exercises: Exercise[]
   selectedExerciseId: string
   onSelectExercise: (id: string) => void
   isLoading?: boolean
@@ -46,6 +59,57 @@ export function ExerciseDropdown({
   contentClassName?: string
 }) {
   const [searchQuery, setSearchQuery] = useState("")
+  const [exercises, setExercises] = useState<Exercise[]>([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
+
+  // Load and merge exercise data from both JSON files
+  useEffect(() => {
+    const loadExercises = async () => {
+      try {
+        setLoading(true)
+        setLoadError(null)
+
+        // Load manifest to get file references
+        const manifestResponse = await fetch('/manifest.json')
+        const manifest = await manifestResponse.json()
+
+        // Load both exercise data files
+        const [metaResponse, trainingDataResponse] = await Promise.all([
+          fetch(`/${manifest.files.exercises_meta}`),
+          fetch(`/${manifest.files.exercises_training_data}`)
+        ])
+
+        const metaData: { exercises: ExerciseMeta[] } = await metaResponse.json()
+        const trainingData: { exercises: ExerciseTrainingData[] } = await trainingDataResponse.json()
+
+        // Create a map of training data by ID for quick lookup
+        const trainingDataMap = new Map(
+          trainingData.exercises.map(ex => [ex.id, ex])
+        )
+
+        // Merge the data
+        const mergedExercises: Exercise[] = metaData.exercises.map(meta => {
+          const training = trainingDataMap.get(meta.id)
+          return {
+            ...meta,
+            baseWeightFactor: training?.baseWeightFactor || 0,
+            muscleGroups: training?.muscleGroups || [],
+            muscleInvolvement: training?.muscleInvolvement || {}
+          }
+        })
+
+        setExercises(mergedExercises)
+      } catch (err) {
+        console.error('Error loading exercises:', err)
+        setLoadError('Failed to load exercises. Please try again.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadExercises()
+  }, [])
 
   const filteredExercises = useMemo(() => {
     const q = searchQuery.trim().toLowerCase()
@@ -57,6 +121,10 @@ export function ExerciseDropdown({
     return exercises.find(ex => ex.id === selectedExerciseId)?.name || "Select Exercise"
   }, [exercises, selectedExerciseId])
 
+  // Use the loading state from data loading or the prop
+  const isActuallyLoading = loading || isLoading
+  const displayError = loadError || error
+
   return (
     <div className={className}>
       <DropdownMenu>
@@ -64,10 +132,10 @@ export function ExerciseDropdown({
           <Button 
             variant="outline" 
             className="w-full justify-between h-10 bg-background border-border hover:bg-accent hover:text-accent-foreground transition-colors min-w-[220px]"
-            disabled={isLoading}
+            disabled={isActuallyLoading}
           >
             <span className="truncate font-medium">
-              {isLoading ? "Loading exercises..." : currentExerciseName}
+              {isActuallyLoading ? "Loading exercises..." : currentExerciseName}
             </span>
             <ChevronDown className="h-4 w-4 opacity-50 transition-transform" />
           </Button>
@@ -132,11 +200,11 @@ export function ExerciseDropdown({
               </div>
             </DropdownMenuItem>
           )}
-          {error && (
+          {displayError && (
             <div className="text-sm text-amber-600 bg-amber-50 dark:bg-amber-950/50 dark:text-amber-400 p-3 rounded-lg m-3 border border-amber-200 dark:border-amber-800">
               <div className="flex items-start space-x-2">
                 <span className="text-amber-600 dark:text-amber-400">⚠</span>
-                <span>{error}</span>
+                <span>{displayError}</span>
               </div>
             </div>
           )}

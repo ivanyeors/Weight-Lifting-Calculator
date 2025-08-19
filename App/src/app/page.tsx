@@ -214,6 +214,22 @@ export default function HomePage() {
           </header>
 
           <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
+            {/* Charts Section - Web Body Highlighter */}
+            <div className="grid grid-cols-1 gap-6">
+              {/* Web Body Highlighter */}
+              {currentExercise && (
+                <WebBodyHighlighter
+                  muscleGroups={muscleGroups}
+                  exerciseName={currentExercise.name}
+                  exercises={exercises}
+                  selectedExerciseId={selectedExerciseId}
+                  setSelectedExerciseId={setSelectedExerciseId}
+                  isLoadingExercises={isLoadingExercises}
+                  exerciseLoadError={exerciseLoadError}
+                />
+              )}
+            </div>
+
             {/* Main card and factor cards side-by-side on large screens */}
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 items-stretch">
               <Card className="@container/card border-2 border-primary/20 bg-gradient-to-t from-primary/5 to-card shadow-lg h-full">
@@ -376,22 +392,6 @@ export default function HomePage() {
                   </Card>
                 </div>
               </div>
-            </div>
-
-            {/* Charts Section */}
-            <div className="grid grid-cols-1 gap-6">
-              {/* Web Body Highlighter */}
-              {currentExercise && (
-                <WebBodyHighlighter
-                  muscleGroups={muscleGroups}
-                  exerciseName={currentExercise.name}
-                  exercises={exercises}
-                  selectedExerciseId={selectedExerciseId}
-                  setSelectedExerciseId={setSelectedExerciseId}
-                  isLoadingExercises={isLoadingExercises}
-                  exerciseLoadError={exerciseLoadError}
-                />
-              )}
             </div>
 
             {/* Formula Card */}
