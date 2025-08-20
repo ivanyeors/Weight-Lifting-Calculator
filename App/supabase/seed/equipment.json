@@ -1,0 +1,35 @@
+{
+  "equipment": [
+    { "name": "Barbell", "category": "Free Weights", "aliases": ["Olympic Bar"] },
+    { "name": "Dumbbells", "category": "Free Weights", "aliases": ["DB"] },
+    { "name": "Bench", "category": "Benches" },
+    { "name": "Power Rack", "category": "Racks", "aliases": ["Squat Rack"] },
+    { "name": "Pull-up Bar", "category": "Bodyweight" },
+    { "name": "Cable Machine", "category": "Machines" },
+    { "name": "Leg Press Machine", "category": "Machines" },
+    { "name": "Lat Pulldown Machine", "category": "Machines" },
+    { "name": "Dip Bars", "category": "Bodyweight" },
+    { "name": "Bodyweight", "category": "Bodyweight" }
+  ],
+  "exercise_equipment": [
+    { "exercise_id": "bench-press", "equipment": ["Barbell", "Bench", "Power Rack"] },
+    { "exercise_id": "inclined-bench-press", "equipment": ["Barbell", "Bench", "Power Rack"] },
+    { "exercise_id": "dumbbell-flies", "equipment": ["Dumbbells", "Bench"] },
+    { "exercise_id": "shoulder-press", "equipment": ["Barbell", "Power Rack"] },
+    { "exercise_id": "lateral-raises", "equipment": ["Dumbbells"] },
+    { "exercise_id": "squats", "equipment": ["Barbell", "Power Rack"] },
+    { "exercise_id": "deadlift", "equipment": ["Barbell", "Power Rack"] },
+    { "exercise_id": "pull-ups", "equipment": ["Pull-up Bar"] },
+    { "exercise_id": "push-ups", "equipment": ["Bodyweight"] },
+    { "exercise_id": "sit-ups", "equipment": ["Bodyweight"] },
+    { "exercise_id": "lunges", "equipment": ["Dumbbells"] },
+    { "exercise_id": "leg-press", "equipment": ["Leg Press Machine"] },
+    { "exercise_id": "calf-raises", "equipment": ["Bodyweight", "Dumbbells"] },
+    { "exercise_id": "bicep-curls", "equipment": ["Dumbbells"] },
+    { "exercise_id": "tricep-dips", "equipment": ["Dip Bars"] },
+    { "exercise_id": "lat-pulldowns", "equipment": ["Lat Pulldown Machine"] },
+    { "exercise_id": "pectoral-fly", "equipment": ["Cable Machine"] },
+    { "exercise_id": "leg-curls", "equipment": ["Cable Machine"] },
+    { "exercise_id": "leg-extensions", "equipment": ["Cable Machine"] }
+  ]
+}

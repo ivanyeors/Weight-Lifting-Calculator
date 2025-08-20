@@ -126,6 +126,8 @@ export default function ExerciseLibraryPage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false)
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null)
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle')
+  const [spaces, setSpaces] = useState<Array<{ id: string; name: string }>>([])
+  const [selectedSpaceId, setSelectedSpaceId] = useState<string>('all')
   const [formData, setFormData] = useState<ExerciseFormData>({
     name: '',
     description: '',
@@ -136,6 +138,44 @@ export default function ExerciseLibraryPage() {
 
   const loadExercises = async () => {
     try {
+      // Try Supabase first
+      const { data, error } = await supabase
+        .from('exercises')
+        .select('id, name, description, base_weight_factor, exercise_muscles(involvement, muscles(name)), exercise_workout_types(workout_types(name))')
+        .order('name', { ascending: true })
+
+      if (error) throw error
+
+      if (data && data.length > 0) {
+        const mapped: Exercise[] = data.map((row: any) => {
+          const involvementEntries = (row.exercise_muscles ?? []).map((em: any) => ({ name: em.muscles?.name as string, involvement: em.involvement as number }))
+          const muscleInvolvement: Record<string, number> = {}
+          for (const { name, involvement } of involvementEntries) {
+            if (name && typeof involvement === 'number' && involvement > 0) muscleInvolvement[name] = involvement
+          }
+          const muscleGroups = involvementEntries
+            .filter((m: any) => m.name && m.involvement > 0)
+            .map((m: any) => m.name as string)
+
+          const workoutTypes = (row.exercise_workout_types ?? [])
+            .map((ewt: any) => ewt.workout_types?.name as string)
+            .filter((n: string | undefined): n is string => !!n && ALLOWED_WORKOUT_TYPES.includes(n))
+
+          return {
+            id: row.id as string,
+            name: (row.name as string) ?? row.id,
+            description: (row.description as string) ?? '',
+            baseWeightFactor: Number(row.base_weight_factor ?? 1.0),
+            muscleInvolvement,
+            muscleGroups,
+            workoutTypes,
+          }
+        })
+        setExercises(mapped)
+        return
+      }
+
+      // Fallback to public JSONs
       const [metaResponse, trainingResponse, workoutResponse] = await Promise.all([
         fetch('/exercises_meta.json'),
         fetch('/exercises_training_data.json'),
@@ -146,11 +186,9 @@ export default function ExerciseLibraryPage() {
       const trainingData = await trainingResponse.json()
       const workoutData = await workoutResponse.json()
 
-      // Combine all exercise data
       const combinedExercises = metaData.exercises.map((exercise: Exercise) => {
         const training = trainingData.exercises.find((t: Exercise) => t.id === exercise.id)
         const workout = workoutData.exercises.find((w: Exercise) => w.id === exercise.id)
-        
         return {
           ...exercise,
           muscleGroups: training?.muscleGroups || [],
@@ -159,7 +197,6 @@ export default function ExerciseLibraryPage() {
           workoutTypes: (workout?.workoutTypes || []).filter((t: string) => ALLOWED_WORKOUT_TYPES.includes(t))
         }
       })
-
       setExercises(combinedExercises)
     } catch (error) {
       console.error('Error loading exercises:', error)
@@ -220,6 +257,24 @@ export default function ExerciseLibraryPage() {
   useEffect(() => {
     loadExercises()
   }, [])
+
+  // Load user's workout spaces
+  useEffect(() => {
+    const fetchSpaces = async () => {
+      try {
+        if (!userId) return
+        const { data, error } = await supabase
+          .from('workout_spaces')
+          .select('id, name')
+          .order('name', { ascending: true })
+        if (error) throw error
+        setSpaces((data ?? []).map((r) => ({ id: r.id as string, name: r.name as string })))
+      } catch (err) {
+        console.error('Failed to load workout spaces', err)
+      }
+    }
+    fetchSpaces()
+  }, [userId])
 
   // Load custom exercises (local or synced)
   useEffect(() => {
@@ -421,7 +476,32 @@ export default function ExerciseLibraryPage() {
     return Array.from(set).sort()
   }, [allMuscleGroups, exercises, customExercises, selectedWorkoutType])
 
-  // Filter exercises based on search, workout type, and muscle group
+  // Maintain a cache of allowed exercise IDs for current space
+  const [spaceAllowedExerciseIds, setSpaceAllowedExerciseIds] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    const fetchAvailability = async () => {
+      try {
+        if (selectedSpaceId === 'all') {
+          setSpaceAllowedExerciseIds(new Set())
+          return
+        }
+        const { data, error } = await supabase
+          .from('available_exercises_for_space')
+          .select('exercise_id')
+          .eq('space_id', selectedSpaceId)
+        if (error) throw error
+        const ids = new Set<string>((data ?? []).map((r: any) => r.exercise_id as string))
+        setSpaceAllowedExerciseIds(ids)
+      } catch (err) {
+        console.error('Failed to fetch available exercises for space', err)
+        setSpaceAllowedExerciseIds(new Set())
+      }
+    }
+    fetchAvailability()
+  }, [selectedSpaceId])
+
+  // Filter exercises based on search, workout type, muscle group, and space availability
   const filteredExercises = useMemo(() => {
     let allExercises = [...exercises, ...customExercises]
 
@@ -450,8 +530,13 @@ export default function ExerciseLibraryPage() {
       )
     }
 
+    // Third level: selected space availability
+    if (selectedSpaceId !== 'all' && spaceAllowedExerciseIds.size > 0) {
+      allExercises = allExercises.filter((exercise) => spaceAllowedExerciseIds.has(exercise.id))
+    }
+
     return allExercises
-  }, [exercises, customExercises, searchTerm, selectedWorkoutType, selectedMuscleGroup])
+  }, [exercises, customExercises, searchTerm, selectedWorkoutType, selectedMuscleGroup, selectedSpaceId, spaceAllowedExerciseIds])
 
 
 
@@ -477,6 +562,9 @@ export default function ExerciseLibraryPage() {
         collapsed={sidebarCollapsed}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
+        spaces={[{ id: 'all', name: 'All Spaces' }, ...spaces]}
+        selectedSpaceId={selectedSpaceId}
+        setSelectedSpaceId={setSelectedSpaceId}
         workoutTypes={allWorkoutTypes}
         selectedWorkoutType={selectedWorkoutType}
         setSelectedWorkoutType={setSelectedWorkoutType}

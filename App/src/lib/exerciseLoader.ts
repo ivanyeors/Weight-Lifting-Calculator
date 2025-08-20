@@ -1,5 +1,6 @@
 // Simplified exercise data loader for local JSON files
 // This file loads exercise data from local JSON files in the seed directory
+import { supabase } from './supabaseClient'
 
 export interface ExternalExercise {
   id: string
@@ -118,6 +119,50 @@ export const loadExercisesFromManifest = async (): Promise<ExternalExercise[]> =
 }
 
 /**
+ * Load exercises from Supabase (DB is the default SoR)
+ * Falls back to manifest JSONs when DB is unreachable or empty.
+ */
+export const loadExercisesFromSupabase = async (): Promise<ExternalExercise[]> => {
+	// 1) Fetch base exercise metadata
+	const { data: exerciseRows, error: exercisesError } = await supabase
+		.from('exercises')
+		.select('id, name, description, base_weight_factor')
+		.order('name', { ascending: true })
+
+	if (exercisesError) throw exercisesError
+	if (!exerciseRows || exerciseRows.length === 0) return []
+
+	// 2) Fetch muscle involvement joined with muscle names
+	const { data: involvementRows, error: involvementError } = await supabase
+		.from('exercise_muscles')
+		.select('exercise_id, involvement, muscles(name)')
+
+	if (involvementError) throw involvementError
+
+	// 3) Build a map of exercise_id -> { [muscleName]: involvement }
+	const exerciseIdToInvolvement = new Map<string, Record<string, number>>()
+	for (const row of involvementRows ?? []) {
+		// @ts-expect-error - PostgREST nested select typing is loose here
+		const muscleName: string | undefined = row.muscles?.name
+		if (!muscleName) continue
+		const map = exerciseIdToInvolvement.get(row.exercise_id) ?? {}
+		map[muscleName] = row.involvement
+		exerciseIdToInvolvement.set(row.exercise_id, map)
+	}
+
+	// 4) Merge into ExternalExercise shape
+	const merged: ExternalExercise[] = exerciseRows.map((e) => ({
+		id: e.id,
+		name: e.name ?? e.id,
+		description: e.description ?? '',
+		baseWeightFactor: Number(e.base_weight_factor ?? 1.0),
+		muscleInvolvement: exerciseIdToInvolvement.get(e.id) ?? {},
+	}))
+
+	return validateExerciseData(merged)
+}
+
+/**
  * Load muscle groups from local muscle_groups.json file
  */
 export const loadMuscleGroupsFromLocalFile = async (): Promise<MuscleGroup[]> => {
@@ -182,13 +227,17 @@ export const convertToExternalExerciseFormat = (
  * Load all exercise data from local files - now uses complete exercise data
  */
 export const loadAllExerciseData = async (): Promise<ExternalExercise[]> => {
-  try {
-    // Prefer manifest-based loading
-    return await loadExercisesFromManifest()
-  } catch (error) {
-    console.error('All loading methods failed (manifest missing or invalid):', error)
-    throw error
-  }
+	// Prefer DB (Supabase) as source of truth
+	try {
+		const dbData = await loadExercisesFromSupabase()
+		if (dbData.length > 0) return dbData
+		console.warn('Supabase returned no exercises, falling back to manifest JSONs')
+	} catch (dbError) {
+		console.warn('Failed to load exercises from Supabase, falling back to manifest:', dbError)
+	}
+
+	// Fallback to manifest-based loading
+	return await loadExercisesFromManifest()
 }
 
 /**

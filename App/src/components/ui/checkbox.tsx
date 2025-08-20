@@ -4,27 +4,46 @@ import { CheckIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-function Checkbox({
-  className,
-  ...props
-}: React.ComponentProps<typeof CheckboxPrimitive.Root>) {
+type CheckboxVariant = "default" | "chip"
+
+export interface CheckboxProps extends React.ComponentProps<typeof CheckboxPrimitive.Root> {
+  variant?: CheckboxVariant
+}
+
+const Checkbox = React.forwardRef<
+  React.ElementRef<typeof CheckboxPrimitive.Root>,
+  CheckboxProps
+>(function Checkbox({ className, variant = "default", children, ...props }, ref) {
+  const baseDefault = "peer border-input dark:bg-input/30 data-[state=checked]:bg-primary data-[state=checked]:brightness-95 data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-5 shrink-0 rounded-[4px] border-2 shadow-xs transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+  const baseChip = "inline-flex w-full items-center justify-between gap-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground data-[state=checked]:bg-primary data-[state=checked]:brightness-95 data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary data-[state=checked]:ring-2 data-[state=checked]:ring-primary/60 transition-shadow outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50 pl-3 pr-4 py-2"
+
   return (
     <CheckboxPrimitive.Root
+      ref={ref}
       data-slot="checkbox"
-      className={cn(
-        "peer border-input dark:bg-input/30 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-[4px] border shadow-xs transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
-        className
-      )}
+      className={cn(variant === "chip" ? baseChip : baseDefault, className)}
       {...props}
     >
-      <CheckboxPrimitive.Indicator
-        data-slot="checkbox-indicator"
-        className="flex items-center justify-center text-current transition-none"
-      >
-        <CheckIcon className="size-3.5" />
-      </CheckboxPrimitive.Indicator>
+      {variant === "chip" && children ? (
+        <span className="flex min-w-0 flex-1 items-center gap-2 truncate text-left">{children}</span>
+      ) : null}
+      {variant === "chip" ? (
+        <CheckboxPrimitive.Indicator
+          data-slot="checkbox-indicator"
+          className={cn("ml-2 flex items-center justify-center text-current transition-none shrink-0")}
+        >
+          <CheckIcon className="size-4" />
+        </CheckboxPrimitive.Indicator>
+      ) : (
+        <CheckboxPrimitive.Indicator
+          data-slot="checkbox-indicator"
+          className="flex items-center justify-center text-current transition-none"
+        >
+          <CheckIcon className="size-4" />
+        </CheckboxPrimitive.Indicator>
+      )}
     </CheckboxPrimitive.Root>
   )
-}
+})
 
 export { Checkbox }

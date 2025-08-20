@@ -11,6 +11,9 @@ interface ExerciseLibrarySidebarProps {
   collapsed: boolean
   searchTerm: string
   setSearchTerm: (value: string) => void
+  spaces: Array<{ id: string; name: string }>
+  selectedSpaceId: string
+  setSelectedSpaceId: (value: string) => void
   workoutTypes: string[]
   selectedWorkoutType: string
   setSelectedWorkoutType: (value: string) => void
@@ -27,6 +30,9 @@ export function ExerciseLibrarySidebar({
   collapsed,
   searchTerm,
   setSearchTerm,
+  spaces,
+  selectedSpaceId,
+  setSelectedSpaceId,
   workoutTypes,
   selectedWorkoutType,
   setSelectedWorkoutType,
@@ -111,6 +117,24 @@ export function ExerciseLibrarySidebar({
             </div>
 
             <Separator className="my-1" />
+
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Workout Space</Label>
+              <Select value={selectedSpaceId} onValueChange={setSelectedSpaceId}>
+                <SelectTrigger className="w-full h-9 bg-background border-border hover:bg-accent hover:text-accent-foreground transition-colors">
+                  <SelectValue placeholder="All Spaces" />
+                </SelectTrigger>
+                <SelectContent className="w-full max-h-64">
+                  {spaces.map((s) => (
+                    <SelectItem key={s.id} value={s.id} className="cursor-pointer">
+                      <div className="flex items-center justify-between w-full">
+                        <span>{s.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
             <div className="space-y-3">
               <Label className="text-sm font-medium">Workout Type</Label>

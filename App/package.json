@@ -10,7 +10,8 @@
     "predeploy": "npm run build",
     "deploy": "npm run build && gh-pages -d out",
     "build:static": "next build && next export",
-    "deploy:gh-pages": "npm run build:static && gh-pages -d out"
+    "deploy:gh-pages": "npm run build:static && gh-pages -d out",
+    "db:seed": "node --loader ts-node/esm supabase/scripts/seed.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -65,8 +66,10 @@
     "globals": "^15.15.0",
     "postcss": "^8.4.38",
     "tailwindcss": "^4.1.11",
+    "ts-node": "^10.9.2",
     "typescript": "~5.8.3",
-    "typescript-eslint": "^8.39.0"
+    "typescript-eslint": "^8.39.0",
+    "dotenv": "^16.4.5"
   },
   "type": "module"
 }
