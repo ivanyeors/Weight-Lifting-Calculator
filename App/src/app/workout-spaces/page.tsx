@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -12,6 +12,17 @@ import { supabase } from '@/lib/supabaseClient'
 import { useUserTier } from '@/hooks/use-user-tier'
 import { RefreshCw, CheckCircle, AlertCircle, Cloud, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 
 type SyncState = 'idle' | 'syncing' | 'success' | 'error'
 
@@ -252,81 +263,78 @@ export default function WorkoutSpacesPage() {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Create Space</CardTitle>
-              <CardDescription>Name a new workout space</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
+      <div className="grid grid-cols-1 lg:grid-cols-3 border rounded-md overflow-hidden divide-y lg:divide-y-0 lg:divide-x">
+        <div className="lg:col-span-1 space-y-6 p-4 lg:p-6">
+          <div className="space-y-3">
+            <h3 className="text-base font-medium">Create Space</h3>
+            <p className="text-sm text-muted-foreground">Name a new workout space</p>
+            <Input
+              placeholder="e.g. Home Gym"
+              value={newSpaceName}
+              onChange={(e) => setNewSpaceName(e.target.value)}
+            />
+            <Button onClick={handleCreateSpace} disabled={!newSpaceName.trim() || !userId}>Create</Button>
+          </div>
+
+          <Separator className="my-2" />
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <h3 className="text-base font-medium">Manage Space</h3>
+              <p className="text-sm text-muted-foreground">Select a space and configure its equipment</p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Selected space</label>
+              {selectedSpaceId !== 'new' && selectedSpace ? (
+                <div className="text-sm"><span className="text-muted-foreground">Selected:</span> <span className="font-medium">{selectedSpace.name}</span></div>
+              ) : (
+                <div className="text-sm text-muted-foreground">Create a space or select one to edit</div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Space name</label>
               <Input
-                placeholder="e.g. Home Gym"
-                value={newSpaceName}
-                onChange={(e) => setNewSpaceName(e.target.value)}
+                placeholder="Space name"
+                value={selectedSpaceId === 'new' ? newSpaceName : editSpaceName}
+                onChange={(e) => selectedSpaceId === 'new' ? setNewSpaceName(e.target.value) : setEditSpaceName(e.target.value)}
+                disabled={selectedSpaceId === 'new'}
               />
-              <Button onClick={handleCreateSpace} disabled={!newSpaceName.trim() || !userId}>Create</Button>
-            </CardContent>
-          </Card>
+            </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Manage Space</CardTitle>
-              <CardDescription>Select a space and configure its equipment</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Selected space</label>
-                {selectedSpaceId !== 'new' && selectedSpace ? (
-                  <div className="text-sm"><span className="text-muted-foreground">Selected:</span> <span className="font-medium">{selectedSpace.name}</span></div>
-                ) : (
-                  <div className="text-sm text-muted-foreground">Create a space or select one to edit</div>
-                )}
+            <Separator />
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Equipment in this space</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-2 max-h-[360px] overflow-y-auto overflow-x-visible pr-4 px-2 pt-2 pb-2 mt-2" style={{ scrollbarGutter: 'stable' }}>
+                {equipment.map((eq) => (
+                  <Checkbox
+                    key={eq.id}
+                    variant="chip"
+                    checked={selectedEquipmentIds.has(eq.id)}
+                    onCheckedChange={(checked) => toggleEquipment(eq.id, checked)}
+                    disabled={selectedSpaceId === 'new'}
+                    className="text-sm w-full justify-between"
+                  >
+                    <span className="truncate">{eq.name}</span>
+                    {eq.category && (
+                      <span className="ml-2 text-xs text-muted-foreground">{eq.category}</span>
+                    )}
+                  </Checkbox>
+                ))}
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Space name</label>
-                <Input
-                  placeholder="Space name"
-                  value={selectedSpaceId === 'new' ? newSpaceName : editSpaceName}
-                  onChange={(e) => selectedSpaceId === 'new' ? setNewSpaceName(e.target.value) : setEditSpaceName(e.target.value)}
-                  disabled={selectedSpaceId === 'new'}
-                />
-              </div>
-
-              <Separator />
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Equipment in this space</label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-2 max-h-[360px] overflow-y-auto overflow-x-visible pr-4 px-2 pt-2 pb-2 mt-2" style={{ scrollbarGutter: 'stable' }}>
-                  {equipment.map((eq) => (
-                    <Checkbox
-                      key={eq.id}
-                      variant="chip"
-                      checked={selectedEquipmentIds.has(eq.id)}
-                      onCheckedChange={(checked) => toggleEquipment(eq.id, checked)}
-                      disabled={selectedSpaceId === 'new'}
-                      className="text-sm w-full justify-between"
-                    >
-                      <span className="truncate">{eq.name}</span>
-                      {eq.category && (
-                        <span className="ml-2 text-xs text-muted-foreground">{eq.category}</span>
-                      )}
-                    </Checkbox>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Button onClick={handleSaveSpace} disabled={selectedSpaceId === 'new' || !userId}>
-                  Save Space
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+            <div className="flex items-center gap-2">
+              <Button onClick={handleSaveSpace} disabled={selectedSpaceId === 'new' || !userId}>
+                Save Space
+              </Button>
+            </div>
+          </div>
         </div>
 
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 p-4 lg:p-6">
           <div className="flex items-center gap-2 mb-2">
             <h2 className="text-lg font-medium">Your Spaces</h2>
             <Badge variant="secondary">{spaces.length}</Badge>
@@ -349,9 +357,25 @@ export default function WorkoutSpacesPage() {
                       <CardTitle className="text-base truncate">{s.name}</CardTitle>
                     </CardHeader>
                     <CardContent className="flex items-center gap-2 pt-0">
-                      <Button size="sm" variant="destructive" onClick={(e) => { e.stopPropagation(); handleDeleteSpace(s.id) }}>
-                        <Trash2 className="h-4 w-4 mr-1" /> Delete
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button size="sm" variant="destructive" onClick={(e) => { e.stopPropagation() }}>
+                            <Trash2 className="h-4 w-4 mr-1" /> Delete
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete this space?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete the space "{s.name}" and its equipment assignments.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={(e) => { e.stopPropagation(); handleDeleteSpace(s.id) }}>Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </CardContent>
                   </Card>
                 )
