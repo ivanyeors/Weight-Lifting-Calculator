@@ -120,6 +120,24 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="flex items-center">
+            App
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/fitspo-app'}>
+                  <a href="/fitspo-app" className={`flex items-center gap-2 ${pathname === '/fitspo-app' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''}`}>
+                    <AppWindow />
+                    <span>Fitspo App</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel className="flex items-center">
             Calculations
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -151,36 +169,18 @@ export function AppSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/workout-spaces'}>
+                  <a href="/workout-spaces" className={`flex items-center gap-2 ${pathname === '/workout-spaces' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''}`}>
+                    <MapPin />
+                    <span>Workout Spaces</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === '/workout-plans'}>
                   <a href="/workout-plans" className={`flex items-center gap-2 ${pathname === '/workout-plans' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''}`}>
                     <ClipboardList />
                     <span>Workout Plans</span>
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/locations'}>
-                  <a href="/locations" className={`flex items-center gap-2 ${pathname === '/locations' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''}`}>
-                    <MapPin />
-                    <span>Locations</span>
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel className="flex items-center">
-            App
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/fitspo-app'}>
-                  <a href="/fitspo-app" className={`flex items-center gap-2 ${pathname === '/fitspo-app' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''}`}>
-                    <AppWindow />
-                    <span>Fitspo App</span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -238,7 +238,15 @@ export function AppSidebar() {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onSelect={async (e) => { e.preventDefault(); await supabase.auth.signOut(); }}
+                  onSelect={async (e) => {
+                    e.preventDefault();
+                    try {
+                      await supabase.auth.signOut();
+                    } finally {
+                      const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/');
+                      window.location.replace(`${base}fitness-calculator`);
+                    }
+                  }}
                   className="cursor-pointer text-red-600 focus:text-red-600"
                 >
                   Logout

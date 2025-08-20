@@ -230,26 +230,12 @@ export default function AccountPage() {
   }
 
   if (!userId) {
-    return (
-      <div className="min-h-[70vh] w-full flex items-center justify-center p-6 relative">
-        <div className="absolute left-6 top-6">
-          <Button variant="ghost" asChild>
-            <Link href="/">← Back</Link>
-          </Button>
-        </div>
-        <div className="w-full max-w-sm md:max-w-md">
-          <Card>
-            <CardHeader>
-              <CardTitle>Sign in required</CardTitle>
-              <CardDescription>Log in to manage your account.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <LoginForm onSuccess={() => router.refresh()} />
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    )
+    if (typeof window !== 'undefined') {
+      // Respect basePath in production (GitHub Pages) by using NEXT_PUBLIC_BASE_URL
+      const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/')
+      window.location.replace(`${base}fitness-calculator`)
+    }
+    return null
   }
 
   return (
