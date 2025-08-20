@@ -65,8 +65,16 @@ export function PricingPlansClient({ plans }: { plans: Plan[] }) {
     if (billing !== 'annual') {
       return { price: formatCurrency(monthly), period: '/mo' }
     }
-    const yearly = monthly * 12 * 0.6 // 40% off annually
-    return { price: formatCurrency(yearly), period: '/yr' }
+    // When billed annually, display the discounted monthly equivalent
+    // Prefer using configured yearlyPrice for accuracy with Stripe, fallback to 40% off monthly
+    let discountedMonthly: number
+    if (plan.yearlyPrice) {
+      const yearlyConfigured = parseFloat((plan.yearlyPrice || '').replace(/[^0-9.]/g, '')) || 0
+      discountedMonthly = yearlyConfigured / 12
+    } else {
+      discountedMonthly = monthly * 0.6 // 40% off annually
+    }
+    return { price: formatCurrency(discountedMonthly), period: '/mo' }
   }
 
   return (
