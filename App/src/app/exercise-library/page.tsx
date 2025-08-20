@@ -26,7 +26,12 @@ import {
 } from "@/components/ui/breadcrumb"
 import { useUserTier } from '@/hooks/use-user-tier'
 import { supabase } from '@/lib/supabaseClient'
-import { Plus, Edit2, Trash2, Dumbbell, Target, Activity, PanelLeft, PanelRight, RefreshCw, CheckCircle, AlertCircle, Cloud } from 'lucide-react'
+import { Plus, Edit2, Trash2, Dumbbell, Target, Activity, PanelLeft, PanelRight, RefreshCw, CheckCircle, AlertCircle, Cloud, Lock, XIcon } from 'lucide-react'
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from '@/components/ui/drawer'
+import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 // Allowed workout types to be synced with Supabase
 const ALLOWED_WORKOUT_TYPES: readonly string[] = [
@@ -135,6 +140,16 @@ export default function ExerciseLibraryPage() {
     workoutTypes: [],
     baseWeightFactor: 1.0
   })
+
+  // Drawer state for exercise details
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [drawerExercise, setDrawerExercise] = useState<Exercise | null>(null)
+
+  // Placeholder to keep future usage-related side effects if needed
+
+  // Statistics dialog state
+  const [isStatsOpen, setIsStatsOpen] = useState(false)
+  const [statsMode, setStatsMode] = useState<'exercises' | 'muscle'>('exercises')
 
   const loadExercises = async () => {
     try {
@@ -603,6 +618,9 @@ export default function ExerciseLibraryPage() {
             </BreadcrumbList>
           </Breadcrumb>
           <div className="ml-auto flex items-center gap-3">
+            <Button variant="secondary" onClick={() => setIsStatsOpen(true)}>
+              View statistics
+            </Button>
             {isPaidTier && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 {syncStatus === 'syncing' && <RefreshCw className="h-4 w-4 animate-spin" />}
@@ -786,7 +804,11 @@ export default function ExerciseLibraryPage() {
           {/* Exercise Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredExercises.map((exercise) => (
-              <Card key={exercise.id} className="hover:shadow-md transition-shadow">
+              <Card
+                key={exercise.id}
+                className="hover:shadow-md transition-all cursor-pointer hover:ring-1 hover:ring-white/20 hover:border-white/20"
+                onClick={() => { setDrawerExercise(exercise); setIsDrawerOpen(true) }}
+              >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -809,7 +831,7 @@ export default function ExerciseLibraryPage() {
                           size="icon"
                           variant="ghost"
                           className="h-7 w-7"
-                          onClick={() => handleEditExercise(exercise)}
+                          onClick={(e) => { e.stopPropagation(); handleEditExercise(exercise) }}
                         >
                           <Edit2 className="h-3 w-3" />
                         </Button>
@@ -817,7 +839,7 @@ export default function ExerciseLibraryPage() {
                           size="icon"
                           variant="ghost"
                           className="h-7 w-7 text-destructive"
-                          onClick={() => handleDeleteExercise(exercise.id)}
+                          onClick={(e) => { e.stopPropagation(); handleDeleteExercise(exercise.id) }}
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
@@ -893,6 +915,440 @@ export default function ExerciseLibraryPage() {
           )}
         </div>
       </div>
+      {/* Details Drawer */}
+      <ExerciseDetailDrawer
+        key={drawerExercise?.id || 'none'}
+        open={isDrawerOpen}
+        onOpenChange={setIsDrawerOpen}
+        exercise={drawerExercise}
+        isPaidTier={isPaidTier}
+      />
+
+      {/* Statistics Drawer */}
+      <Drawer open={isStatsOpen} onOpenChange={setIsStatsOpen} direction="right">
+        <DrawerContent className="data-[vaul-drawer-direction=right]:!w-1/2 data-[vaul-drawer-direction=right]:!max-w-none">
+          <div className="flex flex-col h-full">
+            <DrawerHeader className="pb-0">
+              <div className="flex items-center justify-between">
+                <DrawerTitle className="text-xl">Exercise Statistics</DrawerTitle>
+                <DrawerClose asChild>
+                  <Button variant="ghost" size="icon" aria-label="Close statistics">
+                    <XIcon className="h-4 w-4" />
+                  </Button>
+                </DrawerClose>
+              </div>
+            </DrawerHeader>
+            <div className="p-4 pt-2 space-y-4 overflow-auto">
+              <Tabs value={statsMode} onValueChange={(v) => setStatsMode(v as 'exercises' | 'muscle')}>
+                <TabsList className="grid grid-cols-2 w-full sm:w-auto">
+                  <TabsTrigger value="exercises">Exercises</TabsTrigger>
+                  <TabsTrigger value="muscle">Muscle Group</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="exercises" className="mt-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <StatisticsExercisesChart
+                      exercises={[...exercises, ...customExercises]}
+                      workoutTypes={allWorkoutTypes}
+                      initialType={selectedWorkoutType}
+                    />
+                  </div>
+                </TabsContent>
+                <TabsContent value="muscle" className="mt-4">
+                  <StatisticsChart mode="muscle" exercises={[...exercises, ...customExercises]} />
+                </TabsContent>
+              </Tabs>
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
+    </div>
+  )
+}
+
+// Drawer UI for exercise details and videos
+function ExerciseDetailDrawer({ open, onOpenChange, exercise, isPaidTier }: { open: boolean; onOpenChange: (v: boolean) => void; exercise: Exercise | null; isPaidTier: boolean }) {
+  const [isSearching, setIsSearching] = useState(false)
+  const [videoUrls, setVideoUrls] = useState<string[]>([])
+  const [videoError, setVideoError] = useState<null | { code: 'missing_api_key' | 'quota_exceeded' | 'upstream_error' | 'no_results' | 'no_queries'; message: string }>(null)
+  const [videoIndex, setVideoIndex] = useState(0)
+  const [isTransitioning, setIsTransitioning] = useState(false)
+  const [slideDirection, setSlideDirection] = useState<'left' | 'right' | null>(null)
+
+  if (!exercise) return null
+
+  const lastUsedLabel = (() => {
+    // We compute from local inside parent effect and pass via closure? Simpler: recompute here too
+    try {
+      const possibleKeys = ['workout_plans_usage', 'workout-plans-usage', 'workoutHistory', 'workout-plans']
+      let raw: unknown = null
+      for (const key of possibleKeys) {
+        const val = typeof window !== 'undefined' ? localStorage.getItem(key) : null
+        if (val) { raw = JSON.parse(val); break }
+      }
+      if (raw && typeof raw === 'object' && exercise.id in (raw as Record<string, any>)) {
+        const entry = (raw as Record<string, any>)[exercise.id]
+        const dt = typeof entry?.lastUsedAt === 'string' ? new Date(entry.lastUsedAt) : null
+        if (dt && !Number.isNaN(dt.getTime())) {
+          const now = new Date()
+          const diffMs = now.getTime() - dt.getTime()
+          const diffMinutes = Math.floor(diffMs / 60000)
+          if (diffMinutes < 60) return `${diffMinutes}m ago`
+          const diffHours = Math.floor(diffMinutes / 60)
+          if (diffHours < 24) return `${diffHours}h ago`
+          return dt.toLocaleDateString()
+        }
+      }
+    } catch {}
+    return 'Never'
+  })()
+
+  const extractYouTubeId = (url: string): string | null => {
+    try {
+      const shortMatch = url.match(/youtu\.be\/([A-Za-z0-9_-]{6,})/)
+      if (shortMatch && shortMatch[1]) return shortMatch[1]
+      const watchMatch = url.match(/[?&]v=([A-Za-z0-9_-]{6,})/)
+      if (watchMatch && watchMatch[1]) return watchMatch[1]
+      const shortsMatch = url.match(/youtube\.com\/shorts\/([A-Za-z0-9_-]{6,})/)
+      if (shortsMatch && shortsMatch[1]) return shortsMatch[1]
+    } catch { return null }
+    return null
+  }
+  const toYouTubeEmbedUrl = (url: string): string | null => {
+    const id = extractYouTubeId(url)
+    return id ? `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&playsinline=1` : null
+  }
+  const toYouTubeThumbnailUrl = (url: string): string | null => {
+    const id = extractYouTubeId(url)
+    return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null
+  }
+
+  const searchVideos = async () => {
+    if (!isPaidTier) return
+    setIsSearching(true)
+    setVideoError(null)
+    setVideoUrls([])
+    try {
+      const response = await fetch('/api/youtube/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ exerciseId: exercise.id, exerciseName: exercise.name }),
+      })
+      const data = await response.json().catch(() => ({}))
+      if (response.ok && Array.isArray(data.videos)) {
+        setVideoUrls(data.videos)
+        setVideoIndex(0)
+      } else {
+        setVideoError({ code: data.error || 'upstream_error', message: data.message || 'Video search failed. Try again later.' })
+      }
+    } catch {
+      setVideoError({ code: 'upstream_error', message: 'Video search failed. Try again later.' })
+    } finally {
+      setIsSearching(false)
+    }
+  }
+
+  const nextVideo = () => {
+    if (videoUrls.length <= 1 || isTransitioning) return
+    setIsTransitioning(true)
+    setSlideDirection('left')
+    setTimeout(() => { setVideoIndex((i) => (i + 1) % videoUrls.length); setIsTransitioning(false); setSlideDirection(null) }, 300)
+  }
+  const prevVideo = () => {
+    if (videoUrls.length <= 1 || isTransitioning) return
+    setIsTransitioning(true)
+    setSlideDirection('right')
+    setTimeout(() => { setVideoIndex((i) => (i - 1 + videoUrls.length) % videoUrls.length); setIsTransitioning(false); setSlideDirection(null) }, 300)
+  }
+
+  const usageConfig = { count: { label: 'Sessions', color: 'hsl(var(--primary))' } }
+  const usageData = (() => {
+    try {
+      const possibleKeys = ['workout_plans_usage', 'workout-plans-usage', 'workoutHistory', 'workout-plans']
+      let raw: unknown = null
+      for (const key of possibleKeys) {
+        const val = typeof window !== 'undefined' ? localStorage.getItem(key) : null
+        if (val) { raw = JSON.parse(val); break }
+      }
+      if (raw && typeof raw === 'object' && exercise.id in (raw as Record<string, any>)) {
+        const weekly = Array.isArray((raw as any)[exercise.id]?.weeklyCounts) ? (raw as any)[exercise.id].weeklyCounts as { label: string; count: number }[] : []
+        return weekly.slice(-8)
+      }
+    } catch {}
+    return Array.from({ length: 8 }).map((_, i) => ({ label: `W${i + 1}`, count: 0 }))
+  })()
+
+  return (
+    <Drawer open={open} onOpenChange={onOpenChange} direction="right">
+      <DrawerContent className="data-[vaul-drawer-direction=right]:!w-1/2 data-[vaul-drawer-direction=right]:!max-w-none">
+        <div className="flex flex-col h-full">
+          <DrawerHeader className="pb-0">
+            <DrawerTitle className="text-xl">{exercise.name}</DrawerTitle>
+            {exercise.description && (
+              <p className="text-sm text-muted-foreground mt-1">{exercise.description}</p>
+            )}
+          </DrawerHeader>
+          <div className="p-4 pt-2 space-y-6 overflow-auto">
+            {/* Tags */}
+            <div className="flex flex-wrap gap-2">
+              {exercise.muscleGroups && exercise.muscleGroups.length > 0 && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  {exercise.muscleGroups.map((g) => (
+                    <Badge key={g} variant="outline" className="text-xs">{g}</Badge>
+                  ))}
+                </div>
+              )}
+              {exercise.workoutTypes && exercise.workoutTypes.length > 0 && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  {exercise.workoutTypes.map((t) => (
+                    <Badge key={t} variant="secondary" className="text-xs">{t}</Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Usage */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-sm font-medium">Usage</h4>
+                <span className="text-xs text-muted-foreground">Last used: {lastUsedLabel}</span>
+              </div>
+              <ChartContainer id="usage" config={usageConfig} className="w-full h-56 aspect-auto">
+                <BarChart data={usageData}>
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                  <XAxis dataKey="label" axisLine={false} tickLine={false} />
+                  <YAxis allowDecimals={false} width={24} axisLine={false} tickLine={false} />
+                  <Tooltip content={<ChartTooltipContent />} cursor={{ fill: 'hsl(var(--muted))' }} />
+                  <Bar dataKey="count" fill="var(--color-count)" radius={4} />
+                </BarChart>
+              </ChartContainer>
+            </div>
+
+            {/* Videos */}
+            <div className="bg-card text-card-foreground flex flex-col gap-4 rounded-xl border py-4 shadow-sm border-border/50">
+              <div className="px-4">
+                <div className="flex items-center justify-between gap-3">
+                  <CardTitle className="text-base">Exercise Videos</CardTitle>
+                  {isPaidTier ? (
+                    <Button size="sm" onClick={searchVideos} disabled={isSearching}>
+                      {isSearching ? 'Searching…' : 'Search video'}
+                    </Button>
+                  ) : (
+                    <Button size="sm" asChild>
+                      <a href="/account?tab=billing#plans">
+                        <Lock className="h-3 w-3 mr-1" />
+                        Upgrade plan
+                      </a>
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">{isPaidTier ? `Results for ${exercise.name}` : `Upgrade to Personal or Trainer plan to search exercise videos`}</p>
+              </div>
+
+              <div className="px-4">
+                {!isPaidTier ? (
+                  <div className="flex items-center justify-center min-h-[320px]">
+                    <div className="text-center space-y-4 max-w-md">
+                      <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+                        <Lock className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                      <h3 className="text-lg font-semibold">Exercise Videos Available with Upgrade</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Get access to curated exercise tutorial videos from YouTube when you upgrade to Personal or Trainer plan.
+                      </p>
+                      <Button asChild className="mt-2">
+                        <a href="/account?tab=billing#plans">Upgrade Now</a>
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {/* Main video area */}
+                    <div className="w-full rounded-md overflow-hidden bg-black aspect-video">
+                      {videoUrls.length === 0 ? (
+                        <div className="w-full h-full bg-muted/20 flex items-center justify-center">
+                          <div className="text-center space-y-2 p-4">
+                            {!videoError && !isSearching && <p className="text-sm text-muted-foreground">Start by clicking on the search button</p>}
+                            {videoError?.code === 'quota_exceeded' && <p className="text-sm text-muted-foreground">Search limit reached (try again tomorrow)</p>}
+                            {videoError && videoError.code !== 'quota_exceeded' && <p className="text-sm text-muted-foreground">{videoError.message || 'Try again later'}</p>}
+                          </div>
+                        </div>
+                      ) : (
+                        (() => {
+                          const embedUrl = toYouTubeEmbedUrl(videoUrls[videoIndex])
+                          return embedUrl ? (
+                            <iframe
+                              src={embedUrl}
+                              title="YouTube video player"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                              allowFullScreen
+                              frameBorder={0}
+                              className="w-full h-full"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-muted/20" />
+                          )
+                        })()
+                      )}
+                    </div>
+
+                    {/* Controls */}
+                    <div className="flex items-center justify-between">
+                      <Button variant="outline" size="sm" onClick={prevVideo} disabled={videoUrls.length <= 1 || isTransitioning}>Previous</Button>
+                      <div className="text-xs text-muted-foreground">{videoUrls.length > 0 ? `${videoIndex + 1} / ${videoUrls.length}` : '—'}</div>
+                      <Button variant="outline" size="sm" onClick={nextVideo} disabled={videoUrls.length <= 1 || isTransitioning}>Next</Button>
+                    </div>
+
+                    {/* Thumbnails strip */}
+                    {videoUrls.length > 1 && (
+                      <div className="flex gap-2 overflow-x-auto py-1">
+                        {videoUrls.map((url, i) => {
+                          const thumb = toYouTubeThumbnailUrl(url)
+                          return (
+                            <button
+                              key={url + i}
+                              onClick={() => setVideoIndex(i)}
+                              className={`relative h-16 aspect-video rounded border overflow-hidden ${i === videoIndex ? 'ring-2 ring-primary' : ''}`}
+                              aria-label={`Go to video ${i + 1}`}
+                            >
+                              {thumb ? (
+                                <img src={thumb} alt="Video preview" className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full bg-muted" />
+                              )}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </DrawerContent>
+    </Drawer>
+  )
+}
+
+// Aggregated statistics chart by workout type or muscle group
+function StatisticsChart({ mode, exercises }: { mode: 'workout' | 'muscle'; exercises: Array<{ id: string; workoutTypes?: string[]; muscleGroups?: string[]; usageCount?: number }> }) {
+  const usageMap = useMemo(() => {
+    try {
+      const keys = ['workout_plans_usage', 'workout-plans-usage', 'workoutHistory', 'workout-plans']
+      for (const k of keys) {
+        const v = typeof window !== 'undefined' ? localStorage.getItem(k) : null
+        if (v) return JSON.parse(v) as Record<string, any>
+      }
+    } catch {}
+    return {} as Record<string, any>
+  }, [])
+
+  const getExerciseUsage = useCallback((exerciseId: string, fallback?: number) => {
+    const entry = usageMap?.[exerciseId]
+    if (entry && Array.isArray(entry.weeklyCounts)) {
+      return (entry.weeklyCounts as Array<{ count: number }>).reduce((s, p) => s + (Number(p.count) || 0), 0)
+    }
+    if (typeof fallback === 'number') return fallback
+    return 0
+  }, [usageMap])
+
+  const data = useMemo(() => {
+    const combined = exercises
+    if (mode === 'workout') {
+      const typeSet = new Set<string>()
+      combined.forEach(ex => ex.workoutTypes?.forEach(t => typeSet.add(t)))
+      const types = Array.from(typeSet).sort()
+      return types.map((type) => {
+        let total = 0
+        combined.forEach((ex) => { if (ex.workoutTypes?.includes(type)) total += getExerciseUsage(ex.id, ex.usageCount) })
+        return { name: type, count: total }
+      })
+    }
+    const groupSet = new Set<string>()
+    combined.forEach(ex => ex.muscleGroups?.forEach(g => groupSet.add(g)))
+    const groups = Array.from(groupSet).sort()
+    return groups.map((group) => {
+      let total = 0
+      combined.forEach((ex) => { if (ex.muscleGroups?.includes(group)) total += getExerciseUsage(ex.id, ex.usageCount) })
+      return { name: group, count: total }
+    })
+  }, [mode, exercises, getExerciseUsage])
+
+  const config = { count: { label: 'Uses', color: 'hsl(var(--primary))' } }
+
+  return (
+    <div className="w-full">
+      <ChartContainer id={`stats-${mode}`} config={config} className="w-full h-[60vh]">
+        <BarChart data={data} layout="vertical">
+          <CartesianGrid horizontal={false} strokeDasharray="3 3" />
+          <XAxis type="number" allowDecimals={false} axisLine={false} tickLine={false} />
+          <YAxis type="category" dataKey="name" width={120} axisLine={false} tickLine={false} />
+          <Tooltip content={<ChartTooltipContent />} cursor={{ fill: 'hsl(var(--muted))' }} />
+          <Bar dataKey="count" fill="var(--color-count)" radius={4} />
+        </BarChart>
+      </ChartContainer>
+    </div>
+  )
+}
+
+function StatisticsExercisesChart({ exercises, workoutTypes, initialType }: { exercises: Array<{ id: string; name?: string; workoutTypes?: string[]; usageCount?: number }>; workoutTypes: string[]; initialType: string }) {
+  const [selectedType, setSelectedType] = useState<string>(initialType && initialType !== 'all' ? initialType : (workoutTypes[0] || ''))
+
+  const usageMap = useMemo(() => {
+    try {
+      const keys = ['workout_plans_usage', 'workout-plans-usage', 'workoutHistory', 'workout-plans']
+      for (const k of keys) {
+        const v = typeof window !== 'undefined' ? localStorage.getItem(k) : null
+        if (v) return JSON.parse(v) as Record<string, any>
+      }
+    } catch {}
+    return {} as Record<string, any>
+  }, [])
+
+  const getExerciseUsage = useCallback((exerciseId: string, fallback?: number) => {
+    const entry = usageMap?.[exerciseId]
+    if (entry && Array.isArray(entry.weeklyCounts)) {
+      return (entry.weeklyCounts as Array<{ count: number }>).reduce((s, p) => s + (Number(p.count) || 0), 0)
+    }
+    if (typeof fallback === 'number') return fallback
+    return 0
+  }, [usageMap])
+
+  const filtered = useMemo(() => {
+    if (!selectedType) return [] as Array<{ name: string; count: number }>
+    const subset = exercises.filter(ex => ex.workoutTypes?.includes(selectedType))
+    return subset
+      .map(ex => ({ name: ex.name || ex.id, count: getExerciseUsage(ex.id, ex.usageCount) }))
+      .sort((a, b) => b.count - a.count)
+  }, [exercises, selectedType, getExerciseUsage])
+
+  const config = { count: { label: 'Uses', color: 'hsl(var(--primary))' } }
+
+  return (
+    <div className="w-full space-y-3">
+      <div className="w-full max-w-xs">
+        <Select value={selectedType} onValueChange={setSelectedType}>
+          <SelectTrigger className="w-full h-9 bg-background border-border">
+            <SelectValue placeholder="Select type" />
+          </SelectTrigger>
+          <SelectContent className="max-h-64">
+            {workoutTypes.map((t) => (
+              <SelectItem key={t} value={t} className="cursor-pointer">{t}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <ChartContainer id={`stats-exercises-${selectedType}`} config={config} className="w-full h-[60vh]">
+        <BarChart data={filtered} layout="vertical">
+          <CartesianGrid horizontal={false} strokeDasharray="3 3" />
+          <XAxis type="number" allowDecimals={false} axisLine={false} tickLine={false} />
+          <YAxis type="category" dataKey="name" width={180} interval={0} axisLine={false} tickLine={false} />
+          <Tooltip content={<ChartTooltipContent />} cursor={{ fill: 'hsl(var(--muted))' }} />
+          <Bar dataKey="count" fill="var(--color-count)" radius={4} />
+        </BarChart>
+      </ChartContainer>
     </div>
   )
 }
