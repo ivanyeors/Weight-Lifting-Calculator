@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d out"
+    "deploy": "npm run build && gh-pages -d out",
+    "build:static": "next build && next export",
+    "deploy:gh-pages": "npm run build:static && gh-pages -d out"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
