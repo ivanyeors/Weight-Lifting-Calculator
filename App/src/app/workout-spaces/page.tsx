@@ -243,7 +243,12 @@ export default function WorkoutSpacesPage() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Workout Spaces</h1>
+        <div>
+          <h1 className="text-2xl font-semibold">Workout Spaces</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Create spaces to manage your exercises based on the available equipment available.
+          </p>
+        </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           {getSyncIcon()}
           <span>

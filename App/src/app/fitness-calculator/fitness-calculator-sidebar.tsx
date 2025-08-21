@@ -127,6 +127,7 @@ export function WeightCalculatorSidebar({
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null)
   const [hasPendingChanges, setHasPendingChanges] = useState(false)
   const debounceTimerRef = useRef<number | null>(null)
+  const [savedSnapshot, setSavedSnapshot] = useState<SavedPersonalData | null>(null)
 
   // Sync current plan from Supabase and localStorage
   useEffect(() => {
@@ -188,6 +189,18 @@ export function WeightCalculatorSidebar({
           }
         }
         setHasPendingChanges(false)
+        // Establish a saved snapshot baseline for manual save comparison
+        setSavedSnapshot({
+          bodyWeight: saved.bodyWeight,
+          height: saved.height,
+          age: saved.age,
+          gender: saved.gender,
+          experience: saved.experience,
+          skeletalMuscleMass: saved.skeletalMuscleMass,
+          bodyFatMass: saved.bodyFatMass,
+          selectedExerciseId: saved.selectedExerciseId,
+          updatedAt: saved.updatedAt,
+        })
       }
     }
     void loadPersonalDetails()
@@ -212,49 +225,40 @@ export function WeightCalculatorSidebar({
     void migrateIfNeeded()
   }, [user?.id])
 
-  // Debounced auto-sync to Supabase for Personal tier
+  // Initialize baseline snapshot when user signs in or plan context changes and no snapshot exists
   useEffect(() => {
-    if (!user?.id || currentPlan !== 'Personal') return
-    setHasPendingChanges(true)
-    if (debounceTimerRef.current) window.clearTimeout(debounceTimerRef.current)
-    debounceTimerRef.current = window.setTimeout(async () => {
-      setIsSyncing(true)
-      setSyncError(null)
-      onSyncStatusChange?.('syncing')
-      try {
-        const payload: { fitspo_personal: Record<string, unknown> } = {
-          fitspo_personal: {
-            bodyWeight,
-            height,
-            age,
-            gender,
-            experience,
-            skeletalMuscleMass,
-            bodyFatMass,
-            selectedExerciseId,
-            updatedAt: new Date().toISOString(),
-          },
-        }
-        const { error } = await supabase.auth.updateUser({ data: payload })
-        if (error) throw error
-        const now = new Date()
-        setLastSyncedAt(now)
-        setHasPendingChanges(false)
-        onLastSyncTimeChange?.(now)
-        onSyncStatusChange?.('success')
-      } catch (e: unknown) {
-        const message = e instanceof Error ? e.message : 'Failed to sync'
-        setSyncError(message)
-        onSyncStatusChange?.('error')
-      } finally {
-        setIsSyncing(false)
-      }
-    }, 800)
-
-    return () => {
-      if (debounceTimerRef.current) window.clearTimeout(debounceTimerRef.current)
+    if (!savedSnapshot && user?.id) {
+      setSavedSnapshot({
+        bodyWeight,
+        height,
+        age,
+        gender,
+        experience,
+        skeletalMuscleMass,
+        bodyFatMass,
+        selectedExerciseId,
+      })
     }
-  }, [bodyWeight, height, age, gender, experience, skeletalMuscleMass, bodyFatMass, selectedExerciseId, user?.id, currentPlan])
+  }, [user?.id, currentPlan])
+
+  // Track pending changes by comparing current values to last saved snapshot
+  useEffect(() => {
+    if (!savedSnapshot) {
+      setHasPendingChanges(false)
+      return
+    }
+    const changed = (
+      bodyWeight !== (savedSnapshot.bodyWeight ?? bodyWeight) ||
+      height !== (savedSnapshot.height ?? height) ||
+      age !== (savedSnapshot.age ?? age) ||
+      gender !== (savedSnapshot.gender ?? gender) ||
+      experience !== (savedSnapshot.experience ?? experience) ||
+      skeletalMuscleMass !== (savedSnapshot.skeletalMuscleMass ?? skeletalMuscleMass) ||
+      bodyFatMass !== (savedSnapshot.bodyFatMass ?? bodyFatMass) ||
+      selectedExerciseId !== (savedSnapshot.selectedExerciseId ?? selectedExerciseId)
+    )
+    setHasPendingChanges(changed)
+  }, [bodyWeight, height, age, gender, experience, skeletalMuscleMass, bodyFatMass, selectedExerciseId, savedSnapshot])
 
   const handleManualSync = async () => {
     if (!user?.id || currentPlan !== 'Personal') return
@@ -281,6 +285,17 @@ export function WeightCalculatorSidebar({
       const now = new Date()
       setLastSyncedAt(now)
       setHasPendingChanges(false)
+      setSavedSnapshot({
+        bodyWeight,
+        height,
+        age,
+        gender,
+        experience,
+        skeletalMuscleMass,
+        bodyFatMass,
+        selectedExerciseId,
+        updatedAt: now.toISOString(),
+      })
       onLastSyncTimeChange?.(now)
       onSyncStatusChange?.('success')
     } catch (e: unknown) {
@@ -683,13 +698,20 @@ export function WeightCalculatorSidebar({
               </div>
             </div>
 
-            <div className="space-y-2 text-xs text-muted-foreground mt-6">
-              <div className="flex items-center gap-2">
-                <Calculator className="h-3.5 w-3.5" />
-                <span>Auto-sync enabled</span>
-              </div>
+            {/* Manual Save Controls */}
+            <div className="pt-4">
+              <Button
+                onClick={handleManualSync}
+                disabled={!user?.id || currentPlan !== 'Personal' || isSyncing || !hasPendingChanges}
+                className="w-full"
+              >
+                {isSyncing ? 'Saving…' : hasPendingChanges ? 'Save changes' : 'Saved'}
+              </Button>
+              {syncError && (
+                <div className="text-xs text-red-600 mt-2">{syncError}</div>
+              )}
               {currentPlan !== 'Personal' && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-3">
                   <CloudOff className="h-3.5 w-3.5" />
                   <span>Local storage only</span>
                 </div>
