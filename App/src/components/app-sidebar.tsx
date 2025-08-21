@@ -29,8 +29,9 @@ import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { LoginForm } from "@/components/login-form"
 import { supabase } from '@/lib/supabaseClient'
+import { TeamSwitcher } from "@/components/ui/team-switcher"
 
-import { Calculator, MapPin, ClipboardList, Dumbbell, AppWindow, ChevronDown } from "lucide-react"
+import { Calculator, MapPin, ClipboardList, Dumbbell, AppWindow, ChevronDown, Flame, Users as UsersIcon, UtensilsCrossed, Building2 } from "lucide-react"
 import { useTheme } from "next-themes"
 
 type UserInfo = { id: string; email: string | null; name: string | null; avatarUrl: string | null }
@@ -42,6 +43,11 @@ export function AppSidebar() {
   const { theme, resolvedTheme } = useTheme()
   const { state } = useSidebar()
   const pathname = usePathname()
+  const teams = [
+    { name: 'Fitspo', logo: AppWindow, plan: currentPlan },
+    { name: 'Gym Team', logo: Dumbbell, plan: 'Pro' },
+    { name: 'Work', logo: Building2, plan: 'Free' },
+  ]
 
   useEffect(() => {
     const init = async () => {
@@ -90,7 +96,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="p-4">
+      <SidebarHeader className="p-2">
         {state === 'collapsed' ? (
           <div className="flex flex-col items-center gap-2">
             <img
@@ -101,18 +107,23 @@ export function AppSidebar() {
             <SidebarTrigger className="h-8 w-8 p-0" />
           </div>
         ) : (
-          <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center space-x-2">
-              <img
-                src={(resolvedTheme || theme) === 'dark' ? '/logo-dark.svg' : '/logo-light.svg'}
-                alt="Fitspo Logo"
-                className="h-8 w-8 rounded-[8px]"
-              />
-              <div>
-                <h2 className="text-base font-semibold">Fitspo</h2>
+          <div className="mb-1">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <img
+                  src={(resolvedTheme || theme) === 'dark' ? '/logo-dark.svg' : '/logo-light.svg'}
+                  alt="Fitspo Logo"
+                  className="h-8 w-8 rounded-[8px]"
+                />
+                <div>
+                  <h2 className="text-base font-semibold">Fitspo</h2>
+                </div>
               </div>
+              <SidebarTrigger className="h-8 w-8 p-0" />
             </div>
-            <SidebarTrigger className="h-8 w-8 p-0" />
+            <div className="mt-2">
+              <TeamSwitcher teams={teams} />
+            </div>
           </div>
         )}
       </SidebarHeader>
@@ -126,9 +137,9 @@ export function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === '/fitspo-app'}>
-                  <a href="/fitspo-app" className={`flex items-center gap-2 ${pathname === '/fitspo-app' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''}`}>
+                  <a href="/fitspo-app" className={`flex items-center gap-2 ${pathname === '/fitspo-app' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
                     <AppWindow />
-                    <span>Fitspo App</span>
+                    <span className="group-data-[collapsible=icon]:hidden">Fitspo App</span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -144,9 +155,17 @@ export function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === '/fitness-calculator'}>
-                  <a href="/fitness-calculator" className={`flex items-center gap-2 ${pathname === '/fitness-calculator' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''}`}>
+                  <a href="/fitness-calculator" className={`flex items-center gap-2 ${pathname === '/fitness-calculator' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
                     <Calculator />
-                    <span>Weight Calculator</span>
+                    <span className="group-data-[collapsible=icon]:hidden">Weight Calculator</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/calorie-calculator'}>
+                  <a href="/calorie-calculator" className={`flex items-center gap-2 ${pathname === '/calorie-calculator' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
+                    <Flame />
+                    <span className="group-data-[collapsible=icon]:hidden">Calorie Calculator</span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -162,25 +181,51 @@ export function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === '/exercise-library'}>
-                  <a href="/exercise-library" className={`flex items-center gap-2 ${pathname === '/exercise-library' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''}`}>
+                  <a href="/exercise-library" className={`flex items-center gap-2 ${pathname === '/exercise-library' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
                     <Dumbbell />
-                    <span>Exercise Library</span>
+                    <span className="group-data-[collapsible=icon]:hidden">Exercise Library</span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === '/workout-spaces'}>
-                  <a href="/workout-spaces" className={`flex items-center gap-2 ${pathname === '/workout-spaces' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''}`}>
+                  <a href="/workout-spaces" className={`flex items-center gap-2 ${pathname === '/workout-spaces' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
                     <MapPin />
-                    <span>Workout Spaces</span>
+                    <span className="group-data-[collapsible=icon]:hidden">Workout Spaces</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel className="flex items-center">
+            Plans
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/plans/users'}>
+                  <a href="/plans/users" className={`flex items-center gap-2 ${pathname === '/plans/users' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
+                    <UsersIcon />
+                    <span className="group-data-[collapsible=icon]:hidden">Users</span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/workout-plans'}>
-                  <a href="/workout-plans" className={`flex items-center gap-2 ${pathname === '/workout-plans' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''}`}>
+                <SidebarMenuButton asChild isActive={pathname === '/plans/workout-plans'}>
+                  <a href="/plans/workout-plans" className={`flex items-center gap-2 ${pathname === '/plans/workout-plans' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
                     <ClipboardList />
-                    <span>Workout Plans</span>
+                    <span className="group-data-[collapsible=icon]:hidden">Workout Plans</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/plans/nutrition'}>
+                  <a href="/plans/nutrition" className={`flex items-center gap-2 ${pathname === '/plans/nutrition' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
+                    <UtensilsCrossed />
+                    <span className="group-data-[collapsible=icon]:hidden">Nutrition</span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -190,7 +235,7 @@ export function AppSidebar() {
       </SidebarContent>
 
       {state === 'collapsed' ? null : (
-        <SidebarFooter className="p-4">
+        <SidebarFooter className="p-2">
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

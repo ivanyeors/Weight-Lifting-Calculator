@@ -32,6 +32,8 @@ import { AuthCallbackHandler } from "@/auth/AuthCallbackHandler"
 import { supabase } from '@/lib/supabaseClient'
 
 import { WebBodyHighlighter } from "./web-body-highlighter"
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { LineChart, Line, CartesianGrid, XAxis, YAxis } from "recharts"
 
 // Body SVG assets are now imported in WebBodyHighlighter
 
@@ -108,6 +110,7 @@ export default function HomePage() {
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle')
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null)
   const [currentTier, setCurrentTier] = useState<string>('Free')
+  const [completionSeries, setCompletionSeries] = useState<{ date: string; dateLabel: string; weight: number }[]>([])
   
   // Get current exercise
   const currentExercise = exercises.find(ex => ex.id === selectedExerciseId) || exercises[0]
@@ -217,6 +220,55 @@ export default function HomePage() {
     const contributions = calculateMuscleContributions(currentExercise)
     setMuscleGroups(contributions)
   }, [currentExercise])
+
+  // Load workout completion logs for the selected exercise from Supabase user metadata (fallback to localStorage)
+  useEffect(() => {
+    const loadCompletions = async () => {
+      try {
+        const { data } = await supabase.auth.getSession()
+        const user = data.session?.user
+
+        type WorkoutCompletionRecord = {
+          exerciseId: string
+          weight: number
+          completedAt: string
+          status?: 'completed' | 'skipped' | 'in_progress'
+        }
+
+        let raw: unknown = null
+        if (user) {
+          raw = (user.user_metadata?.fitspo_workouts as unknown) || (user.user_metadata?.stronk_workouts as unknown) || null
+        }
+        if (!raw && typeof window !== 'undefined') {
+          try {
+            const ls = localStorage.getItem('fitspo:workout_logs')
+            raw = ls ? (JSON.parse(ls) as unknown) : null
+          } catch (_) {
+            // ignore
+          }
+        }
+
+        const arr = Array.isArray(raw) ? (raw as WorkoutCompletionRecord[]) : []
+        const filtered = arr.filter(r => r.exerciseId === selectedExerciseId && (!r.status || r.status === 'completed'))
+        filtered.sort((a, b) => new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime())
+
+        const series = filtered.map(r => {
+          const d = new Date(r.completedAt)
+          const label = Number.isNaN(d.getTime()) ? r.completedAt : d.toLocaleDateString()
+          return { date: r.completedAt, dateLabel: label, weight: r.weight }
+        })
+        setCompletionSeries(series)
+      } catch (e) {
+        setCompletionSeries([])
+      }
+    }
+
+    if (selectedExerciseId) {
+      void loadCompletions()
+    } else {
+      setCompletionSeries([])
+    }
+  }, [selectedExerciseId])
 
   // Show loading state while exercises are being loaded
   if (isLoadingExercises) {
@@ -422,20 +474,27 @@ export default function HomePage() {
                   exerciseLoadError={exerciseLoadError}
                   rightSlot={
                     <Card className="@container/card border-2 border-primary/20 bg-gradient-to-t from-primary/5 to-card shadow-lg h-full">
-                      <CardHeader className="pb-3">
+                      <CardHeader className="p-3">
                         <div className="flex items-center justify-start gap-3">
                           <div className="flex items-center space-x-2">
                             <Target className="h-6 w-6 text-primary" />
                             <CardTitle className="text-2xl @[250px]/card:text-3xl">Ideal Weight</CardTitle>
                           </div>
                         </div>
-                        <CardDescription className="text-base">
-                          {currentExercise ? `Your personalized ${currentExercise.name.toLowerCase()} recommendation` : 'Select an exercise to see recommendations'}
-                        </CardDescription>
                       </CardHeader>
-                      <CardContent>
-                        <div className="p-4 @[250px]/card:p-5">
+                      <CardContent className="p-3">
+                        <div>
                           <div className="min-w-0">
+                            <div className="text-lg @[250px]/card:text-2xl text-foreground font-semibold mb-2">
+                              {currentExercise ? `Ideal ${currentExercise.name} Weight` : 'Ideal Weight'}
+                            </div>
+                            {currentExercise && (
+                              <div className="mb-3 p-3 bg-muted/60 rounded-md max-w-2xl md:max-w-3xl lg:max-w-4xl">
+                                <p className="text-xs text-muted-foreground/90 line-clamp-3 md:line-clamp-none">
+                                  {currentExercise.description}
+                                </p>
+                              </div>
+                            )}
                             <div className="flex items-center gap-2 flex-wrap">
                               <div className="text-5xl font-bold text-primary leading-tight tabular-nums">
                                 {(idealWeight * (1 + adjustmentPercent / 100)).toFixed(2)} kg
@@ -444,53 +503,73 @@ export default function HomePage() {
                                 {adjustmentPercent > 0 ? `+${adjustmentPercent}` : adjustmentPercent}%
                               </Label>
                             </div>
-                            <div className="text-base @[250px]/card:text-lg text-muted-foreground">
-                              {currentExercise ? `Ideal ${currentExercise.name} Weight` : 'Ideal Weight'}
-                            </div>
                           </div>
-                          <div className="mt-3 flex items-center gap-3 flex-wrap">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm text-muted-foreground">Step</span>
-                              <div className="flex items-center gap-1">
-                                <Input
-                                  type="number"
-                                  inputMode="decimal"
-                                  className="w-20"
-                                  value={Number.isNaN(stepPercent) ? '' : stepPercent}
-                                  onChange={(e) => {
-                                    const value = parseFloat(e.target.value)
-                                    if (Number.isNaN(value)) {
-                                      setStepPercent(0)
-                                    } else {
-                                      setStepPercent(Math.max(0, Math.min(100, value)))
-                                    }
-                                  }}
-                                />
-                                <span className="text-sm text-muted-foreground">%</span>
+                          <div className="mt-4">
+                            <div className="mb-2 text-sm font-medium">Adjust weight</div>
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-muted-foreground">Amount</span>
+                                <div className="flex items-center gap-1">
+                                  <Input
+                                    type="number"
+                                    inputMode="decimal"
+                                    className="w-24"
+                                    value={Number.isNaN(stepPercent) ? '' : stepPercent}
+                                    onChange={(e) => {
+                                      const value = parseFloat(e.target.value)
+                                      if (Number.isNaN(value)) {
+                                        setStepPercent(0)
+                                      } else {
+                                        setStepPercent(Math.max(0, Math.min(100, value)))
+                                      }
+                                    }}
+                                  />
+                                  <span className="text-sm text-muted-foreground">%</span>
+                                </div>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex gap-2">
                               <Button
-                                size="sm"
+                                size="lg"
+                                variant="secondary"
+                                className="flex-1"
                                 onClick={() => setAdjustmentPercent((prev) => prev - (Number.isFinite(stepPercent) ? stepPercent : 0))}
                               >
                                 -{Number.isFinite(stepPercent) ? stepPercent : 0}%
                               </Button>
                               <Button
-                                size="sm"
+                                size="lg"
+                                variant="secondary"
+                                className="flex-1"
                                 onClick={() => setAdjustmentPercent((prev) => prev + (Number.isFinite(stepPercent) ? stepPercent : 0))}
                               >
                                 +{Number.isFinite(stepPercent) ? stepPercent : 0}%
                               </Button>
                             </div>
                           </div>
-                          {currentExercise && (
-                            <div className="mt-3 p-3 bg-muted/60 rounded-md max-w-2xl md:max-w-3xl lg:max-w-4xl">
-                              <p className="text-xs text-muted-foreground/90 line-clamp-3 md:line-clamp-none">
-                                {currentExercise.description}
-                              </p>
-                            </div>
-                          )}
+
+                          {/* Completion history line chart */}
+                          <div className="mt-6">
+                            <div className="mb-2 text-sm font-medium">Exercise Trend</div>
+                            {completionSeries.length > 0 ? (
+                              <ChartContainer
+                                config={{ weight: { label: 'Weight', color: 'hsl(var(--primary))' } }}
+                                className="w-full h-48 md:h-64"
+                              >
+                                <LineChart data={completionSeries} margin={{ left: 8, right: 8, top: 8, bottom: 8 }}>
+                                  <CartesianGrid strokeDasharray="3 3" />
+                                  <XAxis dataKey="dateLabel" tickMargin={8} />
+                                  <YAxis tickMargin={8} />
+                                  <ChartTooltip content={<ChartTooltipContent />} />
+                                  <Line type="monotone" dataKey="weight" stroke="var(--color-weight)" strokeWidth={2} dot={true} />
+                                </LineChart>
+                              </ChartContainer>
+                            ) : (
+                              <div className="w-full h-48 md:h-64 border border-dashed rounded-md flex items-center justify-center text-sm text-muted-foreground bg-muted/30">
+                                No data
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
