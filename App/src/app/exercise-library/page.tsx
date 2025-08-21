@@ -32,6 +32,7 @@ import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { computeIdealWeight, type PersonalInputs } from '@/lib/idealWeight'
 
 // Allowed workout types to be synced with Supabase
 const ALLOWED_WORKOUT_TYPES: readonly string[] = [
@@ -150,6 +151,7 @@ export default function ExerciseLibraryPage() {
   // Statistics dialog state
   const [isStatsOpen, setIsStatsOpen] = useState(false)
   const [statsMode, setStatsMode] = useState<'exercises' | 'muscle'>('exercises')
+  const [personalInputs, setPersonalInputs] = useState<PersonalInputs | null>(null)
 
   const loadExercises = async () => {
     try {
@@ -272,6 +274,38 @@ export default function ExerciseLibraryPage() {
   useEffect(() => {
     loadExercises()
   }, [])
+
+  // Load saved personal inputs from fitness-calculator (Personal tier)
+  useEffect(() => {
+    const loadPersonal = async () => {
+      try {
+        if (!isPaidTier || !userId) { setPersonalInputs(null); return }
+        const { data } = await supabase.auth.getSession()
+        const user = data.session?.user
+        const savedRaw = (user?.user_metadata?.fitspo_personal as unknown) || (user?.user_metadata?.stronk_personal as unknown) || null
+        if (savedRaw && typeof savedRaw === 'object') {
+          const saved = savedRaw as Record<string, unknown>
+          const gender = (saved.gender === 'female' ? 'female' : 'male') as PersonalInputs['gender']
+          const exp = (['cat1','cat2','cat3','cat4','cat5'].includes(String(saved.experience)) ? String(saved.experience) : 'cat3') as PersonalInputs['experience']
+          const inputs: PersonalInputs = {
+            bodyWeight: Number(saved.bodyWeight ?? 70),
+            height: Number(saved.height ?? 175),
+            age: Number(saved.age ?? 25),
+            gender,
+            experience: exp,
+            skeletalMuscleMass: Number(saved.skeletalMuscleMass ?? 30),
+            bodyFatMass: Number(saved.bodyFatMass ?? 20),
+          }
+          setPersonalInputs(inputs)
+        } else {
+          setPersonalInputs(null)
+        }
+      } catch (e) {
+        setPersonalInputs(null)
+      }
+    }
+    loadPersonal()
+  }, [isPaidTier, userId])
 
   // Load user's workout spaces
   useEffect(() => {
@@ -852,6 +886,14 @@ export default function ExerciseLibraryPage() {
                 
                 <CardContent className="pt-0">
                   <div className="space-y-3">
+                    {typeof exercise.baseWeightFactor !== 'undefined' && personalInputs && (
+                      <div className="text-sm">
+                        <span className="text-muted-foreground">Ideal Weight: </span>
+                        <span className="font-semibold tabular-nums">
+                          {computeIdealWeight(personalInputs, Number(exercise.baseWeightFactor || 1)).toFixed(2)} kg
+                        </span>
+                      </div>
+                    )}
                     {exercise.muscleGroups && exercise.muscleGroups.length > 0 && (
                       <div>
                         <p className="text-xs font-medium text-muted-foreground mb-2">
