@@ -410,9 +410,8 @@ export default function HomePage() {
           </header>
 
           <div className="flex flex-1 flex-col gap-4 pt-4 pr-4 pb-4 pl-2 md:gap-2 md:pt-6 md:pr-6 md:pb-6 md:pl-6 overflow-auto">
-            {/* Charts Section - Web Body Highlighter */}
+            {/* Charts Section - Body Highlighter with right-side content */}
             <div className="grid grid-cols-1 gap-6">
-              {/* Web Body Highlighter */}
               {currentExercise && (
                 <WebBodyHighlighter
                   muscleGroups={muscleGroups}
@@ -421,171 +420,171 @@ export default function HomePage() {
                   setSelectedExerciseId={setSelectedExerciseId}
                   isLoadingExercises={isLoadingExercises}
                   exerciseLoadError={exerciseLoadError}
+                  rightSlot={
+                    <Card className="@container/card border-2 border-primary/20 bg-gradient-to-t from-primary/5 to-card shadow-lg h-full">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-start gap-3">
+                          <div className="flex items-center space-x-2">
+                            <Target className="h-6 w-6 text-primary" />
+                            <CardTitle className="text-2xl @[250px]/card:text-3xl">Ideal Weight</CardTitle>
+                          </div>
+                        </div>
+                        <CardDescription className="text-base">
+                          {currentExercise ? `Your personalized ${currentExercise.name.toLowerCase()} recommendation` : 'Select an exercise to see recommendations'}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="p-4 @[250px]/card:p-5">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <div className="text-5xl font-bold text-primary leading-tight tabular-nums">
+                                {(idealWeight * (1 + adjustmentPercent / 100)).toFixed(2)} kg
+                              </div>
+                              <Label className="inline-flex items-center gap-1 text-sm @[250px]/card:text-base text-foreground border border-border rounded-md px-2.5 py-1 bg-background">
+                                {adjustmentPercent > 0 ? `+${adjustmentPercent}` : adjustmentPercent}%
+                              </Label>
+                            </div>
+                            <div className="text-base @[250px]/card:text-lg text-muted-foreground">
+                              {currentExercise ? `Ideal ${currentExercise.name} Weight` : 'Ideal Weight'}
+                            </div>
+                          </div>
+                          <div className="mt-3 flex items-center gap-3 flex-wrap">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-muted-foreground">Step</span>
+                              <div className="flex items-center gap-1">
+                                <Input
+                                  type="number"
+                                  inputMode="decimal"
+                                  className="w-20"
+                                  value={Number.isNaN(stepPercent) ? '' : stepPercent}
+                                  onChange={(e) => {
+                                    const value = parseFloat(e.target.value)
+                                    if (Number.isNaN(value)) {
+                                      setStepPercent(0)
+                                    } else {
+                                      setStepPercent(Math.max(0, Math.min(100, value)))
+                                    }
+                                  }}
+                                />
+                                <span className="text-sm text-muted-foreground">%</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => setAdjustmentPercent((prev) => prev - (Number.isFinite(stepPercent) ? stepPercent : 0))}
+                              >
+                                -{Number.isFinite(stepPercent) ? stepPercent : 0}%
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => setAdjustmentPercent((prev) => prev + (Number.isFinite(stepPercent) ? stepPercent : 0))}
+                              >
+                                +{Number.isFinite(stepPercent) ? stepPercent : 0}%
+                              </Button>
+                            </div>
+                          </div>
+                          {currentExercise && (
+                            <div className="mt-3 p-3 bg-muted/60 rounded-md max-w-2xl md:max-w-3xl lg:max-w-4xl">
+                              <p className="text-xs text-muted-foreground/90 line-clamp-3 md:line-clamp-none">
+                                {currentExercise.description}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  }
                 />
               )}
             </div>
 
-            {/* Main card and factor cards side-by-side on large screens */}
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 items-stretch">
-              <Card className="@container/card border-2 border-primary/20 bg-gradient-to-t from-primary/5 to-card shadow-lg h-full">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-start gap-3">
-                    <div className="flex items-center space-x-2">
-                      <Target className="h-6 w-6 text-primary" />
-                      <CardTitle className="text-2xl @[250px]/card:text-3xl">Ideal Weight Calculation</CardTitle>
-                    </div>
-                  </div>
-                  <CardDescription className="text-base">
-                    {currentExercise ? `Your personalized ${currentExercise.name.toLowerCase()} recommendation` : 'Select an exercise to see recommendations'}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="p-4 @[250px]/card:p-5">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <div className="text-5xl font-bold text-primary leading-tight tabular-nums">
-                          {(idealWeight * (1 + adjustmentPercent / 100)).toFixed(2)} kg
-                        </div>
-                        <Label className="inline-flex items-center gap-1 text-sm @[250px]/card:text-base text-foreground border border-border rounded-md px-2.5 py-1 bg-background">
-                          {adjustmentPercent > 0 ? `+${adjustmentPercent}` : adjustmentPercent}%
-                        </Label>
-                      </div>
-                      <div className="text-base @[250px]/card:text-lg text-muted-foreground">
-                        {currentExercise ? `Ideal ${currentExercise.name} Weight` : 'Ideal Weight'}
-                      </div>
-                    </div>
-                    <div className="mt-3 flex items-center gap-3 flex-wrap">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">Step</span>
-                        <div className="flex items-center gap-1">
-                          <Input
-                            type="number"
-                            inputMode="decimal"
-                            className="w-20"
-                            value={Number.isNaN(stepPercent) ? '' : stepPercent}
-                            onChange={(e) => {
-                              const value = parseFloat(e.target.value)
-                              if (Number.isNaN(value)) {
-                                setStepPercent(0)
-                              } else {
-                                setStepPercent(Math.max(0, Math.min(100, value)))
-                              }
-                            }}
-                          />
-                          <span className="text-sm text-muted-foreground">%</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() => setAdjustmentPercent((prev) => prev - (Number.isFinite(stepPercent) ? stepPercent : 0))}
-                        >
-                          -{Number.isFinite(stepPercent) ? stepPercent : 0}%
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => setAdjustmentPercent((prev) => prev + (Number.isFinite(stepPercent) ? stepPercent : 0))}
-                        >
-                          +{Number.isFinite(stepPercent) ? stepPercent : 0}%
-                        </Button>
-                      </div>
-                    </div>
-                    {currentExercise && (
-                      <div className="mt-3 p-3 bg-muted/60 rounded-md max-w-2xl md:max-w-3xl lg:max-w-4xl">
-                        <p className="text-xs text-muted-foreground/90 line-clamp-3 md:line-clamp-none">
-                          {currentExercise.description}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-              <div className="h-full overflow-auto">
-                <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-2 gap-3 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3 auto-rows-[minmax(0,1fr)]">
-                  <Card className="@container/card" data-slot="card">
-                    <CardContent className="p-3 text-center h-24">
-                      <CardDescription className="text-xs">Body Weight</CardDescription>
-                      <CardTitle className="text-2xl @[250px]/card:text-3xl font-semibold tabular-nums">{bodyWeight}</CardTitle>
-                      <div className="text-xs text-muted-foreground">kg</div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="@container/card" data-slot="card">
-                    <CardContent className="p-3 text-center h-24">
-                      <CardDescription className="text-xs">SMM (Base)</CardDescription>
-                      <CardTitle className="text-2xl @[250px]/card:text-3xl font-semibold tabular-nums">{skeletalMuscleMass}</CardTitle>
-                      <div className="text-xs text-muted-foreground">kg</div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="@container/card" data-slot="card">
-                    <CardContent className="p-3 text-center h-3">
-                      <CardDescription className="text-xs">Gender</CardDescription>
-                      <CardTitle className="text-2xl @[250px]/card:text-3xl font-semibold">{gender === 'male' ? 'Male' : 'Female'}</CardTitle>
-                      <div className="text-xs text-muted-foreground">G = {(gender === 'male' ? 1.0 : 0.9).toFixed(2)}×</div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="@container/card" data-slot="card">
-                    <CardContent className="p-3 text-center h-24">
-                      <CardDescription className="text-xs">Age</CardDescription>
-                      <CardTitle className="text-2xl @[250px]/card:text-3xl font-semibold tabular-nums">{age} yrs</CardTitle>
-                      <div className="text-xs text-muted-foreground">A = {(age <= 30 ? 1.0 : 1 - 0.01 * (age - 30)).toFixed(2)}×</div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="@container/card" data-slot="card">
-                    <CardContent className="p-3 text-center h-24">
-                      <CardDescription className="text-xs">Experience</CardDescription>
-                      <CardTitle className="text-2xl @[250px]/card:text-3xl font-semibold">
-                        {(() => {
-                          const label = experienceFactors[experience as keyof typeof experienceFactors].label
-                          const match = label.match(/\(([^)]+)\)/)
-                          const inside = match ? match[1] : ''
-                          const parts = inside.split(',').map(s => s.trim()).filter(Boolean)
-                          return parts.length ? parts[parts.length - 1] : label
-                        })()}
-                      </CardTitle>
-                      <div className="text-xs text-muted-foreground">Cat {experience.slice(-1)} • E = {experienceFactors[experience as keyof typeof experienceFactors].factor.toFixed(2)}×</div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="@container/card" data-slot="card">
-                    <CardContent className="p-3 text-center h-24">
-                      <CardDescription className="text-xs">Height</CardDescription>
-                      <CardTitle className="text-2xl @[250px]/card:text-3xl font-semibold tabular-nums">{height} cm</CardTitle>
-                      <div className="text-xs text-muted-foreground">H = {(() => {
-                        const averageHeight = gender === 'male' ? 175 : 162
-                        const c = 0.0025
-                        const H = Math.max(0.85, Math.min(1.15, 1 - c * (height - averageHeight)))
-                        return H.toFixed(3)
-                      })()}×</div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="@container/card" data-slot="card">
-                    <CardContent className="p-3 text-center h-24">
-                      <CardDescription className="text-xs">Body Fat</CardDescription>
-                      <CardTitle className="text-2xl @[250px]/card:text-3xl font-semibold tabular-nums">{bodyFatMass} kg</CardTitle>
-                      <div className="text-xs text-muted-foreground">F = {(() => {
-                        const w = bodyWeight
-                        const f = Math.min(Math.max(0, bodyFatMass), Math.max(0.0001, w))
-                        const p = w > 0 ? f / w : 0
-                        const fatInfluence = 0.5
-                        const F = Math.max(0.7, Math.min(1.1, 1 - fatInfluence * p))
-                        return F.toFixed(3)
-                      })()}×</div>
-                    </CardContent>
-                  </Card>
+            {/* Metric cards - full width section above the formula card */}
+            <div className="w-full">
+              <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs auto-rows-[minmax(0,1fr)]">
+                <Card className="@container/card" data-slot="card">
+                  <CardContent className="p-3 text-center h-24">
+                    <CardDescription className="text-xs">Body Weight</CardDescription>
+                    <CardTitle className="text-2xl @[250px]/card:text-3xl font-semibold tabular-nums">{bodyWeight}</CardTitle>
+                    <div className="text-xs text-muted-foreground">kg</div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="@container/card" data-slot="card">
+                  <CardContent className="p-3 text-center h-24">
+                    <CardDescription className="text-xs">SMM (Base)</CardDescription>
+                    <CardTitle className="text-2xl @[250px]/card:text-3xl font-semibold tabular-nums">{skeletalMuscleMass}</CardTitle>
+                    <div className="text-xs text-muted-foreground">kg</div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="@container/card" data-slot="card">
+                  <CardContent className="p-3 text-center h-3">
+                    <CardDescription className="text-xs">Gender</CardDescription>
+                    <CardTitle className="text-2xl @[250px]/card:text-3xl font-semibold">{gender === 'male' ? 'Male' : 'Female'}</CardTitle>
+                    <div className="text-xs text-muted-foreground">G = {(gender === 'male' ? 1.0 : 0.9).toFixed(2)}×</div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="@container/card" data-slot="card">
+                  <CardContent className="p-3 text-center h-24">
+                    <CardDescription className="text-xs">Age</CardDescription>
+                    <CardTitle className="text-2xl @[250px]/card:text-3xl font-semibold tabular-nums">{age} yrs</CardTitle>
+                    <div className="text-xs text-muted-foreground">A = {(age <= 30 ? 1.0 : 1 - 0.01 * (age - 30)).toFixed(2)}×</div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="@container/card" data-slot="card">
+                  <CardContent className="p-3 text-center h-24">
+                    <CardDescription className="text-xs">Experience</CardDescription>
+                    <CardTitle className="text-2xl @[250px]/card:text-3xl font-semibold">
+                      {(() => {
+                        const label = experienceFactors[experience as keyof typeof experienceFactors].label
+                        const match = label.match(/\(([^)]+)\)/)
+                        const inside = match ? match[1] : ''
+                        const parts = inside.split(',').map(s => s.trim()).filter(Boolean)
+                        return parts.length ? parts[parts.length - 1] : label
+                      })()}
+                    </CardTitle>
+                    <div className="text-xs text-muted-foreground">Cat {experience.slice(-1)} • E = {experienceFactors[experience as keyof typeof experienceFactors].factor.toFixed(2)}×</div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="@container/card" data-slot="card">
+                  <CardContent className="p-3 text-center h-24">
+                    <CardDescription className="text-xs">Height</CardDescription>
+                    <CardTitle className="text-2xl @[250px]/card:text-3xl font-semibold tabular-nums">{height} cm</CardTitle>
+                    <div className="text-xs text-muted-foreground">H = {(() => {
+                      const averageHeight = gender === 'male' ? 175 : 162
+                      const c = 0.0025
+                      const H = Math.max(0.85, Math.min(1.15, 1 - c * (height - averageHeight)))
+                      return H.toFixed(3)
+                    })()}×</div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="@container/card" data-slot="card">
+                  <CardContent className="p-3 text-center h-24">
+                    <CardDescription className="text-xs">Body Fat</CardDescription>
+                    <CardTitle className="text-2xl @[250px]/card:text-3xl font-semibold tabular-nums">{bodyFatMass} kg</CardTitle>
+                    <div className="text-xs text-muted-foreground">F = {(() => {
+                      const w = bodyWeight
+                      const f = Math.min(Math.max(0, bodyFatMass), Math.max(0.0001, w))
+                      const p = w > 0 ? f / w : 0
+                      const fatInfluence = 0.5
+                      const F = Math.max(0.7, Math.min(1.1, 1 - fatInfluence * p))
+                      return F.toFixed(3)
+                    })()}×</div>
+                  </CardContent>
+                </Card>
 
-                  <Card className="@container/card" data-slot="card">
-                    <CardContent className="p-3 text-center h-24">
-                      <CardDescription className="text-xs">Exercise</CardDescription>
-                      <CardTitle className="text-2xl @[250px]/card:text-3xl font-semibold">{currentExercise?.name || '—'}</CardTitle>
-                      <div className="text-xs text-muted-foreground">Factor = {(currentExercise?.baseWeightFactor ?? 0).toFixed(2)}×</div>
-                    </CardContent>
-                  </Card>
-                </div>
+                <Card className="@container/card" data-slot="card">
+                  <CardContent className="p-3 text-center h-24">
+                    <CardDescription className="text-xs">Exercise</CardDescription>
+                    <CardTitle className="text-2xl @[250px]/card:text-3xl font-semibold">{currentExercise?.name || '—'}</CardTitle>
+                    <div className="text-xs text-muted-foreground">Factor = {(currentExercise?.baseWeightFactor ?? 0).toFixed(2)}×</div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
 

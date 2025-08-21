@@ -9,11 +9,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { useState, useRef, useEffect } from 'react'
-import { Dumbbell, Lock, Activity } from 'lucide-react'
+import { useState } from 'react'
+import type { ReactNode } from 'react'
+import { Dumbbell, Activity } from 'lucide-react'
 import { ExerciseDropdown } from "@/app/fitness-calculator/ExerciseDropdown"
-import { Button } from "@/components/ui/button"
-import { useUserTier } from "@/hooks/use-user-tier"
 
 // Front assets
 import FrontHead from '@/assets/body-vector/front-body/Head.svg'
@@ -58,6 +57,7 @@ interface WebBodyHighlighterProps {
   setSelectedExerciseId?: (id: string) => void
   isLoadingExercises?: boolean
   exerciseLoadError?: string | null
+  rightSlot?: ReactNode
 }
 
 // Mapping from our muscle names to body part areas
@@ -110,7 +110,7 @@ const getIntensityDescription = (involvement: number) => {
 }
 
 // Shared layer type for placement
-type LayerPlacement = { topPct: number; leftPct: number; widthPct: number }
+type LayerPlacement = { topPct: number; leftPct: number; widthPct: number; zIndex?: number }
 
 const SvgLayer = ({
   Component,
@@ -145,6 +145,10 @@ const SvgLayer = ({
             // provide CSS var for optional force fill
             // @ts-expect-error CSS variable
             '--wlc-fill': color,
+            // Allow visual overflow; interactive hitbox is the wrapper bounds
+            overflow: 'visible',
+            // Layer ordering for overlapping hitboxes
+            zIndex: placement.zIndex,
           }}
           onClick={onClick}
           onMouseEnter={() => onHover?.(title)}
@@ -152,7 +156,7 @@ const SvgLayer = ({
           data-involvement={involvement}
         >
           <Component
-            style={{ fill: color }}
+            style={{ fill: color, pointerEvents: 'none' }}
             className="w-full h-auto"
             aria-label={title}
             focusable={false}
@@ -179,17 +183,17 @@ const FrontBodySVG = ({ muscleData, onMuscleClick, onHover }: {
 }) => {
   // Placement map relative to a 327x652 frame, expressed in percentages
   const placements: Record<string, LayerPlacement> = {
-    head: { topPct: -4, leftPct: 41, widthPct: 25 },
-    neck: { topPct: 7.5, leftPct: 45.8, widthPct: 15 },
+    head: { topPct: -4, leftPct: 41, widthPct: 25, zIndex: 4 },
+    neck: { topPct: 7.5, leftPct: 45.8, widthPct: 15, zIndex: 4},
     trapezius: { topPct: 11, leftPct: 34.5, widthPct: 44 },
     hands: { topPct: 47, leftPct: -5.2, widthPct: 121 },
-    deltoids: { topPct: 15, leftPct: 19, widthPct: 99 },
-    chest: { topPct: 16.7, leftPct: 30, widthPct: 47 },
-    biceps: { topPct: 23.4, leftPct: 16, widthPct: 99 },
-    abs: { topPct: 24, leftPct: 42, widthPct: 24 },
-    obliques: { topPct: 16, leftPct: 31, widthPct: 45 },
+    deltoids: { topPct: 15, leftPct: 19, widthPct: 69, zIndex: 1 },
+    chest: { topPct: 16.7, leftPct: 30, widthPct: 47, zIndex: 3 },
+    biceps: { topPct: 23.4, leftPct: 16, widthPct: 99, zIndex: 2 },
+    abs: { topPct: 24, leftPct: 42, widthPct: 24, zIndex: 3 },
+    obliques: { topPct: 16, leftPct: 31, widthPct: 45, zIndex: 3 },
     forearms: { topPct: 33.5, leftPct: 5.5, widthPct: 99 },
-    quads: { topPct: 44, leftPct: 28, widthPct: 51 },
+    quads: { topPct: 44, leftPct: 28, widthPct: 51, zIndex: 3 },
     calves: { topPct: 68, leftPct: 21.5, widthPct: 66.5 }, // using Lower Legs for front calves
   }
 
@@ -341,15 +345,15 @@ const BackBodySVG = ({ muscleData, onMuscleClick, onHover }: {
 }) => {
   const placements: Record<string, LayerPlacement> = {
     head: { topPct: -4, leftPct: 41, widthPct: 50 },
-    hands: { topPct: 47.5, leftPct: -5.2, widthPct: 121 },
-    BackShoulders: { topPct: 16.3, leftPct: 19, widthPct: 99 },
-    trapezius: { topPct: 4, leftPct: 27, widthPct: 99 },
-    triceps: { topPct: 23.4, leftPct: 16, widthPct: 99 },
-    'upper-back': { topPct: 19, leftPct: 30.5, widthPct: 55 },
-    'lower-back': { topPct: 36, leftPct: 42.5, widthPct: 39 },
-    glutes: { topPct: 42.5, leftPct: 31, widthPct: 55 },
-    hamstrings: { topPct: 50, leftPct: 27, widthPct: 55 },
-    calves: { topPct: 68, leftPct: 18, widthPct: 99 },
+    hands: { topPct: 47.5, leftPct: -5.2, widthPct: 120 },
+    BackShoulders: { topPct: 16.3, leftPct: 18.5, widthPct: 99, zIndex: 2 },
+    trapezius: { topPct: 4, leftPct: 27, widthPct: 52 },
+    triceps: { topPct: 23.4, leftPct: 15.5, widthPct: 78, zIndex: 1 },
+    'upper-back': { topPct: 19, leftPct: 30.5, widthPct: 55, zIndex: 2 },
+    'lower-back': { topPct: 36, leftPct: 42.5, widthPct: 39, zIndex: 3 },
+    glutes: { topPct: 42.5, leftPct: 31, widthPct: 44, zIndex: 4 },
+    hamstrings: { topPct: 49.5, leftPct: 27.5, widthPct: 52 },
+    calves: { topPct: 68, leftPct: 18.5, widthPct: 69 },
     forearms: { topPct: 30, leftPct: 5.5, widthPct: 99 },
   }
 
@@ -493,10 +497,9 @@ const BackBodySVG = ({ muscleData, onMuscleClick, onHover }: {
   )
 }
 
-export function WebBodyHighlighter({ muscleGroups, exerciseName, selectedExerciseId, setSelectedExerciseId, isLoadingExercises, exerciseLoadError }: WebBodyHighlighterProps) {
+export function WebBodyHighlighter({ muscleGroups, exerciseName, selectedExerciseId, setSelectedExerciseId, isLoadingExercises, exerciseLoadError, rightSlot }: WebBodyHighlighterProps) {
   const [side, setSide] = useState<'front' | 'back'>('front')
   const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null)
-  const { isPaidTier } = useUserTier()
 
   // Transform muscle groups data for the highlighter
   const muscleData: { [key: string]: { color: string; involvement: number } } = {}
@@ -520,104 +523,11 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, selectedExercis
 
   const selectedMuscleData = selectedMuscle ? muscleGroups.find(m => m.name === selectedMuscle) : null
 
-  // Enhanced video carousel with animations
-  const [isSearching, setIsSearching] = useState(false)
-  const [videoUrls, setVideoUrls] = useState<string[]>([])
-  const [videoError, setVideoError] = useState<
-    | { code: 'missing_api_key' | 'quota_exceeded' | 'upstream_error' | 'no_results' | 'no_queries'; message: string }
-    | null
-  >(null)
-  const [videoIndex, setVideoIndex] = useState(0)
-  const [isTransitioning, setIsTransitioning] = useState(false)
-  const [slideDirection, setSlideDirection] = useState<'left' | 'right' | null>(null)
-  const carouselRef = useRef<HTMLDivElement>(null)
-
-  const extractYouTubeId = (url: string): string | null => {
-    try {
-      const shortMatch = url.match(/youtu\.be\/([A-Za-z0-9_-]{6,})/)
-      if (shortMatch && shortMatch[1]) return shortMatch[1]
-      const watchMatch = url.match(/[?&]v=([A-Za-z0-9_-]{6,})/)
-      if (watchMatch && watchMatch[1]) return watchMatch[1]
-      const shortsMatch = url.match(/youtube\.com\/shorts\/([A-Za-z0-9_-]{6,})/)
-      if (shortsMatch && shortsMatch[1]) return shortsMatch[1]
-    } catch {
-      return null
-    }
-    return null
-  }
-
-  const toYouTubeEmbedUrl = (url: string): string | null => {
-    const id = extractYouTubeId(url)
-    if (!id) return null
-    return `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`
-  }
-
-  const toYouTubeThumbnailUrl = (url: string): string | null => {
-    const id = extractYouTubeId(url)
-    if (!id) return null
-    return `https://img.youtube.com/vi/${id}/hqdefault.jpg`
-  }
-
-  const searchVideos = async () => {
-    if (!isPaidTier) return
-    setIsSearching(true)
-    setVideoError(null)
-    setVideoUrls([])
-    try {
-      const response = await fetch('/api/youtube/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          exerciseId: selectedExerciseId,
-          exerciseName: exerciseName 
-        }),
-      })
-
-      const data = await response.json().catch(() => ({}))
-      if (response.ok && data.videos && Array.isArray(data.videos)) {
-        setVideoUrls(data.videos)
-        setVideoIndex(0)
-        return
-      }
-      setVideoError({ code: data.error || 'upstream_error', message: data.message || 'Video search failed. Try again later.' })
-    } catch (error) {
-      console.error('Video search error:', error)
-      setVideoError({ code: 'upstream_error', message: 'Video search failed. Try again later.' })
-    } finally {
-      setIsSearching(false)
-    }
-  }
-
-  const nextVideo = () => {
-    if (videoUrls.length <= 1 || isTransitioning) return
-    setIsTransitioning(true)
-    setSlideDirection('left')
-    setTimeout(() => {
-      setVideoIndex((i) => (i + 1) % videoUrls.length)
-      setIsTransitioning(false)
-      setSlideDirection(null)
-    }, 300)
-  }
-
-  const prevVideo = () => {
-    if (videoUrls.length <= 1 || isTransitioning) return
-    setIsTransitioning(true)
-    setSlideDirection('right')
-    setTimeout(() => {
-      setVideoIndex((i) => (i - 1 + videoUrls.length) % videoUrls.length)
-      setIsTransitioning(false)
-      setSlideDirection(null)
-    }, 300)
-  }
-
-  useEffect(() => {
-    setIsTransitioning(false)
-    setSlideDirection(null)
-  }, [videoUrls])
+  // Right side content is now provided by parent via rightSlot
 
   return (
     <TooltipProvider>
-      <Card className="bg-card/50 backdrop-blur border-border/50 h-full">
+      <Card className="bg-transparent border-0 shadow-none h-full">
         <CardContent className="p-6 h-full">
           <div className="flex flex-col lg:flex-row gap-6 h-full">
             {/* Left side: Muscle involvement container */}
@@ -750,214 +660,10 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, selectedExercis
               </div>
             </div>
 
-            {/* Right side: Exercise video container */}
+            {/* Right side: Custom content slot */}
             <div className="lg:w-1/2 flex flex-col">
               <div className="flex flex-col gap-4 flex-1">
-                {/* Video Header Section */}
-                <div className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm border-border/50">
-                  <div className="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 px-6 pt-0">
-                    <div className="flex items-center justify-between gap-3">
-                      <CardTitle className="text-base">Exercise Videos</CardTitle>
-                      {isPaidTier ? (
-                        <Button size="sm" onClick={searchVideos} disabled={isSearching}>
-                          {isSearching ? 'Searching…' : 'Search video'}
-                        </Button>
-                      ) : (
-                        <Button size="sm" asChild>
-                          <a href="/account?tab=billing#plans">
-                            <Lock className="h-3 w-3 mr-1" />
-                            Upgrade plan
-                          </a>
-                        </Button>
-                      )}
-                    </div>
-                    <CardDescription className="text-xs mt-1">
-                      {isPaidTier ? `Results for ${exerciseName}` : `Upgrade to Personal or Trainer plan to search exercise videos`}
-                    </CardDescription>
-                  </div>
-                </div>
-
-                {/* Video Content Section */}
-                <div className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm border-border/50 flex-1">
-                  <div className="relative flex-1 flex flex-col px-6">
-                    {!isPaidTier ? (
-                      /* Upgrade prompt for free users */
-                      <div className="flex items-center justify-center flex-1 min-h-[400px]">
-                        <div className="text-center space-y-4 max-w-md">
-                          <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
-                            <Lock className="h-8 w-8 text-muted-foreground" />
-                          </div>
-                          <h3 className="text-lg font-semibold">Exercise Videos Available with Upgrade</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Get access to curated exercise tutorial videos from YouTube when you upgrade to Personal or Trainer plan.
-                          </p>
-                          <Button asChild className="mt-4">
-                            <a href="/account?tab=billing#plans">Upgrade Now</a>
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        {/* Enhanced Carousel container with smooth animations */}
-                        <div className="relative flex items-center justify-center flex-1 overflow-hidden min-h-[400px]" ref={carouselRef}>
-                      {/* Previous preview card - enhanced animations */}
-                      {videoUrls.length > 1 && (
-                        <div 
-                          className={`absolute bg-black rounded-md overflow-hidden cursor-pointer transition-all duration-500 ease-out ${
-                            isTransitioning && slideDirection === 'right' 
-                              ? 'opacity-80 scale-110' 
-                              : 'opacity-40 hover:opacity-60 hover:scale-105'
-                          }`}
-                          style={{ 
-                            aspectRatio: '9/16',
-                            width: 'clamp(120px, 15vw, 200px)',
-                            height: 'clamp(210px, 26.25vw, 350px)',
-                            left: '15%',
-                            zIndex: 1,
-                            transform: `translateX(-50%) scale(${isTransitioning && slideDirection === 'right' ? 1.1 : 0.9})`,
-                            transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
-                          }}
-                          onClick={prevVideo}
-                        >
-                          {(() => {
-                            const prevIdx = (videoIndex - 1 + videoUrls.length) % videoUrls.length
-                            const thumb = toYouTubeThumbnailUrl(videoUrls[prevIdx])
-                            if (!thumb) {
-                              return <div className="w-full h-full bg-muted/20" />
-                            }
-                            return (
-                              <div className="w-full h-full relative">
-                                <img src={thumb} alt="Previous video preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)' }} />
-                              </div>
-                            )
-                          })()}
-                        </div>
-                      )}
-                      
-                      {/* Next preview card - enhanced animations */}
-                      {videoUrls.length > 1 && (
-                        <div 
-                          className={`absolute bg-black rounded-md overflow-hidden cursor-pointer transition-all duration-500 ease-out ${
-                            isTransitioning && slideDirection === 'left' 
-                              ? 'opacity-80 scale-110' 
-                              : 'opacity-40 hover:opacity-60 hover:scale-105'
-                          }`}
-                          style={{ 
-                            aspectRatio: '9/16',
-                            width: 'clamp(120px, 15vw, 200px)',
-                            height: 'clamp(210px, 26.25vw, 350px)',
-                            right: '15%',
-                            zIndex: 1,
-                            transform: `translateX(50%) scale(${isTransitioning && slideDirection === 'left' ? 1.1 : 0.9})`,
-                            transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
-                          }}
-                          onClick={nextVideo}
-                        >
-                          {(() => {
-                            const nextIdx = (videoIndex + 1) % videoUrls.length
-                            const thumb = toYouTubeThumbnailUrl(videoUrls[nextIdx])
-                            if (!thumb) {
-                              return <div className="w-full h-full bg-muted/20" />
-                            }
-                            return (
-                              <div className="w-full h-full relative">
-                                <img src={thumb} alt="Next video preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)' }} />
-                              </div>
-                            )
-                          })()}
-                        </div>
-                      )}
-                      
-                      {/* Main video card - enhanced with slide animations */}
-                      <div 
-                        className={`relative bg-black rounded-md overflow-hidden transition-all duration-500 ease-out ${
-                          isTransitioning ? 'pointer-events-none' : ''
-                        }`}
-                        style={{ 
-                          aspectRatio: '9/16', 
-                          maxWidth: 'clamp(200px, 60%, 400px)',
-                          zIndex: 2,
-                          transform: isTransitioning 
-                            ? slideDirection === 'left' 
-                              ? 'translateX(-100%) scale(0.9)' 
-                              : slideDirection === 'right' 
-                                ? 'translateX(100%) scale(0.9)' 
-                                : 'translateX(0) scale(1)'
-                            : 'translateX(0) scale(1)',
-                          opacity: isTransitioning ? 0.7 : 1,
-                          filter: isTransitioning ? 'brightness(0%)' : 'brightness(100%)',
-                          transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
-                        }}
-                      >
-                        {videoUrls.length === 0 ? (
-                          <div className="w-full h-full bg-muted/20 flex items-center justify-center">
-                            <div className="text-center space-y-2 p-4">
-                              {!videoError && !isSearching && (
-                                <>
-                                  <p className="text-sm text-muted-foreground">Start by clicking on the search button</p>
-                                </>
-                              )}
-                              {videoError?.code === 'quota_exceeded' && (
-                                <p className="text-sm text-muted-foreground">Search limit reached (try again tomorrow)</p>
-                              )}
-                              {videoError && videoError.code !== 'quota_exceeded' && (
-                                <p className="text-sm text-muted-foreground">{videoError.message || 'Try again later'}</p>
-                              )}
-                            </div>
-                          </div>
-                        ) : (
-                          (() => {
-                            const embedUrl = toYouTubeEmbedUrl(videoUrls[videoIndex])
-                            if (!embedUrl) {
-                              return (
-                                <div className="w-full h-full bg-muted/20" />
-                              )
-                            }
-                            return (
-                              <iframe
-                                src={embedUrl}
-                                title="YouTube video player"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                allowFullScreen
-                                frameBorder={0}
-                                style={{ width: '100%', height: '100%' }}
-                              />
-                            )
-                          })()
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Enhanced navigation buttons with animations */}
-                    <div className="mt-3 flex items-center justify-between">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={prevVideo} 
-                        disabled={videoUrls.length <= 1 || isTransitioning}
-                        className="transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Previous
-                      </Button>
-                      <div className="text-xs text-muted-foreground transition-opacity duration-200">
-                        {videoUrls.length > 0 ? `${videoIndex + 1} / ${videoUrls.length}` : '—'}
-                      </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={nextVideo} 
-                        disabled={videoUrls.length <= 1 || isTransitioning}
-                        className="transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Next
-                      </Button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
+                {rightSlot}
               </div>
             </div>
           </div>
