@@ -115,7 +115,16 @@ export default function AccountPage() {
     if (!pendingEmail || pendingEmail === email) return
     setSavingEmail(true)
     try {
-      const { error } = await supabase.auth.updateUser({ email: pendingEmail })
+      // Ensure confirmation email redirects back to our app callback, then back to Account tab
+      const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/')
+      const redirectTo = typeof window !== 'undefined'
+        ? `${window.location.origin}${base}auth/callback?next=${encodeURIComponent(`${base}account?tab=account`)}`
+        : undefined
+
+      const { error } = await supabase.auth.updateUser(
+        { email: pendingEmail },
+        redirectTo ? { emailRedirectTo: redirectTo } : undefined
+      )
       if (error) throw error
       toast.success("Email update requested. Check your inbox to confirm.")
     } catch {
