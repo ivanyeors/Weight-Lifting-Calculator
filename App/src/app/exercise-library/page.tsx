@@ -618,9 +618,6 @@ export default function ExerciseLibraryPage() {
             </BreadcrumbList>
           </Breadcrumb>
           <div className="ml-auto flex items-center gap-3">
-            <Button variant="secondary" onClick={() => setIsStatsOpen(true)}>
-              View statistics
-            </Button>
             {isPaidTier && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 {syncStatus === 'syncing' && <RefreshCw className="h-4 w-4 animate-spin" />}
@@ -759,6 +756,11 @@ export default function ExerciseLibraryPage() {
               <p className="text-muted-foreground">
                 Browse exercises and create your own custom workouts
               </p>
+            </div>
+            <div className="flex justify-end">
+              <Button variant="secondary" onClick={() => setIsStatsOpen(true)}>
+                 Statistics
+              </Button>
             </div>
           </div>
 
