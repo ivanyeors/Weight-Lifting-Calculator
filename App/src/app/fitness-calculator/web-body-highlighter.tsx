@@ -85,14 +85,14 @@ const muscleToBodyPartMap: { [key: string]: { id: string; name: string; side?: '
 
 // Function to get color based on involvement level with intensity variations
 const getInvolvementColor = (involvement: number) => {
-  if (involvement >= 4.5) return 'hsl(0 100% 50%)' // very high - bright red
-  if (involvement >= 4) return 'hsl(0 85% 60%)' // high - red
-  if (involvement >= 3.5) return 'hsl(15 90% 55%)' // medium-high+ - red-orange
-  if (involvement >= 3) return 'hsl(30 85% 50%)' // medium-high - orange
-  if (involvement >= 2.5) return 'hsl(45 80% 55%)' // medium+ - yellow-orange
-  if (involvement >= 2) return 'hsl(60 75% 50%)' // medium - yellow
+  if (involvement >= 4.5) return 'hsl(0 100% 40%)' // very high - bright red
+  if (involvement >= 4) return 'hsl(0 85% 40%)' // high - red
+  if (involvement >= 3.5) return 'hsl(15 90% 45%)' // medium-high+ - red-orange
+  if (involvement >= 3) return 'hsl(30 85% 40%)' // medium-high - orange
+  if (involvement >= 2.5) return 'hsl(45 80% 45%)' // medium+ - yellow-orange
+  if (involvement >= 2) return 'hsl(60 75% 30%)' // medium - yellow
   if (involvement >= 1.5) return 'hsl(120 60% 45%)' // low+ - light green
-  if (involvement >= 1) return 'hsl(200 60% 60%)' // low - light blue
+  if (involvement >= 1) return 'hsl(200 100% 24%)' // low - light blue
   return 'hsl(var(--muted))' // minimal involvement - muted
 }
 
@@ -195,6 +195,7 @@ const FrontBodySVG = ({ muscleData, onMuscleClick, onHover }: {
 
   return (
     <div className="relative overflow-visible" style={{ aspectRatio: '327/652', overflow: 'visible' }}>
+
 
       {/* Calves (front lower legs) */}
       <SvgLayer
