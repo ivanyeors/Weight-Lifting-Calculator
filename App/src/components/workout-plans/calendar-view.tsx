@@ -2,19 +2,13 @@
 
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Calendar, Plus, Settings, Users, Clock, MapPin, AlertTriangle, Star, Mail } from 'lucide-react'
-import { Calendar as ShadcnCalendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { format } from 'date-fns'
-import { cn } from '@/lib/utils'
+import { Calendar, Plus, Clock, MapPin, AlertTriangle, Users } from 'lucide-react'
 
 // Schedule-X imports
 import { useCalendarApp, ScheduleXCalendar } from '@schedule-x/react'
@@ -27,8 +21,6 @@ import {
 import { createEventsServicePlugin } from '@schedule-x/events-service'
 import { createDragAndDropPlugin } from '@schedule-x/drag-and-drop'
 import '@schedule-x/theme-shadcn/dist/index.css'
-
-
 
 interface User {
   id: string
@@ -70,6 +62,47 @@ interface CalendarEvent {
     medicalFlags: string[]
     attendance: Record<string, 'present' | 'absent' | 'late' | 'cancelled'>
   }
+}
+
+export function CalendarViewHeader() {
+  const [view, setView] = useState<'monthGrid' | 'week' | 'day'>('monthGrid')
+  
+  // Memoize view change handler
+  const handleViewChange = useCallback((value: string) => {
+    setView(value as 'monthGrid' | 'week' | 'day')
+  }, [])
+
+  // Memoize add event handler
+  const handleAddEvent = useCallback(() => {
+    // This will be handled by the parent component
+    window.dispatchEvent(new CustomEvent('calendar:add-event'))
+  }, [])
+
+  return (
+    <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
+        <Calendar className="w-4 h-4 text-primary" />
+        <Select value={view} onValueChange={handleViewChange}>
+          <SelectTrigger className="w-40 bg-background">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="monthGrid">Month View</SelectItem>
+            <SelectItem value="week">Week View</SelectItem>
+            <SelectItem value="day">Day View</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      
+      <Button 
+        onClick={handleAddEvent}
+        className="bg-primary hover:bg-primary/90"
+      >
+        <Plus className="w-4 h-4 mr-2" />
+        Add Event
+      </Button>
+    </div>
+  )
 }
 
 export function CalendarView() {
@@ -159,39 +192,6 @@ export function CalendarView() {
     ]
   })
 
-  const [users] = useState<User[]>([
-    {
-      id: '1',
-      name: 'John Doe',
-      email: 'john@example.com',
-      status: 'active',
-      medicalConditions: ['Knee injury'],
-      lastAttendance: '2024-01-15',
-      trainer: 'Sarah Wilson',
-      phone: '+1-555-0123'
-    },
-    {
-      id: '2',
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      status: 'active',
-      medicalConditions: [],
-      lastAttendance: '2024-01-15',
-      trainer: 'Sarah Wilson',
-      phone: '+1-555-0124'
-    },
-    {
-      id: '3',
-      name: 'Bob Wilson',
-      email: 'bob@example.com',
-      status: 'postponed',
-      medicalConditions: ['Back pain', 'Diabetes'],
-      lastAttendance: '2024-01-12',
-      trainer: 'Mike Johnson',
-      phone: '+1-555-0125'
-    }
-  ])
-
   const [trainers] = useState<Trainer[]>([
     {
       id: '1',
@@ -215,22 +215,7 @@ export function CalendarView() {
     }
   ])
 
-  const [view, setView] = useState<'monthGrid' | 'week' | 'day'>('monthGrid')
-  
-  // Date range selection state
-  const [dateRange, setDateRange] = useState<{
-    from: Date | undefined
-    to: Date | undefined
-  }>({
-    from: new Date(),
-    to: new Date(new Date().setMonth(new Date().getMonth() + 1))
-  })
-
-  // Note: Schedule-X handles date navigation automatically
-  
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
-  const [showUserManagement, setShowUserManagement] = useState(false)
-  const [showTrainerManagement, setShowTrainerManagement] = useState(false)
   const [showEventDialog, setShowEventDialog] = useState(false)
   const [newEventData, setNewEventData] = useState<{
     title: string
@@ -323,12 +308,23 @@ export function CalendarView() {
     }
   }, [events, eventsService, calendar])
 
-  const syncWithGoogleCalendar = useCallback(() => {
-    // TODO: Implement Google Calendar sync
-  }, [])
+  // Listen for add event event from header
+  useEffect(() => {
+    const handleAddEvent = () => {
+      setNewEventData({
+        title: '',
+        start: '',
+        end: '',
+        trainer: '',
+        location: '',
+        maxParticipants: 8,
+        description: ''
+      })
+      setShowEventDialog(true)
+    }
 
-  const syncWithAppleCalendar = useCallback(() => {
-    // TODO: Implement Apple Calendar sync
+    window.addEventListener('calendar:add-event', handleAddEvent)
+    return () => window.removeEventListener('calendar:add-event', handleAddEvent)
   }, [])
 
   const updateAttendance = useCallback((eventId: string, userId: string, status: 'present' | 'absent' | 'late' | 'cancelled') => {
@@ -385,259 +381,64 @@ export function CalendarView() {
     })
   }
 
-  // Memoize view change handler
-  const handleViewChange = useCallback((value: string) => {
-    setView(value as 'monthGrid' | 'week' | 'day')
-    // Note: Schedule-X view changes are handled by the component automatically
-  }, [])
-
-  // Memoize add event handler
-  const handleAddEvent = useCallback(() => {
-    setNewEventData({
-      title: '',
-      start: '',
-      end: '',
-      trainer: '',
-      location: '',
-      maxParticipants: 8,
-      description: ''
-    })
-    setShowEventDialog(true)
-  }, [])
-
   return (
-    <div className="space-y-6">
-      {/* Management Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between p-4 bg-gradient-to-r from-muted/30 to-muted/10 rounded-lg">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-primary" />
-            <Select value={view} onValueChange={handleViewChange}>
-              <SelectTrigger className="w-40 bg-background">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="monthGrid">Month View</SelectItem>
-                <SelectItem value="week">Week View</SelectItem>
-                <SelectItem value="day">Day View</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <Button 
-            variant="outline"
-            className="bg-background border-border/50 hover:bg-primary/5 hover:border-primary/30 transition-colors"
-            onClick={handleAddEvent}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Event
-          </Button>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            className="bg-background border-border/50 hover:bg-primary/5 hover:border-primary/30 transition-colors"
-            onClick={() => setShowUserManagement(true)}
-          >
-            <Users className="w-4 h-4 mr-2" />
-            Manage Users
-          </Button>
-          <Button 
-            variant="outline" 
-            className="bg-background border-border/50 hover:bg-primary/5 hover:border-primary/30 transition-colors"
-            onClick={() => setShowTrainerManagement(true)}
-          >
-            <Star className="w-4 h-4 mr-2" />
-            Manage Trainers
-          </Button>
-          <Button 
-            variant="outline" 
-            className="bg-background border-border/50 hover:bg-primary/5 hover:border-primary/30 transition-colors"
-            onClick={syncWithGoogleCalendar}
-          >
-            <Settings className="w-4 h-4 mr-2" />
-            Google Calendar
-          </Button>
-          <Button 
-            variant="outline" 
-            className="bg-background border-border/50 hover:bg-primary/5 hover:border-primary/30 transition-colors"
-            onClick={syncWithAppleCalendar}
-          >
-            <Settings className="w-4 h-4 mr-2" />
-            Apple Calendar
-          </Button>
-        </div>
-      </div>
-
+    <div className="h-full flex flex-col">
       {/* Calendar */}
-      <Card>
-        <CardHeader className="pb-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-primary" />
-              <h3 className="text-lg font-semibold">Workout Calendar</h3>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              {/* Date Range Picker */}
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-[280px] justify-start text-left font-normal",
-                      !dateRange?.from && "text-muted-foreground"
-                    )}
-                  >
-                    <Calendar className="mr-2 h-4 w-4" />
-                    {dateRange?.from ? (
-                      format(dateRange.from, "MMM dd, yyyy")
-                    ) : (
-                      <span>Pick a date</span>
-                    )}
-                    {dateRange?.to && (
-                      <span className="mx-1">to</span>
-                    )}
-                    {dateRange?.to ? (
-                      format(dateRange.to, "MMM dd, yyyy")
-                    ) : (
-                      <span>Pick a date</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <ShadcnCalendar
-                    initialFocus
-                    mode="range"
-                    defaultMonth={dateRange?.from}
-                    selected={dateRange}
-                    onSelect={(range) => {
-                      if (range) {
-                        setDateRange({
-                          from: range.from,
-                          to: range.to
-                        })
-                      }
-                    }}
-                    numberOfMonths={2}
-                  />
-                </PopoverContent>
-              </Popover>
-              
-              {/* Quick Navigation */}
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const today = new Date()
-                    setDateRange({ from: today, to: today })
-                  }}
-                  className="bg-background border-border/50 hover:bg-primary/5 hover:border-primary/30 transition-colors text-xs"
-                >
-                  Today
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const today = new Date()
-                    const weekStart = new Date(today)
-                    weekStart.setDate(today.getDate() - today.getDay())
-                    const weekEnd = new Date(weekStart)
-                    weekEnd.setDate(weekStart.getDate() + 6)
-                    setDateRange({ from: weekStart, to: weekEnd })
-                  }}
-                  className="bg-background border-border/50 hover:bg-primary/5 hover:border-primary/30 transition-colors text-xs"
-                >
-                  This Week
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const today = new Date()
-                    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1)
-                    const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0)
-                    setDateRange({ from: monthStart, to: monthEnd })
-                  }}
-                  className="bg-background border-border/50 hover:bg-primary/5 hover:border-primary/30 transition-colors text-xs"
-                >
-                  This Month
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const today = new Date()
-                    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate())
-                    setDateRange({ from: today, to: nextMonth })
-                  }}
-                  className="bg-background border-border/50 hover:bg-primary/5 hover:border-primary/30 transition-colors text-xs"
-                >
-                  Reset
-                </Button>
-              </div>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-4">
-          <style jsx global>{`
-            .sx-react-calendar-wrapper {
-              width: 100%;
-              height: 700px;
-              max-width: 100%;
-              max-height: 90vh;
-            }
-            
-            /* Dark theme overrides for Schedule-X */
-            .dark .sx-react-calendar-wrapper .sx-calendar {
-              background-color: hsl(var(--card));
-              color: hsl(var(--card-foreground));
-              border-color: hsl(var(--border));
-            }
-            
-            .dark .sx-react-calendar-wrapper .sx-calendar__header {
-              background-color: hsl(var(--muted));
-              color: hsl(var(--muted-foreground));
-              border-color: hsl(var(--border));
-            }
-            
-            .dark .sx-react-calendar-wrapper .sx-calendar__month-view-day {
-              background-color: hsl(var(--card));
-              border-color: hsl(var(--border));
-              color: hsl(var(--card-foreground));
-            }
-            
-            .dark .sx-react-calendar-wrapper .sx-calendar__month-view-day:hover {
-              background-color: hsl(var(--accent));
-            }
-            
-            .dark .sx-react-calendar-wrapper .sx-calendar__week-view-time-grid {
-              background-color: hsl(var(--card));
-              border-color: hsl(var(--border));
-            }
-            
-            .dark .sx-react-calendar-wrapper .sx-calendar__day-view-time-grid {
-              background-color: hsl(var(--card));
-              border-color: hsl(var(--border));
-            }
-            
-            .dark .sx-react-calendar-wrapper .sx-calendar__event {
-              background-color: hsl(var(--primary));
-              color: hsl(var(--primary-foreground));
-              border-color: hsl(var(--primary));
-            }
-            
-            .dark .sx-react-calendar-wrapper .sx-calendar__event:hover {
-              background-color: hsl(var(--primary)/0.8);
-            }
-          `}</style>
-          <div className="h-[700px] sx-react-calendar-wrapper dark">
-            <ScheduleXCalendar calendarApp={calendar} />
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex-1 min-h-0 sx-react-calendar-wrapper dark">
+        <style jsx global>{`
+          .sx-react-calendar-wrapper {
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            max-width: 100%;
+          }
+          
+          /* Dark theme overrides for Schedule-X */
+          .dark .sx-react-calendar-wrapper .sx-calendar {
+            background-color: transparent;
+            color: hsl(var(--card-foreground));
+            border-color: transparent;
+            height: 100%;
+          }
+          
+          .dark .sx-react-calendar-wrapper .sx-calendar__header {
+            background-color: transparent;
+            color: hsl(var(--muted-foreground));
+            border-color: transparent;
+          }
+          
+          .dark .sx-react-calendar-wrapper .sx-calendar__month-view-day {
+            background-color: transparent;
+            border-color: transparent;
+            color: hsl(var(--card-foreground));
+          }
+          
+          .dark .sx-react-calendar-wrapper .sx-calendar__month-view-day:hover {
+            background-color: hsl(var(--accent));
+          }
+          
+          .dark .sx-react-calendar-wrapper .sx-calendar__week-view-time-grid {
+            background-color: transparent;
+            border-color: transparent;
+          }
+          
+          .dark .sx-react-calendar-wrapper .sx-calendar__day-view-time-grid {
+            background-color: transparent;
+            border-color: transparent;
+          }
+          
+          .dark .sx-react-calendar-wrapper .sx-calendar__event {
+            background-color: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+            border-color: hsl(var(--primary));
+          }
+          
+          .dark .sx-react-calendar-wrapper .sx-calendar__event:hover {
+            background-color: hsl(var(--primary)/0.8);
+          }
+        `}</style>
+        <ScheduleXCalendar calendarApp={calendar} />
+      </div>
 
       {/* Event Details Modal */}
       {selectedEvent && (
@@ -745,95 +546,6 @@ export function CalendarView() {
           </DialogContent>
         </Dialog>
       )}
-
-      {/* User Management Modal */}
-      <Dialog open={showUserManagement} onOpenChange={setShowUserManagement}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>User Management</DialogTitle>
-            <DialogDescription>
-              Manage users, medical conditions, and attendance status.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            {users.map((user) => (
-              <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Avatar className="w-10 h-10">
-                    <AvatarImage src={user.avatar} />
-                    <AvatarFallback>
-                      {user.name.split(' ').map(n => n[0]).join('')}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="font-medium">{user.name}</div>
-                    <div className="text-sm text-muted-foreground">{user.email}</div>
-                    <div className="text-xs text-muted-foreground">Last attendance: {user.lastAttendance}</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {user.medicalConditions.length > 0 && (
-                    <Badge variant="destructive" className="text-xs">
-                      {user.medicalConditions.length} medical flags
-                    </Badge>
-                  )}
-                  <Badge variant={user.status === 'active' ? 'default' : 'secondary'}>
-                    {user.status}
-                  </Badge>
-                  <Button variant="outline" size="sm">
-                    <Mail className="w-3 h-3 mr-1" />
-                    Contact
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Trainer Management Modal */}
-      <Dialog open={showTrainerManagement} onOpenChange={setShowTrainerManagement}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Trainer Management</DialogTitle>
-            <DialogDescription>
-              Manage trainers and their assignments.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            {trainers.map((trainer) => (
-              <div key={trainer.id} className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Avatar className="w-10 h-10">
-                    <AvatarImage src={trainer.avatar} />
-                    <AvatarFallback>
-                      {trainer.name.split(' ').map(n => n[0]).join('')}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="font-medium">{trainer.name}</div>
-                    <div className="text-sm text-muted-foreground">{trainer.email}</div>
-                    <div className="flex items-center gap-1 mt-1">
-                      <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                      <span className="text-xs">{trainer.rating}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="text-right">
-                    <div className="text-xs text-muted-foreground">Specialties</div>
-                    <div className="text-sm">{trainer.specialties.join(', ')}</div>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    <Mail className="w-3 h-3 mr-1" />
-                    Contact
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Event Creation Dialog */}
       <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
