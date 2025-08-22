@@ -9,8 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider"
 import { Separator } from "@/components/ui/separator"
 import { supabase } from '@/lib/supabaseClient'
-
-import { User, UserCheck, Users, Calculator, Cloud, CloudOff, RefreshCw, CheckCircle, AlertCircle, Clock } from "lucide-react"
+import { Cloud, RefreshCw, CheckCircle, AlertCircle, Pencil } from "lucide-react"
+import { UserSwitcher } from '@/components/user-switcher'
+import { useSelectedUser } from '@/hooks/use-selected-user'
 
 interface WeightCalculatorSidebarProps {
   side?: "left" | "right"
@@ -83,6 +84,28 @@ export function WeightCalculatorSidebar({
     updatedAt?: string
   }
 
+  const { user: selected } = useSelectedUser()
+  const [isEditing, setIsEditing] = useState(false)
+  const [bodyWeightInput, setBodyWeightInput] = useState(String(bodyWeight))
+  const [heightInput, setHeightInput] = useState(String(height))
+  const [ageInput, setAgeInput] = useState(String(age))
+  const [skeletalMuscleMassInput, setSkeletalMuscleMassInput] = useState(String(skeletalMuscleMass))
+  const [bodyFatMassInput, setBodyFatMassInput] = useState(String(bodyFatMass))
+
+  const [currentPlan, setCurrentPlan] = useState<string>('Free')
+  const [isSyncing, setIsSyncing] = useState(false)
+  const [syncError, setSyncError] = useState<string | null>(null)
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null)
+  const debounceTimerRef = useRef<number | null>(null)
+  const [savedSnapshot, setSavedSnapshot] = useState<SavedPersonalData | null>(null)
+
+  // Sync local inputs with prop values
+  useEffect(() => { setBodyWeightInput(String(bodyWeight)) }, [bodyWeight])
+  useEffect(() => { setHeightInput(String(height)) }, [height])
+  useEffect(() => { setAgeInput(String(age)) }, [age])
+  useEffect(() => { setSkeletalMuscleMassInput(String(skeletalMuscleMass)) }, [skeletalMuscleMass])
+  useEffect(() => { setBodyFatMassInput(String(bodyFatMass)) }, [bodyFatMass])
+
   useEffect(() => {
     const init = async () => {
       const { data } = await supabase.auth.getSession()
@@ -115,19 +138,6 @@ export function WeightCalculatorSidebar({
     })
     return () => subscription.unsubscribe()
   }, [])
-  
-  const [bodyWeightInput, setBodyWeightInput] = useState(String(bodyWeight))
-  const [heightInput, setHeightInput] = useState(String(height))
-  const [ageInput, setAgeInput] = useState(String(age))
-  const [skeletalMuscleMassInput, setSkeletalMuscleMassInput] = useState(String(skeletalMuscleMass))
-  const [bodyFatMassInput, setBodyFatMassInput] = useState(String(bodyFatMass))
-  const [currentPlan, setCurrentPlan] = useState<string>('Free')
-  const [isSyncing, setIsSyncing] = useState(false)
-  const [syncError, setSyncError] = useState<string | null>(null)
-  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null)
-  const [hasPendingChanges, setHasPendingChanges] = useState(false)
-  const debounceTimerRef = useRef<number | null>(null)
-  const [savedSnapshot, setSavedSnapshot] = useState<SavedPersonalData | null>(null)
 
   // Sync current plan from Supabase and localStorage
   useEffect(() => {
@@ -188,8 +198,6 @@ export function WeightCalculatorSidebar({
             onLastSyncTimeChange?.(dt)
           }
         }
-        setHasPendingChanges(false)
-        // Establish a saved snapshot baseline for manual save comparison
         setSavedSnapshot({
           bodyWeight: saved.bodyWeight,
           height: saved.height,
@@ -239,25 +247,14 @@ export function WeightCalculatorSidebar({
         selectedExerciseId,
       })
     }
-  }, [user?.id, currentPlan])
+  }, [user?.id, currentPlan, bodyWeight, height, age, gender, experience, skeletalMuscleMass, bodyFatMass, selectedExerciseId])
 
   // Track pending changes by comparing current values to last saved snapshot
   useEffect(() => {
     if (!savedSnapshot) {
-      setHasPendingChanges(false)
       return
     }
-    const changed = (
-      bodyWeight !== (savedSnapshot.bodyWeight ?? bodyWeight) ||
-      height !== (savedSnapshot.height ?? height) ||
-      age !== (savedSnapshot.age ?? age) ||
-      gender !== (savedSnapshot.gender ?? gender) ||
-      experience !== (savedSnapshot.experience ?? experience) ||
-      skeletalMuscleMass !== (savedSnapshot.skeletalMuscleMass ?? skeletalMuscleMass) ||
-      bodyFatMass !== (savedSnapshot.bodyFatMass ?? bodyFatMass) ||
-      selectedExerciseId !== (savedSnapshot.selectedExerciseId ?? selectedExerciseId)
-    )
-    setHasPendingChanges(changed)
+    // This effect is kept for potential future use but currently doesn't set any state
   }, [bodyWeight, height, age, gender, experience, skeletalMuscleMass, bodyFatMass, selectedExerciseId, savedSnapshot])
 
   const handleManualSync = async () => {
@@ -284,7 +281,6 @@ export function WeightCalculatorSidebar({
       if (error) throw error
       const now = new Date()
       setLastSyncedAt(now)
-      setHasPendingChanges(false)
       setSavedSnapshot({
         bodyWeight,
         height,
@@ -307,11 +303,44 @@ export function WeightCalculatorSidebar({
     }
   }
 
-  useEffect(() => { setBodyWeightInput(String(bodyWeight)) }, [bodyWeight])
-  useEffect(() => { setHeightInput(String(height)) }, [height])
-  useEffect(() => { setAgeInput(String(age)) }, [age])
-  useEffect(() => { setSkeletalMuscleMassInput(String(skeletalMuscleMass)) }, [skeletalMuscleMass])
-  useEffect(() => { setBodyFatMassInput(String(bodyFatMass)) }, [bodyFatMass])
+  // Update form and local state when selected user changes
+  useEffect(() => {
+    if (!selected) return
+    setBodyWeight(selected.inputs.bodyWeight)
+    setHeight(selected.inputs.height)
+    setAge(selected.inputs.age)
+    setGender(selected.inputs.gender)
+    setExperience(selected.inputs.experience)
+    setSkeletalMuscleMass(selected.inputs.skeletalMuscleMass)
+    setBodyFatMass(selected.inputs.bodyFatMass)
+    // Also update the local input states
+    setBodyWeightInput(String(selected.inputs.bodyWeight))
+    setHeightInput(String(selected.inputs.height))
+    setAgeInput(String(selected.inputs.age))
+    setSkeletalMuscleMassInput(String(selected.inputs.skeletalMuscleMass))
+    setBodyFatMassInput(String(selected.inputs.bodyFatMass))
+  }, [selected?.id, setBodyWeight, setHeight, setAge, setGender, setExperience, setSkeletalMuscleMass, setBodyFatMass])
+
+  // Listen for users_updated events to refresh selected user data
+  useEffect(() => {
+    const handleUsersUpdated = () => {
+      // If we have a selected user, refresh their data
+      if (selected) {
+        // Trigger a reload of the selected user data
+        window.dispatchEvent(new Event('fitspo:selected_user_changed'))
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('fitspo:users_updated', handleUsersUpdated)
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('fitspo:users_updated', handleUsersUpdated)
+      }
+    }
+  }, [selected])
 
   const formatSyncTime = (date: Date | null) => {
     if (!date) return 'Never'
@@ -353,35 +382,19 @@ export function WeightCalculatorSidebar({
     }
   }
 
-  const getLastSyncLabel = (): string => {
-    if (!lastSyncedAt) return 'a long time ago'
-    const now = new Date()
-    const diffMs = now.getTime() - lastSyncedAt.getTime()
-    const fiveMinutesMs = 5 * 60 * 1000
-    if (diffMs <= fiveMinutesMs) return 'just now'
-    const y = new Date(now)
-    y.setDate(now.getDate() - 1)
-    const isYesterday =
-      lastSyncedAt.getFullYear() === y.getFullYear() &&
-      lastSyncedAt.getMonth() === y.getMonth() &&
-      lastSyncedAt.getDate() === y.getDate()
-    if (isYesterday) return 'yesterday'
-    return 'a long time ago'
-  }
-
   return (
     <div
       className={[
         collapsed
           ? 'hidden'
-          : 'fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] shadow-lg lg:static lg:w-56 lg:max-w-none',
-        'border-r bg-background flex flex-col h-full transition-all p-6'
+          : 'fixed inset-y-0 left-0 z-50 w-96 max-w-[85vw] shadow-lg lg:static lg:w-72 lg:max-w-none',
+        'border-r bg-background flex flex-col h-full transition-all p-0'
       ].join(' ')}
     >
-      <div className="p-0">
+      <div className="p-2">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
-            <Calculator className="h-6 w-6 text-primary" />
+            <Cloud className="h-6 w-6 text-primary" />
             {!collapsed && (
               <h2 className="text-sm font-semibold">Weight Calculator</h2>
             )}
@@ -410,7 +423,7 @@ export function WeightCalculatorSidebar({
                     )}
                   </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Clock className="h-3 w-3" />
+                    <Cloud className="h-3 w-3" />
                     <span>Last sync: {formatSyncTime(lastSyncedAt)}</span>
                   </div>
                 </div>
@@ -423,12 +436,37 @@ export function WeightCalculatorSidebar({
 
       {!collapsed && (
       <div className="flex-1 overflow-auto">
-        <div className="p-0">
-          <div className="flex items-center mb-3">
-            <User className="mr-2 h-4 w-4" />
-            <span className="text-sm font-medium">Personal Details</span>
-          </div>
+        <div className="p-2">
           <div className="space-y-5">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">User</Label>
+              <UserSwitcher />
+            </div>
+
+            {selected && (
+              <div className="space-y-2">
+                <Button variant="secondary" className="w-full" onClick={() => setIsEditing((v) => !v)}>
+                  <Pencil className="h-4 w-4 mr-2" /> {isEditing ? 'Cancel edit' : 'Edit user'}
+                </Button>
+              </div>
+            )}
+
+            {!selected && (
+              <div className="text-xs text-muted-foreground">Select a user to personalize calculations.</div>
+            )}
+
+            <Separator className="my-4" />
+
+            {/* Personal Details Panel - now read-only when user is selected */}
+            <div className="space-y-5">
+              <div className="flex items-center mb-3">
+                <Cloud className="mr-2 h-4 w-4" />
+                <span className="text-sm font-medium">Personal Details</span>
+                {selected && (
+                  <span className="ml-2 text-xs text-muted-foreground">(from selected user)</span>
+                )}
+              </div>
+
               {/* Body Weight */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -452,6 +490,7 @@ export function WeightCalculatorSidebar({
                       }}
                       onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
                       className="h-8 w-14 text-right"
+                      disabled={!!selected && !isEditing}
                     />
                     <span className="text-xs text-muted-foreground">kg</span>
                   </div>
@@ -464,6 +503,7 @@ export function WeightCalculatorSidebar({
                     value={[bodyWeight]}
                     onValueChange={(value) => setBodyWeight(value[0])}
                     className="w-full cursor-pointer"
+                    disabled={!!selected && !isEditing}
                   />
                   <div className="flex justify-between text-xs text-muted-foreground mt-1">
                     <span>40kg</span>
@@ -495,6 +535,7 @@ export function WeightCalculatorSidebar({
                       }}
                       onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
                       className="h-8 w-14 text-right"
+                      disabled={!!selected && !isEditing}
                     />
                     <span className="text-xs text-muted-foreground">cm</span>
                   </div>
@@ -507,6 +548,7 @@ export function WeightCalculatorSidebar({
                     value={[height]}
                     onValueChange={(value) => setHeight(value[0])}
                     className="w-full cursor-pointer"
+                    disabled={!!selected && !isEditing}
                   />
                   <div className="flex justify-between text-xs text-muted-foreground mt-1">
                     <span>140cm</span>
@@ -538,6 +580,7 @@ export function WeightCalculatorSidebar({
                       }}
                       onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
                       className="h-8 w-14 text-right"
+                      disabled={!!selected && !isEditing}
                     />
                     <span className="text-xs text-muted-foreground">years</span>
                   </div>
@@ -550,6 +593,7 @@ export function WeightCalculatorSidebar({
                     value={[age]}
                     onValueChange={(value) => setAge(value[0])}
                     className="w-full cursor-pointer"
+                    disabled={!!selected && !isEditing}
                   />
                   <div className="flex justify-between text-xs text-muted-foreground mt-1">
                     <span>15</span>
@@ -581,6 +625,7 @@ export function WeightCalculatorSidebar({
                       }}
                       onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
                       className="h-8 w-14 text-right"
+                      disabled={!!selected && !isEditing}
                     />
                     <span className="text-xs text-muted-foreground">kg</span>
                   </div>
@@ -593,6 +638,7 @@ export function WeightCalculatorSidebar({
                     value={[skeletalMuscleMass]}
                     onValueChange={(value) => setSkeletalMuscleMass(value[0])}
                     className="w-full cursor-pointer"
+                    disabled={!!selected && !isEditing}
                   />
                   <div className="flex justify-between text-xs text-muted-foreground mt-1">
                     <span>10kg</span>
@@ -624,6 +670,7 @@ export function WeightCalculatorSidebar({
                       }}
                       onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
                       className="h-8 w-14 text-right"
+                      disabled={!!selected && !isEditing}
                     />
                     <span className="text-xs text-muted-foreground">kg</span>
                   </div>
@@ -636,6 +683,7 @@ export function WeightCalculatorSidebar({
                     value={[bodyFatMass]}
                     onValueChange={(value) => setBodyFatMass(value[0])}
                     className="w-full cursor-pointer"
+                    disabled={!!selected && !isEditing}
                   />
                   <div className="flex justify-between text-xs text-muted-foreground mt-1">
                     <span>2kg</span>
@@ -647,20 +695,20 @@ export function WeightCalculatorSidebar({
               {/* Gender */}
               <div className="space-y-3">
                 <Label className="text-sm font-medium">Gender</Label>
-                <Select value={gender} onValueChange={setGender}>
+                <Select value={gender} onValueChange={setGender} disabled={!!selected && !isEditing}>
                   <SelectTrigger className="w-full h-10 bg-background border-border hover:bg-accent hover:text-accent-foreground transition-colors">
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
                   <SelectContent className="w-full">
                     <SelectItem value="male" className="cursor-pointer">
                       <div className="flex items-center justify-center space-x-2">
-                        <UserCheck className="h-4 w-4" />
+                        <Cloud className="h-4 w-4" />
                         <span>Male</span>
                       </div>
                     </SelectItem>
                     <SelectItem value="female" className="cursor-pointer">
                       <div className="flex items-center justify-center space-x-2">
-                        <Users className="h-4 w-4" />
+                        <Cloud className="h-4 w-4" />
                         <span>Female</span>
                       </div>
                     </SelectItem>
@@ -671,7 +719,7 @@ export function WeightCalculatorSidebar({
               {/* Experience Level */}
               <div className="space-y-3">
                 <Label className="text-sm font-medium">Experience Level</Label>
-                <Select value={experience} onValueChange={setExperience}>
+                <Select value={experience} onValueChange={setExperience} disabled={!!selected && !isEditing}>
                   <SelectTrigger className="w-full h-10 bg-background border-border hover:bg-accent hover:text-accent-foreground transition-colors">
                     <SelectValue placeholder="Select experience" />
                   </SelectTrigger>
@@ -697,29 +745,53 @@ export function WeightCalculatorSidebar({
                 </Select>
               </div>
             </div>
-
-            {/* Manual Save Controls */}
-            <div className="pt-4">
-              <Button
-                onClick={handleManualSync}
-                disabled={!user?.id || currentPlan !== 'Personal' || isSyncing || !hasPendingChanges}
-                className="w-full"
-              >
-                {isSyncing ? 'Saving…' : hasPendingChanges ? 'Save changes' : 'Saved'}
-              </Button>
-              {syncError && (
-                <div className="text-xs text-red-600 mt-2">{syncError}</div>
-              )}
-              {currentPlan !== 'Personal' && (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-3">
-                  <CloudOff className="h-3.5 w-3.5" />
-                  <span>Local storage only</span>
-                </div>
-              )}
-            </div>
+          </div>
         </div>
       </div>
       )}
+
+      {/* Save Changes Button - Below the sidebar */}
+      <div className="p-4 border-t bg-background">
+        <Button
+          onClick={async () => {
+            if (!selected) return
+            try {
+              setIsSyncing(true)
+              setSyncError(null)
+              // Save to managed_users table
+              await supabase.from('managed_users').update({
+                body_weight_kg: bodyWeight,
+                height_cm: height,
+                age: age,
+                gender: gender,
+                experience: experience,
+                skeletal_muscle_mass_kg: skeletalMuscleMass,
+                body_fat_mass_kg: bodyFatMass,
+              }).eq('id', selected.id)
+              
+              // Notify other pages that users data has been updated
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new Event('fitspo:users_updated'))
+              }
+              
+              setIsEditing(false)
+              onSyncStatusChange?.('success')
+            } catch {
+              setSyncError('Failed to save to database')
+              onSyncStatusChange?.('error')
+            } finally {
+              setIsSyncing(false)
+            }
+          }}
+          disabled={!selected || !isEditing || isSyncing}
+          className="w-full"
+        >
+          {isSyncing ? 'Saving...' : 'Save changes'}
+        </Button>
+        {syncError && (
+          <div className="text-xs text-red-600 mt-2 text-center">{syncError}</div>
+        )}
+      </div>
     </div>
   )
 }
