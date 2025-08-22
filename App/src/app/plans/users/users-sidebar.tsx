@@ -65,7 +65,7 @@ export function UsersSidebar({
       className={[
         collapsed
           ? 'hidden'
-          : 'fixed inset-y-0 left-0 z-50 w-[30rem] max-w-[90vw] shadow-lg lg:sticky lg:top-0 lg:self-start lg:w-96 lg:max-w-none',
+          : 'fixed inset-y-0 left-0 z-50 w-[24rem] max-w-[90vw] shadow-lg lg:sticky lg:top-0 lg:self-start lg:w-[19.2rem] lg:max-w-none',
         'border-r bg-background flex flex-col h-full lg:h-screen transition-all p-0'
       ].join(' ')}
     >

@@ -476,7 +476,7 @@ export default function HomePage() {
 
           </header>
 
-          <div className="flex flex-1 flex-col gap-4 pt-4 pr-4 pb-4 pl-2 md:gap-2 md:pt-6 md:pr-6 md:pb-6 md:pl-6 overflow-auto">
+          <div className="flex flex-1 flex-col gap-4 p-2 overflow-auto">
             {/* Charts Section - Body Highlighter with right-side content */}
             <div className="grid grid-cols-1 gap-6">
               {currentExercise && (

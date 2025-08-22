@@ -69,6 +69,24 @@ export function useSelectedUser() {
 
   useEffect(() => { reload() }, [reload])
 
+  // Cross-tab and same-tab selection sync
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'fitspo:selected_user_id') reload()
+    }
+    const onSameTab = () => reload()
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', onStorage)
+      window.addEventListener('fitspo:selected_user_changed', onSameTab as EventListener)
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('storage', onStorage)
+        window.removeEventListener('fitspo:selected_user_changed', onSameTab as EventListener)
+      }
+    }
+  }, [reload])
+
   return { user, loading, error, reload }
 }
 

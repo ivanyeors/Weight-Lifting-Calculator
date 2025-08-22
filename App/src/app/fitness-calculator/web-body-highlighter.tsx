@@ -528,7 +528,7 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, selectedExercis
   return (
     <TooltipProvider>
       <Card className="bg-transparent border-0 shadow-none h-full">
-        <CardContent className="p-6 h-full">
+        <CardContent className="p-2 h-full">
           <div className="flex flex-col lg:flex-row gap-6 h-full">
             {/* Left side: Muscle involvement container */}
             <div className="lg:w-1/2 flex flex-col">

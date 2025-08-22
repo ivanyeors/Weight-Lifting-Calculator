@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
+import { UserSwitcher } from '@/components/user-switcher'
 import { Filter, Dumbbell, Cloud, CloudOff, RefreshCw, CheckCircle, AlertCircle, Clock } from "lucide-react"
 
 interface ExerciseLibrarySidebarProps {
@@ -88,11 +89,11 @@ export function ExerciseLibrarySidebar({
       className={[
         collapsed
           ? 'hidden'
-          : 'fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] shadow-lg lg:sticky lg:top-0 lg:self-start lg:w-56 lg:max-w-none',
-        'border-r bg-background flex flex-col h-full lg:h-screen transition-all p-6'
+          : 'fixed inset-y-0 left-0 z-50 w-94 max-w-[85vw] shadow-lg lg:sticky lg:top-0 lg:self-start lg:w-73 lg:max-w-none',
+        'border-r bg-background flex flex-col h-full lg:h-screen transition-all p-0'
       ].join(' ')}
     >
-      <div className="p-0">
+      <div className="p-2">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
             <Filter className="h-6 w-6 text-primary" />
@@ -105,7 +106,12 @@ export function ExerciseLibrarySidebar({
 
       {!collapsed && (
         <div className="flex-1 overflow-auto">
-          <div className="p-0 space-y-5">
+          <div className="p-2 space-y-5">
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Active User</Label>
+              <UserSwitcher />
+            </div>
+
             <div className="space-y-3">
               <Label className="text-sm font-medium">Search</Label>
               <Input
