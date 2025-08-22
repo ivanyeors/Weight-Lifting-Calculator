@@ -24,6 +24,7 @@ import {
   loadAllExerciseData,
   validateExerciseData
 } from '@/lib/exerciseLoader'
+import { useSelectedUser } from '@/hooks/use-selected-user'
 import { Target, PanelLeft, PanelRight, RefreshCw, CheckCircle, AlertCircle, Cloud } from 'lucide-react'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -76,6 +77,7 @@ const calculateMuscleContributions = (exercise: Exercise): MuscleContribution[] 
 }
 
 export default function HomePage() {
+  const { user: selectedUser } = useSelectedUser()
   // User input states
   const [bodyWeight, setBodyWeight] = useState<number>(70)
   const [height, setHeight] = useState<number>(175)
@@ -220,6 +222,19 @@ export default function HomePage() {
     const contributions = calculateMuscleContributions(currentExercise)
     setMuscleGroups(contributions)
   }, [currentExercise])
+
+  // Apply selected user inputs when selection changes
+  useEffect(() => {
+    if (!selectedUser) return
+    const i = selectedUser.inputs
+    setBodyWeight(i.bodyWeight)
+    setHeight(i.height)
+    setAge(i.age)
+    setGender(i.gender)
+    setExperience(i.experience)
+    setSkeletalMuscleMass(i.skeletalMuscleMass)
+    setBodyFatMass(i.bodyFatMass)
+  }, [selectedUser?.id])
 
   // Load workout completion logs for the selected exercise from Supabase user metadata (fallback to localStorage)
   useEffect(() => {

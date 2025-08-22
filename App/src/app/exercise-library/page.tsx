@@ -33,6 +33,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { computeIdealWeight, type PersonalInputs } from '@/lib/idealWeight'
+import { useSelectedUser } from '@/hooks/use-selected-user'
 
 // Allowed workout types to be synced with Supabase
 const ALLOWED_WORKOUT_TYPES: readonly string[] = [
@@ -120,6 +121,7 @@ interface SupabaseCustomExerciseRow {
 }
 
 export default function ExerciseLibraryPage() {
+  const { user: selectedUser } = useSelectedUser()
   const { currentTier, userId, isPaidTier } = useUserTier()
   const [exercises, setExercises] = useState<Exercise[]>([])
   const [customExercises, setCustomExercises] = useState<Exercise[]>([])
@@ -279,33 +281,15 @@ export default function ExerciseLibraryPage() {
   useEffect(() => {
     const loadPersonal = async () => {
       try {
+        if (selectedUser) { setPersonalInputs(selectedUser.inputs); return }
         if (!isPaidTier || !userId) { setPersonalInputs(null); return }
-        const { data } = await supabase.auth.getSession()
-        const user = data.session?.user
-        const savedRaw = (user?.user_metadata?.fitspo_personal as unknown) || (user?.user_metadata?.stronk_personal as unknown) || null
-        if (savedRaw && typeof savedRaw === 'object') {
-          const saved = savedRaw as Record<string, unknown>
-          const gender = (saved.gender === 'female' ? 'female' : 'male') as PersonalInputs['gender']
-          const exp = (['cat1','cat2','cat3','cat4','cat5'].includes(String(saved.experience)) ? String(saved.experience) : 'cat3') as PersonalInputs['experience']
-          const inputs: PersonalInputs = {
-            bodyWeight: Number(saved.bodyWeight ?? 70),
-            height: Number(saved.height ?? 175),
-            age: Number(saved.age ?? 25),
-            gender,
-            experience: exp,
-            skeletalMuscleMass: Number(saved.skeletalMuscleMass ?? 30),
-            bodyFatMass: Number(saved.bodyFatMass ?? 20),
-          }
-          setPersonalInputs(inputs)
-        } else {
-          setPersonalInputs(null)
-        }
+        setPersonalInputs(null)
       } catch (e) {
         setPersonalInputs(null)
       }
     }
     loadPersonal()
-  }, [isPaidTier, userId])
+  }, [isPaidTier, userId, selectedUser?.id])
 
   // Load user's workout spaces
   useEffect(() => {
