@@ -8,13 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Calendar, Plus, Clock, MapPin, AlertTriangle, Users, ChevronDownIcon } from 'lucide-react'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import { Calendar as CalendarComponent } from '@/components/ui/calendar'
+import { Calendar, Plus, Clock, MapPin, AlertTriangle, Users } from 'lucide-react'
 
 // Schedule-X imports
 import { useCalendarApp, ScheduleXCalendar } from '@schedule-x/react'
@@ -204,32 +198,17 @@ export function CalendarView() {
     description: ''
   })
 
-  // Custom header state
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date())
-  const [currentView, setCurrentView] = useState('week')
+
   
-  const views = [
-    { id: 'day', label: 'Day', view: createViewDay() },
-    { id: 'week', label: 'Week', view: createViewWeek() },
-    { id: 'month', label: 'Month', view: createViewMonthGrid() },
-    { id: 'monthAgenda', label: 'Month Agenda', view: createViewMonthAgenda() }
-  ]
+
 
   // Schedule-X calendar setup
   const eventsService = useMemo(() => createEventsServicePlugin(), [])
   const dragAndDropPlugin = useMemo(() => createDragAndDropPlugin(), [])
   const resizePlugin = useMemo(() => createResizePlugin(30), []) // 30 minute intervals when resizing
   
-  // Get current view configuration
-  const currentViewConfig = useMemo(() => {
-    return views.find(v => v.id === currentView)?.view || createViewWeek()
-  }, [currentView])
-  
-  // Schedule-X supports click-and-drag to create events through built-in callbacks
-  // We'll use the proper Schedule-X selection callbacks
-  
   const calendar = useCalendarApp({
-    views: [currentViewConfig], // Only use the current view
+    views: [createViewDay(), createViewWeek(), createViewMonthGrid(), createViewMonthAgenda()], // Pass all views to let Schedule-X handle view switching
     events: events.map(event => ({
       id: event.id,
       title: event.title,
@@ -278,11 +257,7 @@ export function CalendarView() {
     }
   })
 
-  // Update calendar when view changes by recreating the calendar
-  useEffect(() => {
-    // The calendar will automatically re-render when the views array changes
-    // This is the proper way to handle view changes in Schedule-X
-  }, [currentViewConfig])
+
 
   // Update calendar events when events state changes
   useEffect(() => {
@@ -380,128 +355,8 @@ export function CalendarView() {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Custom Calendar Header - Completely separate from Schedule-X */}
-      <div className="flex items-center justify-between p-4 border-b bg-background">
-        <div className="flex items-center gap-4">
-          {/* Today Button */}
-          <Button 
-            variant="outline" 
-            onClick={() => {
-              const today = new Date()
-              setSelectedDate(today)
-              // Force calendar to re-render by updating events
-              setEvents(prev => [...prev])
-            }}
-            className="h-9 px-3"
-          >
-            Today
-          </Button>
-          
-          {/* Navigation Buttons */}
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const newDate = new Date(selectedDate)
-                if (currentView === 'day') {
-                  newDate.setDate(newDate.getDate() - 1)
-                } else if (currentView === 'week') {
-                  newDate.setDate(newDate.getDate() - 7)
-                } else {
-                  newDate.setMonth(newDate.getMonth() - 1)
-                }
-                setSelectedDate(newDate)
-                // Force calendar to re-render
-                setEvents(prev => [...prev])
-              }}
-              className="h-8 w-8 p-0"
-            >
-              <ChevronDownIcon className="h-4 w-4 rotate-90" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const newDate = new Date(selectedDate)
-                if (currentView === 'day') {
-                  newDate.setDate(newDate.getDate() + 1)
-                } else if (currentView === 'week') {
-                  newDate.setDate(newDate.getDate() + 7)
-                } else {
-                  newDate.setMonth(newDate.getMonth() + 1)
-                }
-                setSelectedDate(newDate)
-                // Force calendar to re-render
-                setEvents(prev => [...prev])
-              }}
-              className="h-8 w-8 p-0"
-            >
-              <ChevronDownIcon className="h-4 w-4 -rotate-90" />
-            </Button>
-          </div>
-          
-          {/* Date Picker */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="h-9 px-3 justify-start font-normal"
-              >
-                <Calendar className="mr-2 h-4 w-4" />
-                {selectedDate.toLocaleDateString()}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <CalendarComponent
-                mode="single"
-                selected={selectedDate}
-                onSelect={(date) => {
-                  if (date) {
-                    setSelectedDate(date)
-                    // Force calendar to re-render
-                    setEvents(prev => [...prev])
-                  }
-                }}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-          
-          {/* View Selector */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-32 justify-between font-normal"
-              >
-                {views.find(v => v.id === currentView)?.label || 'Week'}
-                <ChevronDownIcon className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-32 p-0" align="start">
-              <div className="flex flex-col">
-                {views.map((view) => (
-                  <Button
-                    key={view.id}
-                    variant={currentView === view.id ? "secondary" : "ghost"}
-                    className="justify-start rounded-none border-0"
-                    onClick={() => {
-                      setCurrentView(view.id)
-                      // Force calendar to re-render by updating events
-                      // This triggers the useEffect that recreates the calendar with new view
-                      setEvents(prev => [...prev])
-                    }}
-                  >
-                    {view.label}
-                  </Button>
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-        
-        {/* Add Event Button */}
+      {/* Add Event Button */}
+      <div className="flex items-center justify-end p-4 border-b bg-background">
         <Button 
           onClick={handleAddEvent}
           className="bg-primary hover:bg-primary/90"
@@ -519,6 +374,13 @@ export function CalendarView() {
 
         <style jsx global>{`
           /* Custom styling for Schedule-X calendar components */
+
+          .sx__calendar {
+            background-color: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+          }
+
           .sx__view-container {
             position: relative !important;
             flex: 1 !important;
@@ -606,6 +468,7 @@ export function CalendarView() {
           .sx__date-input {
             padding: 8px 12px !important;
             transition: all 0.2s ease !important;
+            border: 1px solid rgba(255, 255, 255, 0.18) !important;
           }
 
           /* Date input*/
@@ -645,16 +508,116 @@ export function CalendarView() {
             font-size: 12px !important;
             font-weight: 400 !important;
             line-height: 1 !important;
+            transition: all 0.2s ease !important;
+            cursor: pointer !important;
+          }
+
+          .sx__date-picker__day:hover {
+            background-color: rgba(115, 115, 115, 0.18) !important;
+            border-radius: 6px !important;
           }
 
           .sx__date-picker__day--today {
-            background-color: #e5e5e5 !important;
+            background-color:rgb(255, 255, 255) !important;
             color: rgb(0, 0, 0) !important;
+            border-radius: 6px !important;
+            font-weight: 600 !important;
           }
 
+          .sx__date-picker__day--today:hover {
+            background-color:rgb(255, 255, 255) !important;
+          }
+          
+          .sx__date-picker__day--selected {
+            background-color: rgba(255, 255, 255, 0.18) !important;
+            color: rgb(255, 255, 255) !important;
+            border-radius: 6px !important;
+            font-weight: 600 !important;
+          }
+
+          .sx__date-picker__day--selected:hover {
+            background-color: rgba(255, 255, 255, 0.25) !important;
+          }
+
+          .sx__week-grid__day-name {
+            font-size: 12px !important;
+            font-weight: 400 !important;
+            line-height: 1 !important;
+            padding-bottom: 4px !important;
+          }
+
+          .sx__week-grid__date-number {
+            font-size: 14px !important;
+            font-weight: 400 !important;
+            line-height: 1 !important;
+            border-radius: 6px !important;
+          }
+
+          /* Schedule-X View Selection Styling */
+          .sx__view-selection {
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            border: 1px solid rgba(115, 115, 115, 0.18) !important;
+            border-radius: 6px !important;
+            transition: all 0.2s ease !important;
+          }
+
+          .sx__view-selection:hover {
+            background-color: rgba(115, 115, 115, 0.18) !important;
+          }
+
+          .sx__view-selection-selected-item {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            padding: 8px 12px !important;
+            border-radius: 6px !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            color: rgb(255, 255, 255) !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            min-width: 100px !important;
+          }
+
+
+          .sx__view-selection-dropdown {
+            position: absolute !important;
+            top: 100% !important;
+            left: 0 !important;
+            right: 0 !important;
+            background-color: hsl(var(--background)) !important;
+            border: 1px solid hsl(var(--border)) !important;
+            border-radius: 6px !important;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06) !important;
+            z-index: 50 !important;
+            margin-top: 4px !important;
+          }
+
+          .sx__view-selection-item {
+            padding: 8px 12px !important;
+            font-size: 14px !important;
+            color: hsl(var(--foreground)) !important;
+            cursor: pointer !important;
+            transition: background-color 0.2s ease !important;
+          }
+
+          .sx__view-selection-item:hover {
+            background-color: rgba(115, 115, 115, 0.18) !important;
+          }
+
+          .sx__view-selection-item:first-child {
+            border-radius: 6px 6px 0 0 !important;
+          }
+
+          .sx__view-selection-item:last-child {
+            border-radius: 0 0 6px 6px !important;
+          }
+        
           
         `}</style>
-        <ScheduleXCalendar key={currentView} calendarApp={calendar} />
+        <ScheduleXCalendar calendarApp={calendar} />
       </div>
 
       {/* Event Details Modal */}
