@@ -2,13 +2,7 @@
 
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Calendar, Plus, Clock, MapPin, AlertTriangle, Users } from 'lucide-react'
+import { Plus, Calendar as CalendarIcon } from 'lucide-react'
 
 // Schedule-X imports
 import { useCalendarApp, ScheduleXCalendar } from '@schedule-x/react'
@@ -23,6 +17,10 @@ import { createDragAndDropPlugin } from '@schedule-x/drag-and-drop'
 import { createResizePlugin } from '@schedule-x/resize'
 
 import '@schedule-x/theme-shadcn/dist/index.css'
+
+import { CalendarEventDrawer } from './calendar-event-drawer'
+import { GoogleCalendarSync } from '@/components/google-calendar-sync'
+import { useGoogleCalendar } from '@/hooks/useGoogleCalendar'
 
 interface User {
   id: string
@@ -54,6 +52,8 @@ interface CalendarEvent {
   end: string
   backgroundColor: string
   borderColor: string
+  source?: 'platform' | 'google' // Track event source
+  googleEventId?: string // Google Calendar event ID
   extendedProps: {
     trainer: string
     participants: User[]
@@ -67,6 +67,13 @@ interface CalendarEvent {
 }
 
 export function CalendarView() {
+  // Google Calendar integration
+  const {
+    isAuthenticated: isGoogleCalendarConnected,
+    events: googleCalendarEvents,
+    convertFromGoogleEvent
+  } = useGoogleCalendar({ autoSync: true })
+
   const [events, setEvents] = useState<CalendarEvent[]>(() => {
     // Get current date and create events for this week
     const now = new Date()
@@ -84,6 +91,7 @@ export function CalendarView() {
         end: `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')} 10:00`, // 10 AM today
         backgroundColor: '#3b82f6',
         borderColor: '#2563eb',
+        source: 'platform',
         extendedProps: {
           trainer: 'Sarah Wilson',
           participants: [
@@ -126,6 +134,7 @@ export function CalendarView() {
         end: `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')} 15:00`, // 3 PM tomorrow
         backgroundColor: '#10b981',
         borderColor: '#059669',
+        source: 'platform',
         extendedProps: {
           trainer: 'Mike Johnson',
           participants: [
@@ -178,25 +187,48 @@ export function CalendarView() {
 
 
   
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [drawerMode, setDrawerMode] = useState<'view' | 'create' | 'edit'>('view')
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
-  const [showEventDialog, setShowEventDialog] = useState(false)
-  const [newEventData, setNewEventData] = useState<{
-    title: string
-    start: string
-    end: string
-    trainer: string
-    location: string
-    maxParticipants: number
-    description: string
-  }>({
-    title: '',
-    start: '',
-    end: '',
-    trainer: '',
-    location: '',
-    maxParticipants: 8,
-    description: ''
-  })
+  const [showGoogleCalendarSync, setShowGoogleCalendarSync] = useState(false)
+  // Removed prefill dates - will implement later
+
+  // Removed preview state - using drag-to-create instead
+
+  // Sync Google Calendar events when they change
+  useEffect(() => {
+    if (isGoogleCalendarConnected && googleCalendarEvents.length > 0) {
+      const googleEvents = googleCalendarEvents.map(googleEvent => {
+        const convertedEvent = convertFromGoogleEvent(googleEvent)
+        return {
+          id: `google-${googleEvent.id}`,
+          title: convertedEvent.title,
+          start: convertedEvent.start,
+          end: convertedEvent.end,
+          backgroundColor: '#6b7280', // Grey color for Google Calendar events
+          borderColor: '#4b5563',
+          source: 'google' as const,
+          googleEventId: googleEvent.id,
+          extendedProps: {
+            trainer: 'Google Calendar',
+            participants: convertedEvent.attendees || [],
+            plan: convertedEvent.title,
+            location: convertedEvent.location || '',
+            maxParticipants: 0,
+            currentParticipants: 0,
+            medicalFlags: [],
+            attendance: {}
+          }
+        } as CalendarEvent
+      })
+
+      // Filter out existing Google events and add new ones
+      setEvents(prev => {
+        const platformEvents = prev.filter(event => event.source === 'platform')
+        return [...platformEvents, ...googleEvents]
+      })
+    }
+  }, [googleCalendarEvents, isGoogleCalendarConnected, convertFromGoogleEvent])
 
 
   
@@ -240,6 +272,8 @@ export function CalendarView() {
         const foundEvent = events.find(e => e.id === event.id)
         if (foundEvent) {
           setSelectedEvent(foundEvent)
+          setDrawerMode('view')
+          setDrawerOpen(true)
         }
       },
       onEventUpdate: (updatedEvent) => {
@@ -285,17 +319,13 @@ export function CalendarView() {
 
   // Memoize add event handler
   const handleAddEvent = useCallback(() => {
-    setNewEventData({
-      title: '',
-      start: '',
-      end: '',
-      trainer: '',
-      location: '',
-      maxParticipants: 8,
-      description: ''
-    })
-    setShowEventDialog(true)
+    setDrawerMode('create')
+    setDrawerOpen(true)
   }, [])
+
+  // Removed custom event creation - will implement later
+
+  // Removed custom event creator - will implement later
 
 
 
@@ -317,53 +347,39 @@ export function CalendarView() {
     }))
   }, [])
 
-  const createEvent = () => {
-    if (!newEventData.title || !newEventData.start || !newEventData.end) return
+  const handleCreateEvent = (eventData: CalendarEvent) => {
+    setEvents(prev => [...prev, eventData])
+  }
 
-    const trainer = trainers.find(t => t.id === newEventData.trainer)
-    const newEvent: CalendarEvent = {
-      id: Date.now().toString(),
-      title: newEventData.title,
-      start: newEventData.start.replace('T', ' '), // Convert 'YYYY-MM-DDTHH:mm' to 'YYYY-MM-DD HH:mm'
-      end: newEventData.end.replace('T', ' '), // Convert 'YYYY-MM-DDTHH:mm' to 'YYYY-MM-DD HH:mm'
-      backgroundColor: '#3b82f6',
-      borderColor: '#2563eb',
-      extendedProps: {
-        trainer: trainer?.name || 'Unassigned',
-        participants: [],
-        plan: newEventData.title,
-        location: newEventData.location,
-        maxParticipants: newEventData.maxParticipants,
-        currentParticipants: 0,
-        medicalFlags: [],
-        attendance: {}
-      }
-    }
-
-    setEvents(prev => [...prev, newEvent])
-    setShowEventDialog(false)
-    setNewEventData({
-      title: '',
-      start: '',
-      end: '',
-      trainer: '',
-      location: '',
-      maxParticipants: 8,
-      description: ''
-    })
+  const handleCloseDrawer = () => {
+    setDrawerOpen(false)
+    setSelectedEvent(null)
   }
 
   return (
     <div className="h-full flex flex-col">
       {/* Add Event Button */}
-      <div className="flex items-center justify-end p-4 border-b bg-background">
-        <Button 
-          onClick={handleAddEvent}
-          className="bg-primary hover:bg-primary/90"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Event
-        </Button>
+      <div className="flex items-center justify-between p-4 border-b bg-background">
+        <div className="text-sm text-muted-foreground">
+          Workout Plans
+        </div>
+        <div className="flex items-center gap-2">
+          <Button 
+            onClick={() => setShowGoogleCalendarSync(true)}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <CalendarIcon className="w-4 h-4" />
+            {isGoogleCalendarConnected ? 'Connected' : 'Connect'}
+          </Button>
+          <Button 
+            onClick={handleAddEvent}
+            className="bg-primary hover:bg-primary/90"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Event
+          </Button>
+        </div>
       </div>
 
       {/* Calendar */}
@@ -375,10 +391,22 @@ export function CalendarView() {
         <style jsx global>{`
           /* Custom styling for Schedule-X calendar components */
 
+          /* Disable text selection for calendar interactions */
+          .sx-react-calendar-wrapper {
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            user-select: none !important;
+          }
+
           .sx__calendar {
             background-color: none !important;
             border: none !important;
             border-radius: 0 !important;
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            user-select: none !important;
           }
 
           .sx__view-container {
@@ -391,6 +419,10 @@ export function CalendarView() {
             scrollbar-color: hsl(var(--muted)) hsl(var(--background)) !important;
             height: 100% !important;
             max-height: 100% !important;
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            user-select: none !important;
           }
 
           /* Ensure the calendar wrapper allows proper height */
@@ -398,6 +430,10 @@ export function CalendarView() {
             height: 100% !important;
             display: flex !important;
             flex-direction: column !important;
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            user-select: none !important;
           }
 
           /* Force Schedule-X calendar to use full height */
@@ -405,6 +441,10 @@ export function CalendarView() {
             height: 100% !important;
             display: flex !important;
             flex-direction: column !important;
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            user-select: none !important;
           }
 
           /* Ensure view container takes remaining space */
@@ -412,6 +452,10 @@ export function CalendarView() {
             flex: 1 !important;
             min-height: 0 !important;
             overflow: hidden !important;
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            user-select: none !important;
           }
 
           /* Calendar header content - our first custom component */
@@ -614,208 +658,100 @@ export function CalendarView() {
           .sx__view-selection-item:last-child {
             border-radius: 0 0 6px 6px !important;
           }
+
+          /* Additional text selection prevention for drag operations */
+          .sx__time-grid,
+          .sx__time-grid__day,
+          .sx__time-grid__hour,
+          .sx__time-grid__hour-label,
+          .sx__time-grid__hour-content,
+          .sx__month-grid,
+          .sx__month-grid__day,
+          .sx__month-grid__day-content,
+          .sx__day-view,
+          .sx__week-view,
+          .sx__month-view {
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            user-select: none !important;
+          }
+
+          /* Prevent text selection on event elements */
+          .sx__event,
+          .sx__event__title,
+          .sx__event__time {
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            user-select: none !important;
+          }
+
+          /* Add cursor pointer to events for clickability */
+          .sx__event {
+            cursor: pointer !important;
+          }
+
+          /* Ensure resize handles maintain their specific cursors */
+          .sx__event__resize-handle {
+            cursor: ns-resize !important;
+          }
+
+          .sx__event__resize-handle--start {
+            cursor: ns-resize !important;
+          }
+
+          .sx__event__resize-handle--end {
+            cursor: ns-resize !important;
+          }
         
           
         `}</style>
         <ScheduleXCalendar calendarApp={calendar} />
       </div>
 
-      {/* Event Details Modal */}
-      {selectedEvent && (
-        <Dialog open={!!selectedEvent} onOpenChange={() => setSelectedEvent(null)}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>{selectedEvent.title}</DialogTitle>
-              <DialogDescription>
-                Workout session details and participant information.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">
-                    {new Date(selectedEvent.start).toLocaleString()} - {new Date(selectedEvent.end).toLocaleTimeString()}
-                  </span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">Trainer: {selectedEvent.extendedProps.trainer}</span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">{selectedEvent.extendedProps.location}</span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">
-                    {selectedEvent.extendedProps.currentParticipants}/{selectedEvent.extendedProps.maxParticipants} participants
-                  </span>
-                </div>
-              </div>
-              
-              {/* Participants with Attendance */}
-              <div className="space-y-3">
-                <Label className="text-sm font-medium">Participants & Attendance</Label>
-                <div className="space-y-2">
-                  {selectedEvent.extendedProps.participants.map((participant) => (
-                    <div key={participant.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="w-8 h-8">
-                          <AvatarImage src={participant.avatar} />
-                          <AvatarFallback className="text-xs">
-                            {participant.name.split(' ').map(n => n[0]).join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium text-sm">{participant.name}</div>
-                          <div className="text-xs text-muted-foreground">{participant.email}</div>
-                          {participant.medicalConditions.length > 0 && (
-                            <div className="flex items-center gap-1 mt-1">
-                              <AlertTriangle className="w-3 h-3 text-red-500" />
-                              <span className="text-xs text-red-600">
-                                {participant.medicalConditions.join(', ')}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Select
-                          value={selectedEvent.extendedProps.attendance[participant.id] || 'present'}
-                          onValueChange={(value) => updateAttendance(selectedEvent.id, participant.id, value as 'present' | 'absent' | 'late' | 'cancelled')}
-                        >
-                          <SelectTrigger className="w-24">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="present">Present</SelectItem>
-                            <SelectItem value="late">Late</SelectItem>
-                            <SelectItem value="absent">Absent</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Medical Alerts */}
-              {selectedEvent.extendedProps.medicalFlags.length > 0 && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded">
-                  <div className="flex items-center gap-2 text-red-700">
-                    <AlertTriangle className="w-4 h-4" />
-                    <span className="text-sm font-medium">Medical Conditions Present</span>
-                  </div>
-                  <div className="text-xs text-red-600 mt-1">
-                    {selectedEvent.extendedProps.medicalFlags.join(', ')}
-                  </div>
-                </div>
-              )}
-              
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1">Edit Session</Button>
-                <Button variant="outline" className="flex-1">Manage Participants</Button>
-                <Button variant="outline" className="flex-1">View Details</Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+             {/* Event Drawer */}
+       <CalendarEventDrawer
+         isOpen={drawerOpen}
+         onClose={handleCloseDrawer}
+         mode={drawerMode}
+         event={selectedEvent}
+         trainers={trainers}
+         onCreateEvent={handleCreateEvent}
+         onUpdateAttendance={updateAttendance}
+       />
 
-      {/* Event Creation Dialog */}
-      <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New Workout Session</DialogTitle>
-            <DialogDescription>
-              Schedule a new workout session with trainer and participants.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Session Title</Label>
-              <Input 
-                placeholder="Enter session title" 
-                value={newEventData.title}
-                onChange={(e) => setNewEventData(prev => ({ ...prev, title: e.target.value }))}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Start Time</Label>
-                <Input 
-                  type="datetime-local" 
-                  value={newEventData.start}
-                  onChange={(e) => setNewEventData(prev => ({ ...prev, start: e.target.value }))}
-                />
-              </div>
-              <div>
-                <Label>End Time</Label>
-                <Input 
-                  type="datetime-local" 
-                  value={newEventData.end}
-                  onChange={(e) => setNewEventData(prev => ({ ...prev, end: e.target.value }))}
-                />
-              </div>
-            </div>
-            <div>
-              <Label>Trainer</Label>
-              <Select value={newEventData.trainer} onValueChange={(value) => setNewEventData(prev => ({ ...prev, trainer: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select trainer" />
-                </SelectTrigger>
-                <SelectContent>
-                  {trainers.map((trainer) => (
-                    <SelectItem key={trainer.id} value={trainer.id}>
-                      {trainer.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Location</Label>
-              <Input 
-                placeholder="Enter location" 
-                value={newEventData.location}
-                onChange={(e) => setNewEventData(prev => ({ ...prev, location: e.target.value }))}
-              />
-            </div>
-            <div>
-              <Label>Max Participants</Label>
-              <Input 
-                type="number" 
-                placeholder="8" 
-                value={newEventData.maxParticipants}
-                onChange={(e) => setNewEventData(prev => ({ ...prev, maxParticipants: parseInt(e.target.value) || 8 }))}
-              />
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea 
-                placeholder="Enter session description" 
-                value={newEventData.description}
-                onChange={(e) => setNewEventData(prev => ({ ...prev, description: e.target.value }))}
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button className="flex-1" onClick={createEvent}>Create Session</Button>
-              <Button 
-                variant="outline" 
-                className="flex-1" 
-                onClick={() => setShowEventDialog(false)}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+       {/* Google Calendar Sync Modal */}
+       {showGoogleCalendarSync && (
+         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+           <div className="bg-background rounded-lg shadow-xl max-w-md w-full">
+             <GoogleCalendarSync
+               onEventsSync={(syncedEvents) => {
+                 console.log('Synced events:', syncedEvents)
+                 setShowGoogleCalendarSync(false)
+               }}
+               onEventCreate={(event) => {
+                 console.log('Event created in Google Calendar:', event)
+               }}
+               onEventUpdate={(eventId, event) => {
+                 console.log('Event updated in Google Calendar:', eventId, event)
+               }}
+               onEventDelete={(eventId) => {
+                 console.log('Event deleted from Google Calendar:', eventId)
+               }}
+             />
+             <div className="p-4 border-t">
+               <Button 
+                 onClick={() => setShowGoogleCalendarSync(false)}
+                 variant="outline"
+                 className="w-full"
+               >
+                 Close
+               </Button>
+             </div>
+           </div>
+         </div>
+       )}
     </div>
   )
 }

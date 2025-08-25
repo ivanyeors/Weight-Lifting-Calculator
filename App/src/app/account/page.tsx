@@ -12,10 +12,13 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { Badge } from "@/components/ui/badge"
 
 import { LoginForm } from "@/components/login-form"
 import { PricingPlansClient } from "@/components/pricing-plans-client"
 import { ThemeSelectionCard } from "@/components/theme-selection-card"
+import { GoogleCalendarSync } from "@/components/google-calendar-sync"
+import { useGoogleCalendar } from "@/hooks/useGoogleCalendar"
 import { plans } from "@/lib/plans"
 import { toast } from "sonner"
 
@@ -38,7 +41,17 @@ export default function AccountPage() {
   const [savingPassword, setSavingPassword] = useState(false)
   const [activeTab, setActiveTab] = useState("account")
   const [currentPlan, setCurrentPlan] = useState<string>('Free')
+  const [showGoogleCalendarSync, setShowGoogleCalendarSync] = useState(false)
   const searchParams = useSearchParams()
+
+  // Google Calendar integration
+  const {
+    isAuthenticated: isGoogleCalendarConnected,
+    isLoading: isGoogleCalendarLoading,
+    error: googleCalendarError,
+    events: googleCalendarEvents,
+    logout: disconnectGoogleCalendar
+  } = useGoogleCalendar({ autoSync: false })
 
   const canChangePassword = useMemo(() => identities.some(i => i.provider === "email"), [identities])
   
@@ -48,7 +61,7 @@ export default function AccountPage() {
 
   useEffect(() => {
     const initialTab = searchParams.get('tab')
-    if (initialTab === 'account' || initialTab === 'billing' || initialTab === 'data') {
+    if (initialTab === 'account' || initialTab === 'calendar' || initialTab === 'billing' || initialTab === 'data') {
       setActiveTab(initialTab)
     }
   }, [searchParams])
@@ -262,6 +275,7 @@ export default function AccountPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList>
           <TabsTrigger value="account">Account</TabsTrigger>
+          <TabsTrigger value="calendar">Calendar Sync</TabsTrigger>
           <TabsTrigger value="billing">Pricing & Billing</TabsTrigger>
           <TabsTrigger value="data">Data</TabsTrigger>
         </TabsList>
@@ -330,6 +344,154 @@ export default function AccountPage() {
             <CardFooter>
               <Button onClick={() => setActiveTab("billing")}>Manage subscription</Button>
             </CardFooter>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Calendar Integration</CardTitle>
+              <CardDescription>Connect your Google Calendar to sync workout sessions.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`w-3 h-3 rounded-full ${isGoogleCalendarConnected ? 'bg-green-500' : 'bg-gray-300'}`} />
+                  <span className="text-sm">
+                    {isGoogleCalendarConnected ? 'Google Calendar connected' : 'Not connected'}
+                  </span>
+                </div>
+                {isGoogleCalendarConnected && (
+                  <Badge variant="secondary" className="text-green-700 bg-green-100">
+                    {googleCalendarEvents.length} events
+                  </Badge>
+                )}
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button onClick={() => setActiveTab("calendar")} variant="outline">
+                {isGoogleCalendarConnected ? 'Manage Calendar' : 'Connect Calendar'}
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="calendar" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Google Calendar Integration</CardTitle>
+              <CardDescription>
+                Connect your Google Calendar to sync workout sessions and view all your events in one place.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Connection Status */}
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className={`w-3 h-3 rounded-full ${isGoogleCalendarConnected ? 'bg-green-500' : 'bg-gray-300'}`} />
+                  <div>
+                    <div className="font-medium">
+                      {isGoogleCalendarConnected ? 'Connected to Google Calendar' : 'Not connected'}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {isGoogleCalendarConnected 
+                        ? `${googleCalendarEvents.length} events synced`
+                        : 'Connect to sync your workout sessions with Google Calendar'
+                      }
+                    </div>
+                  </div>
+                </div>
+                {isGoogleCalendarConnected && (
+                  <Badge variant="secondary" className="text-green-700 bg-green-100">
+                    Connected
+                  </Badge>
+                )}
+              </div>
+
+              {/* Error Display */}
+              {googleCalendarError && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="text-sm text-red-700">
+                    <strong>Error:</strong> {googleCalendarError}
+                  </div>
+                </div>
+              )}
+
+              {/* Connection Actions */}
+              <div className="flex gap-3">
+                {!isGoogleCalendarConnected ? (
+                  <Button 
+                    onClick={() => setShowGoogleCalendarSync(true)}
+                    disabled={isGoogleCalendarLoading}
+                    className="flex-1"
+                  >
+                    {isGoogleCalendarLoading ? 'Connecting...' : 'Connect Google Calendar'}
+                  </Button>
+                ) : (
+                  <>
+                    <Button 
+                      onClick={() => setShowGoogleCalendarSync(true)}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      Manage Connection
+                    </Button>
+                    <Button 
+                      onClick={disconnectGoogleCalendar}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      Disconnect
+                    </Button>
+                  </>
+                )}
+              </div>
+
+              {/* Benefits */}
+              <div className="mt-6 space-y-3">
+                <h4 className="font-medium">Benefits of connecting:</h4>
+                <ul className="text-sm text-muted-foreground space-y-2">
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-500">✓</span>
+                    <span>Workout sessions automatically sync to your Google Calendar</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-500">✓</span>
+                    <span>View all your calendar events in one unified view</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-500">✓</span>
+                    <span>Google Calendar events appear in grey for easy distinction</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-500">✓</span>
+                    <span>Real-time synchronization between platforms</span>
+                  </li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Privacy & Security */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Privacy & Security</CardTitle>
+              <CardDescription>How we handle your calendar data</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="text-sm text-muted-foreground space-y-2">
+                <p>
+                  <strong>Data Access:</strong> We only request access to view and edit your calendar events. 
+                  We cannot access your emails, contacts, or other Google data.
+                </p>
+                <p>
+                  <strong>Data Storage:</strong> Your calendar data is not stored on our servers. 
+                  We only sync events in real-time and store authentication tokens locally.
+                </p>
+                <p>
+                  <strong>Revoke Access:</strong> You can disconnect your Google Calendar at any time 
+                  using the disconnect button above, or revoke access directly in your Google Account settings.
+                </p>
+              </div>
+            </CardContent>
           </Card>
         </TabsContent>
 
@@ -425,6 +587,42 @@ export default function AccountPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Google Calendar Sync Modal */}
+      {showGoogleCalendarSync && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-background rounded-lg shadow-xl max-w-md w-full">
+            <GoogleCalendarSync
+              onEventsSync={(syncedEvents) => {
+                console.log('Synced events:', syncedEvents)
+                toast.success(`Successfully synced ${syncedEvents.length} events`)
+                setShowGoogleCalendarSync(false)
+              }}
+              onEventCreate={(event) => {
+                console.log('Event created in Google Calendar:', event)
+                toast.success('Event created in Google Calendar')
+              }}
+              onEventUpdate={(eventId, event) => {
+                console.log('Event updated in Google Calendar:', eventId, event)
+                toast.success('Event updated in Google Calendar')
+              }}
+              onEventDelete={(eventId) => {
+                console.log('Event deleted from Google Calendar:', eventId)
+                toast.success('Event deleted from Google Calendar')
+              }}
+            />
+            <div className="p-4 border-t">
+              <Button 
+                onClick={() => setShowGoogleCalendarSync(false)}
+                variant="outline"
+                className="w-full"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
