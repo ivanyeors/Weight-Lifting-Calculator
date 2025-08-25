@@ -24,10 +24,27 @@ function Calendar({
   const defaultClassNames = getDefaultClassNames()
 
   return (
+    <>
+      <style jsx global>{`
+        /* Disable text selection for calendar interactions */
+        .rdp {
+          -webkit-user-select: none !important;
+          -moz-user-select: none !important;
+          -ms-user-select: none !important;
+          user-select: none !important;
+        }
+        
+        .rdp * {
+          -webkit-user-select: none !important;
+          -moz-user-select: none !important;
+          -ms-user-select: none !important;
+          user-select: none !important;
+        }
+      `}</style>
     <DayPicker
       showOutsideDays={showOutsideDays}
       className={cn(
-        "bg-background group/calendar p-3 [--cell-size:--spacing(8)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
+        "bg-background group/calendar p-3 [--cell-size:--spacing(8)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent select-none",
         String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
         String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
         className
@@ -82,13 +99,13 @@ function Calendar({
             : "rounded-md pl-2 pr-1 flex items-center gap-1 text-sm h-8 [&>svg]:text-muted-foreground [&>svg]:size-3.5",
           defaultClassNames.caption_label
         ),
-        table: "w-full border-collapse",
-        weekdays: cn("flex", defaultClassNames.weekdays),
+        table: "w-full border-collapse select-none",
+        weekdays: cn("flex select-none", defaultClassNames.weekdays),
         weekday: cn(
           "text-muted-foreground rounded-md flex-1 font-normal text-[0.8rem] select-none",
           defaultClassNames.weekday
         ),
-        week: cn("flex w-full mt-2", defaultClassNames.week),
+        week: cn("flex w-full mt-2 select-none", defaultClassNames.week),
         week_number_header: cn(
           "select-none w-(--cell-size)",
           defaultClassNames.week_number_header
@@ -167,6 +184,7 @@ function Calendar({
       }}
       {...props}
     />
+    </>
   )
 }
 
