@@ -9,7 +9,7 @@
     "lint": "next lint",
     "predeploy": "npm run build",
     "deploy": "npm run build && gh-pages -d out",
-    "build:static": "./build-static.sh",
+    "build:static": "NODE_ENV=production next build",
     "deploy:gh-pages": "npm run build:static && gh-pages -d out",
     "db:seed": "node --loader ts-node/esm supabase/scripts/seed.ts"
   },
