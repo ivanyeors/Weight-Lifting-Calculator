@@ -13,7 +13,7 @@ import { Cloud, RefreshCw, CheckCircle, AlertCircle, Pencil } from "lucide-react
 import { UserSwitcher } from '@/components/user-switcher'
 import { useSelectedUser } from '@/hooks/use-selected-user'
 
-interface WeightCalculatorSidebarProps {
+interface IdealExerciseWeightSidebarProps {
   side?: "left" | "right"
 
   // User input states
@@ -48,7 +48,7 @@ interface WeightCalculatorSidebarProps {
   onLastSyncTimeChange?: (time: Date | null) => void
 }
 
-export function WeightCalculatorSidebar({
+export function IdealExerciseWeightSidebar({
   bodyWeight,
   setBodyWeight,
   height,
@@ -69,7 +69,7 @@ export function WeightCalculatorSidebar({
   collapsed,
   onSyncStatusChange,
   onLastSyncTimeChange,
-}: WeightCalculatorSidebarProps) {
+}: IdealExerciseWeightSidebarProps) {
   type UserInfo = { id: string; email: string | null; name: string | null; avatarUrl: string | null }
   const [user, setUser] = useState<UserInfo | null>(null)
   type SavedPersonalData = {
@@ -396,7 +396,7 @@ export function WeightCalculatorSidebar({
           <div className="flex items-center space-x-2">
             <Cloud className="h-6 w-6 text-primary" />
             {!collapsed && (
-              <h2 className="text-sm font-semibold">Weight Calculator</h2>
+              <h2 className="text-sm font-semibold">Exercise weights</h2>
             )}
           </div>
         </div>

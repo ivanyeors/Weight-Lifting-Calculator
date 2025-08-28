@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/tooltip"
 import { useState, useRef, useEffect } from 'react'
 import { Dumbbell, Lock } from 'lucide-react'
-import { ExerciseDropdown } from "@/app/fitness-calculator/ExerciseDropdown"
+import { ExerciseDropdown } from "@/app/ideal-exercise-weight/ExerciseDropdown"
 import { Button } from "@/components/ui/button"
 import { useUserTier } from "@/hooks/use-user-tier"
 

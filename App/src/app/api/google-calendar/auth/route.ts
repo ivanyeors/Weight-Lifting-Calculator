@@ -11,7 +11,11 @@ export async function GET(request: NextRequest) {
   try {
     const authUrl = oauth2Client.generateAuthUrl({
       access_type: 'offline',
-      scope: ['https://www.googleapis.com/auth/calendar'],
+      scope: [
+        'https://www.googleapis.com/auth/calendar',
+        'https://www.googleapis.com/auth/calendar.events',
+        'https://www.googleapis.com/auth/calendar.readonly'
+      ],
       prompt: 'consent'
     })
     
@@ -27,7 +31,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { code } = await request.json()
+    const { code, state } = await request.json()
     
     if (!code) {
       return NextResponse.json(
@@ -41,6 +45,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ 
       success: true, 
       tokens,
+      state,
       message: 'Successfully authenticated with Google Calendar'
     })
   } catch (error) {

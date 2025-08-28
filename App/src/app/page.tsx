@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
 
 export default function HomePage() {
-  redirect('/fitness-calculator')
+  redirect('/ideal-exercise-weight')
 }

@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Plus, Calendar as CalendarIcon } from 'lucide-react'
+import { Plus, Calendar as CalendarIcon, RefreshCw } from 'lucide-react'
 
 // Schedule-X imports
 import { useCalendarApp, ScheduleXCalendar } from '@schedule-x/react'
@@ -21,6 +21,7 @@ import '@schedule-x/theme-shadcn/dist/index.css'
 import { CalendarEventDrawer } from './calendar-event-drawer'
 import { GoogleCalendarSync } from '@/components/google-calendar-sync'
 import { useGoogleCalendar } from '@/hooks/useGoogleCalendar'
+import { supabase } from '@/lib/supabaseClient'
 
 interface User {
   id: string
@@ -54,6 +55,8 @@ interface CalendarEvent {
   borderColor: string
   source?: 'platform' | 'google' // Track event source
   googleEventId?: string // Google Calendar event ID
+  accountId?: string // Google Calendar account ID
+  accountEmail?: string // Google Calendar account email
   extendedProps: {
     trainer: string
     participants: User[]
@@ -70,8 +73,14 @@ export function CalendarView() {
   // Google Calendar integration
   const {
     isAuthenticated: isGoogleCalendarConnected,
+    isLoading: isGoogleCalendarLoading,
+    error: googleCalendarError,
     events: googleCalendarEvents,
-    convertFromGoogleEvent
+    accounts: googleCalendarAccounts,
+    convertFromGoogleEvent,
+    fetchEvents,
+    debugState,
+    clearAllData
   } = useGoogleCalendar({ autoSync: true })
 
   const [events, setEvents] = useState<CalendarEvent[]>(() => {
@@ -185,6 +194,8 @@ export function CalendarView() {
     }
   ])
 
+  const [workoutSpaces, setWorkoutSpaces] = useState<{ id: string; name: string }[]>([])
+
 
   
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -195,22 +206,64 @@ export function CalendarView() {
 
   // Removed preview state - using drag-to-create instead
 
+  // Fetch workout spaces when component mounts
+  useEffect(() => {
+    const loadWorkoutSpaces = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('workout_spaces')
+          .select('id, name')
+          .order('name', { ascending: true })
+        if (error) throw error
+        setWorkoutSpaces((data ?? []).map((r: { id: string; name: string }) => ({ 
+          id: r.id, 
+          name: r.name 
+        })))
+      } catch (err) {
+        console.error('Failed to load workout spaces', err)
+      }
+    }
+    loadWorkoutSpaces()
+  }, [])
+
+  // Fetch Google Calendar events when component mounts or connection state changes
+  useEffect(() => {
+    if (isGoogleCalendarConnected) {
+      fetchEvents()
+    }
+  }, [isGoogleCalendarConnected, fetchEvents])
+
   // Sync Google Calendar events when they change
   useEffect(() => {
+    console.log('Google Calendar state:', {
+      isConnected: isGoogleCalendarConnected,
+      eventsCount: googleCalendarEvents.length,
+      accountsCount: googleCalendarAccounts.length,
+      events: googleCalendarEvents
+    })
+    
     if (isGoogleCalendarConnected && googleCalendarEvents.length > 0) {
+      console.log('Processing Google Calendar events...')
       const googleEvents = googleCalendarEvents.map(googleEvent => {
+        console.log('Processing event:', googleEvent)
         const convertedEvent = convertFromGoogleEvent(googleEvent)
-        return {
+        console.log('Converted event:', convertedEvent)
+        const account = googleCalendarAccounts.find(acc => acc.id === convertedEvent.accountId)
+        console.log('Found account:', account)
+        
+        const calendarEvent = {
           id: `google-${googleEvent.id}`,
           title: convertedEvent.title,
           start: convertedEvent.start,
           end: convertedEvent.end,
-          backgroundColor: '#6b7280', // Grey color for Google Calendar events
-          borderColor: '#4b5563',
+          backgroundColor: account?.color || '#6b7280', // Use account color or fallback to grey
+          borderColor: account?.color || '#4b5563',
           source: 'google' as const,
           googleEventId: googleEvent.id,
+          accountId: convertedEvent.accountId,
+          accountEmail: convertedEvent.accountEmail,
           extendedProps: {
-            trainer: 'Google Calendar',
+            trainer: account?.name || 'Google Calendar',
             participants: convertedEvent.attendees || [],
             plan: convertedEvent.title,
             location: convertedEvent.location || '',
@@ -220,15 +273,26 @@ export function CalendarView() {
             attendance: {}
           }
         } as CalendarEvent
+        
+        console.log('Created calendar event:', calendarEvent)
+        return calendarEvent
       })
+
+      console.log('All Google events processed:', googleEvents)
 
       // Filter out existing Google events and add new ones
       setEvents(prev => {
         const platformEvents = prev.filter(event => event.source === 'platform')
-        return [...platformEvents, ...googleEvents]
+        const allEvents = [...platformEvents, ...googleEvents]
+        console.log('Updated events state:', allEvents)
+        return allEvents
       })
+    } else if (isGoogleCalendarConnected && googleCalendarEvents.length === 0) {
+      console.log('Google Calendar connected but no events found')
+    } else {
+      console.log('Google Calendar not connected or no events')
     }
-  }, [googleCalendarEvents, isGoogleCalendarConnected, convertFromGoogleEvent])
+  }, [googleCalendarEvents, isGoogleCalendarConnected, googleCalendarAccounts, convertFromGoogleEvent])
 
 
   
@@ -295,13 +359,24 @@ export function CalendarView() {
 
   // Update calendar events when events state changes
   useEffect(() => {
+    console.log('Updating Schedule-X calendar with events:', events)
     if (eventsService && calendar) {
       // Clear existing events and add new ones
-      eventsService.getAll().forEach(event => {
+      const existingEvents = eventsService.getAll()
+      console.log('Clearing existing events:', existingEvents.length)
+      existingEvents.forEach(event => {
         eventsService.remove(event.id)
       })
       
+      console.log('Adding new events to Schedule-X:', events.length)
       events.forEach(event => {
+        console.log('Adding event to Schedule-X:', {
+          id: event.id,
+          title: event.title,
+          start: event.start,
+          end: event.end,
+          source: event.source
+        })
         eventsService.add({
           id: event.id,
           title: event.title,
@@ -310,6 +385,8 @@ export function CalendarView() {
           calendarId: 'workout-calendar'
         })
       })
+      
+      console.log('Schedule-X calendar updated. Total events:', eventsService.getAll().length)
     }
   }, [events, eventsService, calendar])
 
@@ -364,14 +441,58 @@ export function CalendarView() {
           Workout Plans
         </div>
         <div className="flex items-center gap-2">
+          {googleCalendarError && (
+            <div className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded">
+              Google Calendar Error
+            </div>
+          )}
           <Button 
             onClick={() => setShowGoogleCalendarSync(true)}
             variant="outline"
             className="flex items-center gap-2"
+            disabled={isGoogleCalendarLoading}
           >
             <CalendarIcon className="w-4 h-4" />
-            {isGoogleCalendarConnected ? 'Connected' : 'Connect'}
+            {isGoogleCalendarLoading ? 'Loading...' : isGoogleCalendarConnected ? 'Connected' : 'Connect'}
           </Button>
+          {isGoogleCalendarConnected && (
+            <>
+              <Button 
+                onClick={() => {
+                  console.log('Manual refresh of Google Calendar events')
+                  fetchEvents()
+                }}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </Button>
+              <Button 
+                onClick={() => {
+                  console.log('Debug Google Calendar state')
+                  debugState()
+                }}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                Debug
+              </Button>
+              <Button 
+                onClick={() => {
+                  console.log('Clearing all Google Calendar data')
+                  clearAllData()
+                  window.location.reload()
+                }}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                Clear Data
+              </Button>
+            </>
+          )}
           <Button 
             onClick={handleAddEvent}
             className="bg-primary hover:bg-primary/90"
@@ -717,6 +838,7 @@ export function CalendarView() {
          mode={drawerMode}
          event={selectedEvent}
          trainers={trainers}
+         workoutSpaces={workoutSpaces}
          onCreateEvent={handleCreateEvent}
          onUpdateAttendance={updateAttendance}
        />

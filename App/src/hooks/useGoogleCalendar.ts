@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import GoogleCalendarService, { GoogleCalendarEvent } from '@/lib/googleCalendarService'
+import GoogleCalendarService, { GoogleCalendarEvent, GoogleCalendarAccount } from '@/lib/googleCalendarService'
 
 interface UseGoogleCalendarOptions {
   autoSync?: boolean
@@ -11,7 +11,7 @@ interface GoogleCalendarState {
   isLoading: boolean
   error: string | null
   events: any[]
-  tokens: any | null
+  accounts: GoogleCalendarAccount[]
 }
 
 export function useGoogleCalendar(options: UseGoogleCalendarOptions = {}) {
@@ -22,29 +22,48 @@ export function useGoogleCalendar(options: UseGoogleCalendarOptions = {}) {
     isLoading: false,
     error: null,
     events: [],
-    tokens: null
+    accounts: []
   })
 
   const [googleCalendarService] = useState(() => new GoogleCalendarService({
     clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
     redirectUri: process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI!,
-    scopes: ['https://www.googleapis.com/auth/calendar']
+    scopes: [
+      'https://www.googleapis.com/auth/calendar',
+      'https://www.googleapis.com/auth/calendar.events',
+      'https://www.googleapis.com/auth/calendar.readonly'
+    ]
   }))
 
-  // Initialize authentication from stored tokens
+    // Initialize authentication from stored accounts
   useEffect(() => {
-    const storedTokens = localStorage.getItem('googleCalendarTokens')
-    if (storedTokens) {
-      try {
-        const tokens = JSON.parse(storedTokens)
-        googleCalendarService.setTokens(tokens)
-        setState(prev => ({ ...prev, isAuthenticated: true, tokens }))
-      } catch (error) {
-        console.error('Error parsing stored tokens:', error)
-        localStorage.removeItem('googleCalendarTokens')
-      }
-    }
+    googleCalendarService.loadAccountsFromStorage()
+    const accounts = googleCalendarService.getAccounts()
+    const isAuthenticated = accounts.length > 0
+    
+    setState(prev => ({
+      ...prev,
+      isAuthenticated,
+      accounts
+    }))
   }, [googleCalendarService])
+
+  // Fetch events when authentication state changes
+  useEffect(() => {
+    if (state.isAuthenticated && autoSync) {
+      // Use setTimeout to avoid the dependency issue
+      setTimeout(() => {
+        googleCalendarService.getAllEvents()
+          .then(events => {
+            setState(prev => ({ ...prev, events }))
+          })
+          .catch(error => {
+            console.error('Error fetching events:', error)
+            setState(prev => ({ ...prev, error: 'Failed to fetch events' }))
+          })
+      }, 100)
+    }
+  }, [state.isAuthenticated, autoSync, googleCalendarService])
 
   // Auto-sync functionality
   useEffect(() => {
@@ -52,7 +71,7 @@ export function useGoogleCalendar(options: UseGoogleCalendarOptions = {}) {
 
     const syncEvents = async () => {
       try {
-        const events = await googleCalendarService.getEvents()
+        const events = await googleCalendarService.getAllEvents()
         setState(prev => ({ ...prev, events }))
       } catch (error) {
         console.error('Auto-sync error:', error)
@@ -70,28 +89,27 @@ export function useGoogleCalendar(options: UseGoogleCalendarOptions = {}) {
   }, [autoSync, state.isAuthenticated, syncInterval, googleCalendarService])
 
   // Get authorization URL
-  const getAuthUrl = useCallback(() => {
-    return googleCalendarService.getAuthUrl()
+  const getAuthUrl = useCallback((state?: string) => {
+    return googleCalendarService.getAuthUrl(state)
   }, [googleCalendarService])
 
   // Handle authentication callback
-  const handleAuthCallback = useCallback(async (code: string) => {
+  const handleAuthCallback = useCallback(async (code: string, state?: string) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }))
 
     try {
-      const tokens = await googleCalendarService.handleAuthCallback(code)
+      const account = await googleCalendarService.handleAuthCallback(code, state)
       
-      // Store tokens in localStorage
-      localStorage.setItem('googleCalendarTokens', JSON.stringify(tokens))
-      
+      // Update accounts list
+      const accounts = googleCalendarService.getAccounts()
       setState(prev => ({ 
         ...prev, 
-        isAuthenticated: true, 
-        tokens, 
+        isAuthenticated: accounts.length > 0, 
+        accounts,
         isLoading: false 
       }))
 
-      return tokens
+      return account
     } catch (error) {
       console.error('Authentication error:', error)
       setState(prev => ({ 
@@ -103,16 +121,27 @@ export function useGoogleCalendar(options: UseGoogleCalendarOptions = {}) {
     }
   }, [googleCalendarService])
 
+
+
   // Fetch events from Google Calendar
   const fetchEvents = useCallback(async (timeMin?: string, timeMax?: string) => {
     if (!state.isAuthenticated) {
-      throw new Error('Not authenticated with Google Calendar')
+      console.log('Not authenticated, skipping event fetch')
+      return []
     }
 
     setState(prev => ({ ...prev, isLoading: true, error: null }))
 
     try {
-      const events = await googleCalendarService.getEvents('primary', timeMin, timeMax)
+      console.log('Fetching events from Google Calendar...')
+      const events = await googleCalendarService.getAllEvents(timeMin, timeMax)
+      console.log('Fetched events from Google Calendar:', events)
+      console.log('Number of events fetched:', events.length)
+      
+      if (events.length > 0) {
+        console.log('Sample event structure:', events[0])
+      }
+      
       setState(prev => ({ ...prev, events, isLoading: false }))
       return events
     } catch (error) {
@@ -126,8 +155,8 @@ export function useGoogleCalendar(options: UseGoogleCalendarOptions = {}) {
     }
   }, [state.isAuthenticated, googleCalendarService])
 
-  // Create event in Google Calendar
-  const createEvent = useCallback(async (event: GoogleCalendarEvent) => {
+  // Create event in Google Calendar for a specific account
+  const createEvent = useCallback(async (accountId: string, event: GoogleCalendarEvent) => {
     if (!state.isAuthenticated) {
       throw new Error('Not authenticated with Google Calendar')
     }
@@ -135,7 +164,7 @@ export function useGoogleCalendar(options: UseGoogleCalendarOptions = {}) {
     setState(prev => ({ ...prev, isLoading: true, error: null }))
 
     try {
-      const createdEvent = await googleCalendarService.createEvent(event)
+      const createdEvent = await googleCalendarService.createEvent(accountId, event)
       
       // Add to local events
       setState(prev => ({ 
@@ -156,8 +185,8 @@ export function useGoogleCalendar(options: UseGoogleCalendarOptions = {}) {
     }
   }, [state.isAuthenticated, googleCalendarService])
 
-  // Update event in Google Calendar
-  const updateEvent = useCallback(async (eventId: string, event: Partial<GoogleCalendarEvent>) => {
+  // Update event in Google Calendar for a specific account
+  const updateEvent = useCallback(async (accountId: string, eventId: string, event: Partial<GoogleCalendarEvent>) => {
     if (!state.isAuthenticated) {
       throw new Error('Not authenticated with Google Calendar')
     }
@@ -165,7 +194,7 @@ export function useGoogleCalendar(options: UseGoogleCalendarOptions = {}) {
     setState(prev => ({ ...prev, isLoading: true, error: null }))
 
     try {
-      const updatedEvent = await googleCalendarService.updateEvent(eventId, event)
+      const updatedEvent = await googleCalendarService.updateEvent(accountId, eventId, event)
       
       // Update local events
       setState(prev => ({ 
@@ -186,8 +215,8 @@ export function useGoogleCalendar(options: UseGoogleCalendarOptions = {}) {
     }
   }, [state.isAuthenticated, googleCalendarService])
 
-  // Delete event from Google Calendar
-  const deleteEvent = useCallback(async (eventId: string) => {
+  // Delete event from Google Calendar for a specific account
+  const deleteEvent = useCallback(async (accountId: string, eventId: string) => {
     if (!state.isAuthenticated) {
       throw new Error('Not authenticated with Google Calendar')
     }
@@ -195,7 +224,7 @@ export function useGoogleCalendar(options: UseGoogleCalendarOptions = {}) {
     setState(prev => ({ ...prev, isLoading: true, error: null }))
 
     try {
-      await googleCalendarService.deleteEvent(eventId)
+      await googleCalendarService.deleteEvent(accountId, eventId)
       
       // Remove from local events
       setState(prev => ({ 
@@ -216,15 +245,26 @@ export function useGoogleCalendar(options: UseGoogleCalendarOptions = {}) {
     }
   }, [state.isAuthenticated, googleCalendarService])
 
-  // Logout
+  // Remove account
+  const removeAccount = useCallback((accountId: string) => {
+    googleCalendarService.removeAccount(accountId)
+    const accounts = googleCalendarService.getAccounts()
+    setState(prev => ({ 
+      ...prev, 
+      isAuthenticated: accounts.length > 0,
+      accounts 
+    }))
+  }, [googleCalendarService])
+
+  // Logout all accounts
   const logout = useCallback(() => {
-    localStorage.removeItem('googleCalendarTokens')
+    localStorage.removeItem('googleCalendarAccounts')
     setState({
       isAuthenticated: false,
       isLoading: false,
       error: null,
       events: [],
-      tokens: null
+      accounts: []
     })
   }, [])
 
@@ -244,7 +284,7 @@ export function useGoogleCalendar(options: UseGoogleCalendarOptions = {}) {
     isLoading: state.isLoading,
     error: state.error,
     events: state.events,
-    tokens: state.tokens,
+    accounts: state.accounts,
 
     // Actions
     getAuthUrl,
@@ -253,10 +293,13 @@ export function useGoogleCalendar(options: UseGoogleCalendarOptions = {}) {
     createEvent,
     updateEvent,
     deleteEvent,
+    removeAccount,
     logout,
 
     // Utilities
     convertToGoogleEvent,
-    convertFromGoogleEvent
+    convertFromGoogleEvent,
+    debugState: () => googleCalendarService.debugState(),
+    clearAllData: () => googleCalendarService.clearAllData()
   }
 }

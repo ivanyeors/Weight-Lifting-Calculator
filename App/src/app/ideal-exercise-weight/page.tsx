@@ -19,7 +19,7 @@ import {
 
 //
 
-import { WeightCalculatorSidebar } from "./fitness-calculator-sidebar"
+import { IdealExerciseWeightSidebar } from "./ideal-exercise-weight-sidebar"
 import { 
   loadAllExerciseData,
   validateExerciseData
@@ -404,7 +404,7 @@ export default function HomePage() {
   return (
     <AuthCallbackHandler>
       <div className="flex h-screen">
-        <WeightCalculatorSidebar
+        <IdealExerciseWeightSidebar
           side="left"
           bodyWeight={bodyWeight}
           setBodyWeight={setBodyWeight}
@@ -452,7 +452,7 @@ export default function HomePage() {
               <BreadcrumbList>
                 <BreadcrumbItem>
                   <BreadcrumbPage>
-                    {currentExercise ? currentExercise.name : 'Weight Calculator'}
+                    {currentExercise ? currentExercise.name : 'Exercise weights'}
                   </BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>

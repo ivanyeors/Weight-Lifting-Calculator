@@ -28,43 +28,57 @@ export function GoogleCalendarSync({
     isLoading,
     error,
     events,
+    accounts,
     getAuthUrl,
     handleAuthCallback,
     fetchEvents,
     createEvent,
     updateEvent,
     deleteEvent,
+    removeAccount,
     logout,
     convertToGoogleEvent,
     convertFromGoogleEvent
   } = useGoogleCalendar({ autoSync: true })
 
-  // Handle URL parameters for OAuth callback
+  // Handle OAuth callback from sessionStorage
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search)
-    const code = urlParams.get('code')
-    const error = urlParams.get('error')
+    // Check for Google Calendar OAuth code in sessionStorage
+    const code = sessionStorage.getItem('googleCalendarCode')
+    const state = sessionStorage.getItem('googleCalendarState')
+    const error = new URLSearchParams(window.location.search).get('error')
 
     if (code && !isAuthenticated) {
+      // Clear the stored code
+      sessionStorage.removeItem('googleCalendarCode')
+      sessionStorage.removeItem('googleCalendarState')
+      
+      // Handle the authentication
       setAuthCode(code)
-      handleAuth(code)
+      handleAuth(code, state || undefined)
+        .then(() => {
+          // Force a re-fetch of events after successful authentication
+          setTimeout(() => {
+            fetchEvents()
+          }, 500)
+        })
+        .catch((error) => {
+          console.error('Authentication failed:', error)
+        })
     }
 
     if (error) {
       console.error('OAuth error:', error)
-    }
-
-    // Clean up URL parameters
-    if (code || error) {
-      const newUrl = window.location.pathname
+      // Clean up error parameter
+      const newUrl = window.location.pathname + (window.location.hash || '')
       window.history.replaceState({}, document.title, newUrl)
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, handleAuthCallback])
 
-  const handleAuth = async (code: string) => {
+  const handleAuth = async (code: string, state?: string) => {
     setIsConnecting(true)
     try {
-      await handleAuthCallback(code)
+      await handleAuthCallback(code, state)
       setAuthCode('')
     } catch (error) {
       console.error('Authentication failed:', error)
@@ -74,22 +88,10 @@ export function GoogleCalendarSync({
   }
 
   const handleConnect = () => {
-    const authUrl = getAuthUrl()
-    // Open in a popup window for better UX
-    const popup = window.open(
-      authUrl,
-      'google-calendar-auth',
-      'width=500,height=600,scrollbars=yes,resizable=yes'
-    )
-
-    // Check for popup closure and handle callback
-    const checkClosed = setInterval(() => {
-      if (popup?.closed) {
-        clearInterval(checkClosed)
-        // Refresh the page or check auth status
-        window.location.reload()
-      }
-    }, 1000)
+    // Redirect to account page with calendar sync tab 
+    const accountUrl = '/account?tab=calendar'
+    const authUrl = getAuthUrl(accountUrl)
+    window.location.href = authUrl
   }
 
   const handleSync = async () => {
@@ -104,7 +106,12 @@ export function GoogleCalendarSync({
   const handleCreateInGoogle = async (scheduleXEvent: any) => {
     try {
       const googleEvent = convertToGoogleEvent(scheduleXEvent)
-      const createdEvent = await createEvent(googleEvent)
+      // Use the first account for now - could be enhanced to let user choose
+      const firstAccount = accounts[0]
+      if (!firstAccount) {
+        throw new Error('No Google Calendar account connected')
+      }
+      const createdEvent = await createEvent(firstAccount.id, googleEvent)
       onEventCreate?.(convertFromGoogleEvent(createdEvent))
     } catch (error) {
       console.error('Failed to create event in Google Calendar:', error)
@@ -114,7 +121,12 @@ export function GoogleCalendarSync({
   const handleUpdateInGoogle = async (eventId: string, scheduleXEvent: any) => {
     try {
       const googleEvent = convertToGoogleEvent(scheduleXEvent)
-      const updatedEvent = await updateEvent(eventId, googleEvent)
+      // Use the first account for now - could be enhanced to let user choose
+      const firstAccount = accounts[0]
+      if (!firstAccount) {
+        throw new Error('No Google Calendar account connected')
+      }
+      const updatedEvent = await updateEvent(firstAccount.id, eventId, googleEvent)
       onEventUpdate?.(eventId, convertFromGoogleEvent(updatedEvent))
     } catch (error) {
       console.error('Failed to update event in Google Calendar:', error)
@@ -123,7 +135,12 @@ export function GoogleCalendarSync({
 
   const handleDeleteInGoogle = async (eventId: string) => {
     try {
-      await deleteEvent(eventId)
+      // Use the first account for now - could be enhanced to let user choose
+      const firstAccount = accounts[0]
+      if (!firstAccount) {
+        throw new Error('No Google Calendar account connected')
+      }
+      await deleteEvent(firstAccount.id, eventId)
       onEventDelete?.(eventId)
     } catch (error) {
       console.error('Failed to delete event in Google Calendar:', error)
