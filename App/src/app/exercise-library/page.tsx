@@ -166,18 +166,18 @@ export default function ExerciseLibraryPage() {
       if (error) throw error
 
       if (data && data.length > 0) {
-        const mapped: Exercise[] = data.map((row: Record<string, unknown>) => {
-          const involvementEntries = (row.exercise_muscles ?? []).map((em: Record<string, unknown>) => ({ name: em.muscles?.name as string, involvement: em.involvement as number }))
+        const mapped: Exercise[] = data.map((row: any) => {
+          const involvementEntries = (row.exercise_muscles ?? []).map((em: any) => ({ name: em.muscles?.name as string, involvement: em.involvement as number }))
           const muscleInvolvement: Record<string, number> = {}
           for (const { name, involvement } of involvementEntries) {
             if (name && typeof involvement === 'number' && involvement > 0) muscleInvolvement[name] = involvement
           }
           const muscleGroups = involvementEntries
-            .filter((m: Record<string, unknown>) => m.name && m.involvement > 0)
-            .map((m: Record<string, unknown>) => m.name as string)
+            .filter((m: any) => m.name && m.involvement > 0)
+            .map((m: any) => m.name as string)
 
           const workoutTypes = (row.exercise_workout_types ?? [])
-            .map((ewt: Record<string, unknown>) => ewt.workout_types?.name as string)
+            .map((ewt: any) => ewt.workout_types?.name as string)
             .filter((n: string | undefined): n is string => !!n && ALLOWED_WORKOUT_TYPES.includes(n))
 
           return {
@@ -205,9 +205,9 @@ export default function ExerciseLibraryPage() {
       const trainingData = await trainingResponse.json()
       const workoutData = await workoutResponse.json()
 
-      const combinedExercises = metaData.exercises.map((exercise: Record<string, unknown>) => {
-        const training = trainingData.exercises.find((t: Record<string, unknown>) => t.id === exercise.id)
-        const workout = workoutData.exercises.find((w: Record<string, unknown>) => w.id === exercise.id)
+      const combinedExercises = metaData.exercises.map((exercise: Exercise) => {
+        const training = trainingData.exercises.find((t: Exercise) => t.id === exercise.id)
+        const workout = workoutData.exercises.find((w: Exercise) => w.id === exercise.id)
         return {
           ...exercise,
           muscleGroups: training?.muscleGroups || [],
@@ -284,12 +284,12 @@ export default function ExerciseLibraryPage() {
         if (selectedUser) { setPersonalInputs(selectedUser.inputs); return }
         if (!isPaidTier || !userId) { setPersonalInputs(null); return }
         setPersonalInputs(null)
-      } catch {
+      } catch (e) {
         setPersonalInputs(null)
       }
     }
     loadPersonal()
-  }, [isPaidTier, userId, selectedUser])
+  }, [isPaidTier, userId, selectedUser?.id])
 
   // Load user's workout spaces
   useEffect(() => {
@@ -524,7 +524,7 @@ export default function ExerciseLibraryPage() {
           .select('exercise_id')
           .eq('space_id', selectedSpaceId)
         if (error) throw error
-        const ids = new Set<string>((data ?? []).map((r: Record<string, unknown>) => r.exercise_id as string))
+        const ids = new Set<string>((data ?? []).map((r: any) => r.exercise_id as string))
         setSpaceAllowedExerciseIds(ids)
       } catch (err) {
         console.error('Failed to fetch available exercises for space', err)
@@ -1001,7 +1001,6 @@ function ExerciseDetailDrawer({ open, onOpenChange, exercise, isPaidTier }: { op
   const [videoError, setVideoError] = useState<null | { code: 'missing_api_key' | 'quota_exceeded' | 'upstream_error' | 'no_results' | 'no_queries'; message: string }>(null)
   const [videoIndex, setVideoIndex] = useState(0)
   const [isTransitioning, setIsTransitioning] = useState(false)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [slideDirection, setSlideDirection] = useState<'left' | 'right' | null>(null)
 
   if (!exercise) return null
@@ -1015,8 +1014,8 @@ function ExerciseDetailDrawer({ open, onOpenChange, exercise, isPaidTier }: { op
         const val = typeof window !== 'undefined' ? localStorage.getItem(key) : null
         if (val) { raw = JSON.parse(val); break }
       }
-      if (raw && typeof raw === 'object' && exercise.id in (raw as Record<string, unknown>)) {
-        const entry = (raw as Record<string, unknown>)[exercise.id]
+      if (raw && typeof raw === 'object' && exercise.id in (raw as Record<string, any>)) {
+        const entry = (raw as Record<string, any>)[exercise.id]
         const dt = typeof entry?.lastUsedAt === 'string' ? new Date(entry.lastUsedAt) : null
         if (dt && !Number.isNaN(dt.getTime())) {
           const now = new Date()
@@ -1028,9 +1027,7 @@ function ExerciseDetailDrawer({ open, onOpenChange, exercise, isPaidTier }: { op
           return dt.toLocaleDateString()
         }
       }
-    } catch (error) {
-      console.error('Error processing last used data:', error)
-    }
+    } catch {}
     return 'Never'
   })()
 
@@ -1042,10 +1039,7 @@ function ExerciseDetailDrawer({ open, onOpenChange, exercise, isPaidTier }: { op
       if (watchMatch && watchMatch[1]) return watchMatch[1]
       const shortsMatch = url.match(/youtube\.com\/shorts\/([A-Za-z0-9_-]{6,})/)
       if (shortsMatch && shortsMatch[1]) return shortsMatch[1]
-    } catch (error) {
-      console.error('Error extracting YouTube ID:', error)
-      return null
-    }
+    } catch { return null }
     return null
   }
   const toYouTubeEmbedUrl = (url: string): string | null => {
@@ -1104,13 +1098,11 @@ function ExerciseDetailDrawer({ open, onOpenChange, exercise, isPaidTier }: { op
         const val = typeof window !== 'undefined' ? localStorage.getItem(key) : null
         if (val) { raw = JSON.parse(val); break }
       }
-      if (raw && typeof raw === 'object' && exercise.id in (raw as Record<string, unknown>)) {
-        const weekly = Array.isArray((raw as Record<string, unknown>)[exercise.id]?.weeklyCounts) ? (raw as Record<string, unknown>)[exercise.id].weeklyCounts as { label: string; count: number }[] : []
+      if (raw && typeof raw === 'object' && exercise.id in (raw as Record<string, any>)) {
+        const weekly = Array.isArray((raw as any)[exercise.id]?.weeklyCounts) ? (raw as any)[exercise.id].weeklyCounts as { label: string; count: number }[] : []
         return weekly.slice(-8)
       }
-    } catch (error) {
-      console.error('Error processing usage data:', error)
-    }
+    } catch {}
     return Array.from({ length: 8 }).map((_, i) => ({ label: `W${i + 1}`, count: 0 }))
   })()
 
@@ -1275,12 +1267,10 @@ function StatisticsChart({ mode, exercises }: { mode: 'workout' | 'muscle'; exer
       const keys = ['workout_plans_usage', 'workout-plans-usage', 'workoutHistory', 'workout-plans']
       for (const k of keys) {
         const v = typeof window !== 'undefined' ? localStorage.getItem(k) : null
-        if (v) return JSON.parse(v) as Record<string, unknown>
+        if (v) return JSON.parse(v) as Record<string, any>
       }
-    } catch (error) {
-      console.error('Error loading usage map in StatisticsChart:', error)
-    }
-    return {} as Record<string, unknown>
+    } catch {}
+    return {} as Record<string, any>
   }, [])
 
   const getExerciseUsage = useCallback((exerciseId: string, fallback?: number) => {
@@ -1339,12 +1329,10 @@ function StatisticsExercisesChart({ exercises, workoutTypes, initialType }: { ex
       const keys = ['workout_plans_usage', 'workout-plans-usage', 'workoutHistory', 'workout-plans']
       for (const k of keys) {
         const v = typeof window !== 'undefined' ? localStorage.getItem(k) : null
-        if (v) return JSON.parse(v) as Record<string, unknown>
+        if (v) return JSON.parse(v) as Record<string, any>
       }
-    } catch (error) {
-      console.error('Error loading usage map in StatisticsExercisesChart:', error)
-    }
-    return {} as Record<string, unknown>
+    } catch {}
+    return {} as Record<string, any>
   }, [])
 
   const getExerciseUsage = useCallback((exerciseId: string, fallback?: number) => {
