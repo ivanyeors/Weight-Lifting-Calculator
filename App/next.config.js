@@ -6,9 +6,7 @@ const repoName = process.env.GITHUB_REPOSITORY
   : '/Weight-Lifting-Calculator'
 
 const nextConfig = {
-  // Only apply basePath/assetPrefix in production (e.g. GitHub Pages)
-  basePath: isProd ? repoName : undefined,
-  assetPrefix: isProd ? `${repoName}` : undefined,
+  // Custom domain configuration - no basePath needed
   trailingSlash: true,
   output: isProd ? 'export' : undefined,
   eslint: {
