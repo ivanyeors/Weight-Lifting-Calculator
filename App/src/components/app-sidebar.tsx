@@ -162,8 +162,8 @@ export function AppSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/body-weight-goal'}>
-                  <a href="/body-weight-goal" className={`flex items-center gap-2 ${pathname === '/body-weight-goal' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
+                <SidebarMenuButton asChild isActive={pathname === '/fitness-goal'}>
+                  <a href="/fitness-goal" className={`flex items-center gap-2 ${pathname === '/fitness-goal' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
                     <Flame />
                     <span className="group-data-[collapsible=icon]:hidden">Fitness Goal</span>
                   </a>

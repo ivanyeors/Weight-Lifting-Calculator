@@ -1,262 +1,191 @@
 "use client"
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
-import { Badge } from "@/components/ui/badge"
-import { Search } from "lucide-react"
-import { supabase } from '@/lib/supabaseClient'
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerFooter,
-  DrawerClose,
-} from "@/components/ui/drawer"
-
-interface Exercise {
-  id: string
-  name: string
-  description: string
-  muscleGroups?: string[]
-  baseWeightFactor?: number
-}
-
-interface WorkoutSpace {
-  id: string
-  name: string
-}
+import { toast } from 'sonner'
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Card } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 
 interface CreateTemplateDrawerProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSave: (template: {
+  onSave: (templateData: {
     name: string
     workoutSpaceId: string
     exercises: string[]
   }) => void
 }
 
-export function CreateTemplateDrawer({ open, onOpenChange, onSave }: CreateTemplateDrawerProps) {
-  const [name, setName] = useState('')
-  const [workoutSpaceId, setWorkoutSpaceId] = useState('')
-  const [exerciseSearch, setExerciseSearch] = useState('')
-  const [selectedExercises, setSelectedExercises] = useState<Set<string>>(new Set())
-  
+interface Exercise {
+  id: string
+  name: string
+  description: string
+  muscleGroups?: string[]
+}
+
+export function CreateTemplateDrawer({
+  open,
+  onOpenChange,
+  onSave
+}: CreateTemplateDrawerProps) {
+  const [templateName, setTemplateName] = useState('')
+  const [selectedSpaceId, setSelectedSpaceId] = useState('gym')
+  const [selectedExercises, setSelectedExercises] = useState<string[]>([])
   const [exercises, setExercises] = useState<Exercise[]>([])
-  const [workoutSpaces, setWorkoutSpaces] = useState<WorkoutSpace[]>([])
-  const [loading, setLoading] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
 
-  // Load exercises and workout spaces
+  // Load exercises
   useEffect(() => {
-    const loadData = async () => {
+    const loadExercises = async () => {
       try {
-        // Load exercises from Supabase or fallback to local JSONs
-        const { data: exerciseData, error: exerciseError } = await supabase
-          .from('exercises')
-          .select('id, name, description, base_weight_factor')
-          .order('name', { ascending: true })
-
-        if (exerciseError) throw exerciseError
-
-        if (exerciseData && exerciseData.length > 0) {
-          const mapped: Exercise[] = exerciseData.map((row: any) => ({
-            id: row.id as string,
-            name: (row.name as string) ?? row.id,
-            description: (row.description as string) ?? '',
-            baseWeightFactor: Number(row.base_weight_factor ?? 1.0),
-          }))
-          setExercises(mapped)
-        } else {
-          // Fallback to local JSONs
-          const [metaResponse, trainingResponse] = await Promise.all([
-            fetch('/exercises_meta.json'),
-            fetch('/exercises_training_data.json')
-          ])
-          
-          const metaData = await metaResponse.json()
-          const trainingData = await trainingResponse.json()
-          
-          const merged: Exercise[] = metaData.exercises.map((m: any) => {
-            const training = trainingData.exercises.find((t: any) => t.id === m.id)
-            return {
-              id: m.id,
-              name: m.name,
-              description: m.description,
-              baseWeightFactor: training?.baseWeightFactor ?? 1.0,
-              muscleGroups: training?.muscleGroups ?? []
-            }
-          })
-          setExercises(merged)
-        }
-
-        // Load workout spaces
-        const { data: spaceData, error: spaceError } = await supabase
-          .from('workout_spaces')
-          .select('id, name')
-          .order('name', { ascending: true })
-
-        if (spaceError) throw spaceError
-        setWorkoutSpaces((spaceData ?? []).map((r: any) => ({ 
-          id: r.id as string, 
-          name: r.name as string 
-        })))
-      } catch (err) {
-        console.error('Failed to load data', err)
+        // For now, we'll use mock data
+        const mockExercises: Exercise[] = [
+          { id: 'bench-press', name: 'Bench Press', description: 'Chest exercise', muscleGroups: ['Chest', 'Triceps'] },
+          { id: 'squats', name: 'Squats', description: 'Leg exercise', muscleGroups: ['Legs', 'Glutes'] },
+          { id: 'deadlift', name: 'Deadlift', description: 'Full body exercise', muscleGroups: ['Back', 'Legs'] },
+          { id: 'pull-ups', name: 'Pull-ups', description: 'Back exercise', muscleGroups: ['Back', 'Biceps'] },
+          { id: 'shoulder-press', name: 'Shoulder Press', description: 'Shoulder exercise', muscleGroups: ['Shoulders'] },
+          { id: 'lunges', name: 'Lunges', description: 'Leg exercise', muscleGroups: ['Legs'] }
+        ]
+        setExercises(mockExercises)
+      } catch (error) {
+        console.error('Failed to load exercises:', error)
+        toast.error('Failed to load exercises')
       }
     }
 
     if (open) {
-      loadData()
+      loadExercises()
     }
   }, [open])
 
-  // Filter exercises based on search
-  const filteredExercises = useMemo(() => {
-    if (!exerciseSearch) return exercises
-    const searchLower = exerciseSearch.toLowerCase()
-    return exercises.filter(exercise => 
-      exercise.name.toLowerCase().includes(searchLower) ||
-      exercise.description.toLowerCase().includes(searchLower)
-    )
-  }, [exercises, exerciseSearch])
-
   const handleSave = () => {
-    if (!name.trim() || !workoutSpaceId || selectedExercises.size === 0) return
-    
+    if (!templateName.trim()) {
+      toast.error('Please enter a template name')
+      return
+    }
+
+    if (selectedExercises.length === 0) {
+      toast.error('Please select at least one exercise')
+      return
+    }
+
     onSave({
-      name: name.trim(),
-      workoutSpaceId,
-      exercises: Array.from(selectedExercises)
+      name: templateName.trim(),
+      workoutSpaceId: selectedSpaceId,
+      exercises: selectedExercises
     })
-    
+
     // Reset form
-    setName('')
-    setWorkoutSpaceId('')
-    setExerciseSearch('')
-    setSelectedExercises(new Set())
+    setTemplateName('')
+    setSelectedExercises([])
+    setSearchTerm('')
     onOpenChange(false)
   }
 
-  const handleReset = () => {
-    setName('')
-    setWorkoutSpaceId('')
-    setExerciseSearch('')
-    setSelectedExercises(new Set())
+  const toggleExercise = (exerciseId: string) => {
+    setSelectedExercises(prev => 
+      prev.includes(exerciseId) 
+        ? prev.filter(id => id !== exerciseId)
+        : [...prev, exerciseId]
+    )
   }
 
-  const toggleExercise = (exerciseId: string, checked: boolean) => {
-    const newSelected = new Set(selectedExercises)
-    if (checked) {
-      newSelected.add(exerciseId)
-    } else {
-      newSelected.delete(exerciseId)
-    }
-    setSelectedExercises(newSelected)
-  }
+  const filteredExercises = exercises.filter(exercise =>
+    exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    exercise.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    exercise.muscleGroups?.some(group => 
+      group.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  )
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange} direction="right">
-      <DrawerContent className="data-[vaul-drawer-direction=right]:!w-1/2 data-[vaul-drawer-direction=right]:!max-w-none">
-        <div className="flex flex-col h-full">
-          <DrawerHeader className="pb-0">
-            <DrawerTitle>Create Workout Template</DrawerTitle>
-          </DrawerHeader>
-
-        <div className="px-6 space-y-6 flex-1 overflow-y-auto">
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>Create Workout Template</DrawerTitle>
+        </DrawerHeader>
+        
+        <div className="p-6 space-y-6">
           {/* Template Name */}
           <div className="space-y-2">
-            <Label htmlFor="template-name">Template Name</Label>
+            <Label htmlFor="templateName">Template Name</Label>
             <Input
-              id="template-name"
-              placeholder="Enter template name..."
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              id="templateName"
+              value={templateName}
+              onChange={(e) => setTemplateName(e.target.value)}
+              placeholder="Enter template name"
             />
           </div>
 
-          {/* Workout Space Selection */}
+          {/* Workout Space */}
           <div className="space-y-2">
-            <Label htmlFor="workout-space">Workout Space</Label>
-            <Select value={workoutSpaceId} onValueChange={setWorkoutSpaceId}>
+            <Label>Workout Space</Label>
+            <Select value={selectedSpaceId} onValueChange={setSelectedSpaceId}>
               <SelectTrigger>
-                <SelectValue placeholder="Select a workout space" />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {workoutSpaces.map((space) => (
-                  <SelectItem key={space.id} value={space.id}>
-                    {space.name}
-                  </SelectItem>
-                ))}
+                <SelectItem value="gym">Gym</SelectItem>
+                <SelectItem value="home">Home</SelectItem>
+                <SelectItem value="outdoor">Outdoor</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          <Separator />
-
-          {/* Exercise Search */}
-          <div className="space-y-2">
-            <Label htmlFor="exercise-search">Search Exercises</Label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          {/* Exercise Selection */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label>Exercises ({selectedExercises.length} selected)</Label>
               <Input
-                id="exercise-search"
                 placeholder="Search exercises..."
-                value={exerciseSearch}
-                onChange={(e) => setExerciseSearch(e.target.value)}
-                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-48"
               />
             </div>
-          </div>
 
-          {/* Exercise Selection */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label>Select Exercises</Label>
-              <Badge variant="secondary">
-                {selectedExercises.size} selected
-              </Badge>
-            </div>
-            
-            <div className="overflow-y-auto space-y-2 border rounded-md p-3">
+            <div className="space-y-2 max-h-64 overflow-y-auto">
               {filteredExercises.map((exercise) => (
-                <Checkbox
-                  key={exercise.id}
-                  variant="chip"
-                  checked={selectedExercises.has(exercise.id)}
-                  onCheckedChange={(checked) => toggleExercise(exercise.id, checked as boolean)}
-                  className="w-full justify-between"
-                >
-                  <div className="flex flex-col items-start">
-                    <span className="font-medium">{exercise.name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {exercise.description}
-                    </span>
+                <Card key={exercise.id} className="p-3">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox
+                      checked={selectedExercises.includes(exercise.id)}
+                      onCheckedChange={() => toggleExercise(exercise.id)}
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium">{exercise.name}</div>
+                      <div className="text-sm text-muted-foreground">{exercise.description}</div>
+                      {exercise.muscleGroups && exercise.muscleGroups.length > 0 && (
+                        <div className="flex gap-1 mt-1">
+                          {exercise.muscleGroups.map((group) => (
+                            <Badge key={group} variant="outline" className="text-xs">
+                              {group}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </Checkbox>
+                </Card>
               ))}
             </div>
           </div>
-        </div>
 
-        <DrawerFooter>
-          <div className="flex items-center justify-end gap-2">
-            <Button variant="outline" onClick={handleReset}>
-              Reset
+          {/* Actions */}
+          <div className="flex gap-3 pt-4">
+            <Button onClick={handleSave} className="flex-1">
+              Create Template
             </Button>
-            <Button 
-              onClick={handleSave}
-              disabled={!name.trim() || !workoutSpaceId || selectedExercises.size === 0}
-            >
-              Save Template
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
             </Button>
           </div>
-        </DrawerFooter>
         </div>
       </DrawerContent>
     </Drawer>

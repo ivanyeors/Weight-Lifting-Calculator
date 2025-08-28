@@ -1,93 +1,84 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
-import type { PersonalInputs, Gender, ExperienceCategory } from '@/lib/idealWeight'
+import { useState, useEffect, useCallback } from 'react'
 
-export type SelectedManagedUser = {
+interface User {
   id: string
   name: string
-  inputs: PersonalInputs
-  injuries: string[] // muscle ids
-  medicalConditions: string[]
-  foodAllergies: string[]
-  goals?: string
-  note?: string
+  email: string
+  birth_date?: string
+  height?: number
+  weight?: number
+  fitness_goal?: string
+  activity_level?: string
+  inputs?: Record<string, unknown>
 }
 
-export function useSelectedUser() {
-  const [user, setUser] = useState<SelectedManagedUser | null>(null)
+interface UseSelectedUserReturn {
+  user: User | null
+  setUser: (user: User | null) => void
+  loading: boolean
+  error: string | null
+}
+
+export function useSelectedUser(): UseSelectedUserReturn {
+  const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const reload = useCallback(async () => {
+  const loadUser = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
-      const selectedId = typeof window !== 'undefined' ? localStorage.getItem('fitspo:selected_user_id') : null
-      if (!selectedId) { setUser(null); return }
-      const { data: mu, error: muErr } = await supabase
-        .from('managed_users')
-        .select('id, name, body_weight_kg, height_cm, age, skeletal_muscle_mass_kg, body_fat_mass_kg, gender, experience, medical_conditions, food_allergies, goals, note')
-        .eq('id', selectedId)
-        .single()
-      if (muErr || !mu) { setUser(null); return }
-      const { data: inj } = await supabase
-        .from('managed_user_injuries')
-        .select('muscle_id')
-        .eq('user_id', mu.id)
-      const injuries = (inj ?? []).map((r: any) => r.muscle_id as string)
-      const toGender = (g: any): Gender => (g === 'female' ? 'female' : 'male')
-      const allowedExp = new Set(['cat1','cat2','cat3','cat4','cat5'])
-      const toExp = (e: any): ExperienceCategory => (allowedExp.has(e) ? e : 'cat3') as ExperienceCategory
-      const inputs: PersonalInputs = {
-        bodyWeight: Number(mu.body_weight_kg ?? 70),
-        height: Number(mu.height_cm ?? 175),
-        age: Number(mu.age ?? 25),
-        gender: toGender(mu.gender),
-        experience: toExp(mu.experience),
-        skeletalMuscleMass: Number(mu.skeletal_muscle_mass_kg ?? 30),
-        bodyFatMass: Number(mu.body_fat_mass_kg ?? 20),
+      
+      // For GitHub Pages, we can't use server-side data fetching
+      // This would normally load user data from Supabase or localStorage
+      const storedUser = typeof window !== 'undefined' 
+        ? localStorage.getItem('selected-user')
+        : null
+      
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser) as User
+        setUser(parsedUser)
+      } else {
+        // Mock user for demo purposes
+        const mockUser: User = {
+          id: 'demo-user',
+          name: 'Demo User',
+          email: 'demo@example.com',
+          height: 175,
+          weight: 70,
+          fitness_goal: 'muscle_gain',
+          activity_level: 'moderately_active'
+        }
+        setUser(mockUser)
       }
-      setUser({
-        id: mu.id as string,
-        name: (mu.name as string) || 'User',
-        inputs,
-        injuries,
-        medicalConditions: Array.isArray(mu.medical_conditions) ? (mu.medical_conditions as string[]) : [],
-        foodAllergies: Array.isArray(mu.food_allergies) ? (mu.food_allergies as string[]) : [],
-        goals: (mu.goals as string | null) ?? undefined,
-        note: (mu.note as string | null) ?? undefined,
-      })
-    } catch (e) {
-      setError('Failed to load selected user')
-      setUser(null)
+    } catch {
+      setError('Failed to load user data')
     } finally {
       setLoading(false)
     }
   }, [])
 
-  useEffect(() => { reload() }, [reload])
-
-  // Cross-tab and same-tab selection sync
   useEffect(() => {
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === 'fitspo:selected_user_id') reload()
-    }
-    const onSameTab = () => reload()
-    if (typeof window !== 'undefined') {
-      window.addEventListener('storage', onStorage)
-      window.addEventListener('fitspo:selected_user_changed', onSameTab as EventListener)
-    }
-    return () => {
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('storage', onStorage)
-        window.removeEventListener('fitspo:selected_user_changed', onSameTab as EventListener)
-      }
-    }
-  }, [reload])
+    loadUser()
+  }, [loadUser])
 
-  return { user, loading, error, reload }
+  const handleSetUser = useCallback((newUser: User | null) => {
+    setUser(newUser)
+    if (newUser && typeof window !== 'undefined') {
+      localStorage.setItem('selected-user', JSON.stringify(newUser))
+    } else if (typeof window !== 'undefined') {
+      localStorage.removeItem('selected-user')
+    }
+  }, [])
+
+  return {
+    user,
+    setUser: handleSetUser,
+    loading,
+    error
+  }
 }
 
 
