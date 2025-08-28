@@ -50,8 +50,11 @@ export default function AccountPage() {
     isLoading: isGoogleCalendarLoading,
     error: googleCalendarError,
     events: googleCalendarEvents,
-    logout: disconnectGoogleCalendar
-  } = useGoogleCalendar({ autoSync: false })
+    accounts: googleCalendarAccounts,
+    removeAccount: removeGoogleCalendarAccount,
+    logout: disconnectGoogleCalendar,
+    fetchEvents
+  } = useGoogleCalendar({ autoSync: true })
 
   const canChangePassword = useMemo(() => identities.some(i => i.provider === "email"), [identities])
   
@@ -65,6 +68,13 @@ export default function AccountPage() {
       setActiveTab(initialTab)
     }
   }, [searchParams])
+
+  // Refresh Google Calendar state when account page loads
+  useEffect(() => {
+    if (isGoogleCalendarConnected) {
+      fetchEvents()
+    }
+  }, [isGoogleCalendarConnected, fetchEvents])
 
   useEffect(() => {
     let unsub: (() => void) | null = null
@@ -255,7 +265,7 @@ export default function AccountPage() {
     if (typeof window !== 'undefined') {
       // Respect basePath in production (GitHub Pages) by using NEXT_PUBLIC_BASE_URL
       const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/')
-      window.location.replace(`${base}fitness-calculator`)
+      window.location.replace(`${base}ideal-exercise-weight`)
     }
     return null
   }
@@ -389,11 +399,11 @@ export default function AccountPage() {
                   <div className={`w-3 h-3 rounded-full ${isGoogleCalendarConnected ? 'bg-green-500' : 'bg-gray-300'}`} />
                   <div>
                     <div className="font-medium">
-                      {isGoogleCalendarConnected ? 'Connected to Google Calendar' : 'Not connected'}
+                      {isGoogleCalendarConnected ? `${googleCalendarAccounts.length} Google Calendar(s) Connected` : 'Not connected'}
                     </div>
                     <div className="text-sm text-muted-foreground">
                       {isGoogleCalendarConnected 
-                        ? `${googleCalendarEvents.length} events synced`
+                        ? `${googleCalendarEvents.length} events synced across ${googleCalendarAccounts.length} account(s)`
                         : 'Connect to sync your workout sessions with Google Calendar'
                       }
                     </div>
@@ -401,10 +411,42 @@ export default function AccountPage() {
                 </div>
                 {isGoogleCalendarConnected && (
                   <Badge variant="secondary" className="text-green-700 bg-green-100">
-                    Connected
+                    {googleCalendarAccounts.length} Connected
                   </Badge>
                 )}
               </div>
+
+              {/* Connected Accounts List */}
+              {googleCalendarAccounts.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="font-medium">Connected Accounts:</h4>
+                  {googleCalendarAccounts.map((account) => (
+                    <div key={account.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div 
+                          className="w-4 h-4 rounded-full" 
+                          style={{ backgroundColor: account.color }}
+                        />
+                        <div>
+                          <div className="font-medium">{account.name}</div>
+                          <div className="text-sm text-muted-foreground">{account.email}</div>
+                          <div className="text-xs text-muted-foreground">
+                            Connected {new Date(account.connectedAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeGoogleCalendarAccount(account.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Error Display */}
               {googleCalendarError && (

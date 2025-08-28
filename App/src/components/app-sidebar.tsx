@@ -154,18 +154,18 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/fitness-calculator'}>
-                  <a href="/fitness-calculator" className={`flex items-center gap-2 ${pathname === '/fitness-calculator' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
+                <SidebarMenuButton asChild isActive={pathname === '/ideal-exercise-weight'}>
+                  <a href="/ideal-exercise-weight" className={`flex items-center gap-2 ${pathname === '/ideal-exercise-weight' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
                     <Calculator />
-                    <span className="group-data-[collapsible=icon]:hidden">Weight Calculator</span>
+                    <span className="group-data-[collapsible=icon]:hidden">Exercise weights</span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/calorie-calculator'}>
-                  <a href="/calorie-calculator" className={`flex items-center gap-2 ${pathname === '/calorie-calculator' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
+                <SidebarMenuButton asChild isActive={pathname === '/body-weight-goal'}>
+                  <a href="/body-weight-goal" className={`flex items-center gap-2 ${pathname === '/body-weight-goal' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
                     <Flame />
-                    <span className="group-data-[collapsible=icon]:hidden">Calorie Calculator</span>
+                    <span className="group-data-[collapsible=icon]:hidden">Fitness Goal</span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -184,6 +184,14 @@ export function AppSidebar() {
                   <a href="/exercise-library" className={`flex items-center gap-2 ${pathname === '/exercise-library' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
                     <Dumbbell />
                     <span className="group-data-[collapsible=icon]:hidden">Exercise Library</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/plans/nutrition'}>
+                  <a href="/plans/nutrition" className={`flex items-center gap-2 ${pathname === '/plans/nutrition' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
+                    <UtensilsCrossed />
+                    <span className="group-data-[collapsible=icon]:hidden">Recipes</span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -214,21 +222,22 @@ export function AppSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/plans/workout-plans'}>
-                  <a href="/plans/workout-plans" className={`flex items-center gap-2 ${pathname === '/plans/workout-plans' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
+                <SidebarMenuButton asChild isActive={pathname === '/plans/workout-templates'}>
+                  <a href="/plans/workout-templates" className={`flex items-center gap-2 ${pathname === '/plans/workout-templates' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
                     <ClipboardList />
-                    <span className="group-data-[collapsible=icon]:hidden">Workout Plans</span>
+                    <span className="group-data-[collapsible=icon]:hidden">Workout Templates</span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/plans/nutrition'}>
-                  <a href="/plans/nutrition" className={`flex items-center gap-2 ${pathname === '/plans/nutrition' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
-                    <UtensilsCrossed />
-                    <span className="group-data-[collapsible=icon]:hidden">Nutrition</span>
+                <SidebarMenuButton asChild isActive={pathname === '/plans/workout-plans'}>
+                  <a href="/plans/workout-plans" className={`flex items-center gap-2 ${pathname === '/plans/workout-plans' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
+                    <ClipboardList />
+                    <span className="group-data-[collapsible=icon]:hidden">Fitness Calendar</span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -289,7 +298,7 @@ export function AppSidebar() {
                       await supabase.auth.signOut();
                     } finally {
                       const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/');
-                      window.location.replace(`${base}fitness-calculator`);
+                      window.location.replace(`${base}ideal-exercise-weight`);
                     }
                   }}
                   className="cursor-pointer text-red-600 focus:text-red-600"

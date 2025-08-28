@@ -12,7 +12,7 @@ import {
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { Dumbbell, Activity } from 'lucide-react'
-import { ExerciseDropdown } from "@/app/fitness-calculator/ExerciseDropdown"
+import { ExerciseDropdown } from "@/app/ideal-exercise-weight/ExerciseDropdown"
 
 // Front assets
 import FrontHead from '@/assets/body-vector/front-body/Head.svg'

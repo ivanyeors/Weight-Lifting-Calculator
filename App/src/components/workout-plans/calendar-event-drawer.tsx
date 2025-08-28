@@ -8,6 +8,11 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Calendar, Clock, MapPin, AlertTriangle, Users, X } from 'lucide-react'
+import { Calendar as CalendarComponent } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+
+import { DateRange } from 'react-day-picker'
+import { format, setHours, setMinutes } from 'date-fns'
 
 interface User {
   id: string
@@ -57,6 +62,7 @@ interface CalendarEventDrawerProps {
   mode: 'view' | 'create' | 'edit'
   event?: CalendarEvent | null
   trainers: Trainer[]
+  workoutSpaces: { id: string; name: string }[]
   onCreateEvent?: (eventData: CalendarEvent) => void
   onUpdateEvent?: (eventId: string, eventData: Partial<CalendarEvent>) => void
   onUpdateAttendance?: (eventId: string, userId: string, status: 'present' | 'absent' | 'late' | 'cancelled') => void
@@ -69,16 +75,18 @@ export function CalendarEventDrawer({
   mode,
   event,
   trainers,
+  workoutSpaces,
   onCreateEvent,
   onUpdateAttendance,
   prefillDates
 }: CalendarEventDrawerProps) {
   const [newEventData, setNewEventData] = useState({
     title: '',
-    start: '',
-    end: '',
+    dateRange: undefined as DateRange | undefined,
+    startTime: '09:00',
+    endTime: '10:00',
     trainer: '',
-    location: '',
+    workoutSpaceId: '',
     maxParticipants: 8,
     description: ''
   })
@@ -88,10 +96,14 @@ export function CalendarEventDrawer({
     if (isOpen && mode === 'create') {
       setNewEventData({
         title: '',
-        start: prefillDates?.start || '',
-        end: prefillDates?.end || '',
+        dateRange: prefillDates ? {
+          from: new Date(prefillDates.start),
+          to: new Date(prefillDates.end)
+        } : undefined,
+        startTime: '09:00',
+        endTime: '10:00',
         trainer: '',
-        location: '',
+        workoutSpaceId: '',
         maxParticipants: 8,
         description: ''
       })
@@ -99,21 +111,33 @@ export function CalendarEventDrawer({
   }, [isOpen, mode, prefillDates])
 
   const handleCreateEvent = () => {
-    if (!newEventData.title || !newEventData.start || !newEventData.end) return
+    if (!newEventData.title || !newEventData.dateRange?.from) return
 
     const trainer = trainers.find(t => t.id === newEventData.trainer)
+    const workoutSpace = workoutSpaces.find(s => s.id === newEventData.workoutSpaceId)
+    
+    // Parse start and end times
+    const [startHour, startMinute] = newEventData.startTime.split(':').map(Number)
+    const [endHour, endMinute] = newEventData.endTime.split(':').map(Number)
+    
+    // Create start and end dates with times
+    const startDate = setMinutes(setHours(newEventData.dateRange.from, startHour), startMinute)
+    const endDate = newEventData.dateRange.to 
+      ? setMinutes(setHours(newEventData.dateRange.to, endHour), endMinute)
+      : setMinutes(setHours(newEventData.dateRange.from, endHour), endMinute)
+    
     const eventData = {
       id: Date.now().toString(),
       title: newEventData.title,
-      start: newEventData.start.replace('T', ' '),
-      end: newEventData.end.replace('T', ' '),
+      start: format(startDate, "yyyy-MM-dd HH:mm"),
+      end: format(endDate, "yyyy-MM-dd HH:mm"),
       backgroundColor: '#3b82f6',
       borderColor: '#2563eb',
       extendedProps: {
         trainer: trainer?.name || 'Unassigned',
         participants: [],
         plan: newEventData.title,
-        location: newEventData.location,
+        location: workoutSpace?.name || 'No location specified',
         maxParticipants: newEventData.maxParticipants,
         currentParticipants: 0,
         medicalFlags: [],
@@ -144,23 +168,72 @@ export function CalendarEventDrawer({
           />
         </div>
         
-        <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-4">
           <div>
-            <Label>Start Time</Label>
-            <Input 
-              type="datetime-local" 
-              value={newEventData.start}
-              onChange={(e) => setNewEventData(prev => ({ ...prev, start: e.target.value }))}
-            />
+            <Label>Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                >
+                  <Calendar className="mr-2 h-4 w-4" />
+                  {newEventData.dateRange?.from ? (
+                    format(newEventData.dateRange.from, "LLL dd, y")
+                  ) : (
+                    <span>Select date</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarComponent
+                  mode="single"
+                  selected={newEventData.dateRange?.from}
+                  onSelect={(date) => setNewEventData(prev => ({ 
+                    ...prev, 
+                    dateRange: date ? { from: date, to: date } : undefined 
+                  }))}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
-          <div>
-            <Label>End Time</Label>
-            <Input 
-              type="datetime-local" 
-              value={newEventData.end}
-              onChange={(e) => setNewEventData(prev => ({ ...prev, end: e.target.value }))}
-            />
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="time-from">Start Time</Label>
+              <div className="relative flex w-full items-center gap-2">
+                <Clock className="text-muted-foreground pointer-events-none absolute left-2.5 size-4 select-none" />
+                <Input
+                  id="time-from"
+                  type="time"
+                  step="1"
+                  value={newEventData.startTime}
+                  onChange={(e) => setNewEventData(prev => ({ ...prev, startTime: e.target.value }))}
+                  className="appearance-none pl-8 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="time-to">End Time</Label>
+              <div className="relative flex w-full items-center gap-2">
+                <Clock className="text-muted-foreground pointer-events-none absolute left-2.5 size-4 select-none" />
+                <Input
+                  id="time-to"
+                  type="time"
+                  step="1"
+                  value={newEventData.endTime}
+                  onChange={(e) => setNewEventData(prev => ({ ...prev, endTime: e.target.value }))}
+                  className="appearance-none pl-8 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+                />
+              </div>
+            </div>
           </div>
+          
+          {!newEventData.dateRange?.from && (
+            <p className="text-sm text-muted-foreground mt-1">
+              Select a date for your workout session
+            </p>
+          )}
         </div>
         
         <div>
@@ -180,12 +253,19 @@ export function CalendarEventDrawer({
         </div>
         
         <div>
-          <Label>Location</Label>
-          <Input 
-            placeholder="Enter location" 
-            value={newEventData.location}
-            onChange={(e) => setNewEventData(prev => ({ ...prev, location: e.target.value }))}
-          />
+          <Label>Workout Space</Label>
+          <Select value={newEventData.workoutSpaceId} onValueChange={(value) => setNewEventData(prev => ({ ...prev, workoutSpaceId: value }))}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select workout space" />
+            </SelectTrigger>
+            <SelectContent>
+              {workoutSpaces.map((space) => (
+                <SelectItem key={space.id} value={space.id}>
+                  {space.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         
         <div>
@@ -208,7 +288,13 @@ export function CalendarEventDrawer({
         </div>
         
         <div className="flex gap-2 pt-4">
-          <Button className="flex-1" onClick={handleCreateEvent}>Create Session</Button>
+          <Button 
+            className="flex-1" 
+            onClick={handleCreateEvent}
+            disabled={!newEventData.title || !newEventData.dateRange?.from}
+          >
+            Create Session
+          </Button>
           <Button variant="outline" className="flex-1" onClick={onClose}>Cancel</Button>
         </div>
       </div>

@@ -277,7 +277,7 @@ export default function ExerciseLibraryPage() {
     loadExercises()
   }, [])
 
-  // Load saved personal inputs from fitness-calculator (Personal tier)
+          // Load saved personal inputs from ideal-exercise-weight (Personal tier)
   useEffect(() => {
     const loadPersonal = async () => {
       try {
