@@ -112,7 +112,7 @@ export default function WorkoutSpacesPage() {
           .select('equipment_id')
           .eq('space_id', selectedSpaceId)
         if (error) throw error
-        const ids = new Set<string>((data ?? []).map((r: Record<string, unknown>) => r.equipment_id as string))
+        const ids = new Set<string>((data ?? []).map((r: any) => r.equipment_id as string))
         setSelectedEquipmentIds(ids)
       } catch (err) {
         console.error('Failed to load space equipment', err)
@@ -175,7 +175,7 @@ export default function WorkoutSpacesPage() {
         .select('equipment_id')
         .eq('space_id', selectedSpaceId)
       if (fetchMapErr) throw fetchMapErr
-      const existing = new Set<string>((existingRows ?? []).map((r: Record<string, unknown>) => r.equipment_id as string))
+      const existing = new Set<string>((existingRows ?? []).map((r: any) => r.equipment_id as string))
       const desired = selectedEquipmentIds
       const toInsert = Array.from(desired).filter((id) => !existing.has(id))
       const toDelete = Array.from(existing).filter((id) => !desired.has(id))

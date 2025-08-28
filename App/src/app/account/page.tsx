@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 
 import { supabase } from "@/lib/supabaseClient"
@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 
-
+import { LoginForm } from "@/components/login-form"
 import { PricingPlansClient } from "@/components/pricing-plans-client"
 import { ThemeSelectionCard } from "@/components/theme-selection-card"
 import { GoogleCalendarSync } from "@/components/google-calendar-sync"
@@ -25,6 +25,7 @@ import { toast } from "sonner"
 type SupabaseIdentity = { identity_id: string; provider: string; last_sign_in_at: string | null }
 
 export default function AccountPage() {
+  const router = useRouter()
 
   const [loading, setLoading] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
