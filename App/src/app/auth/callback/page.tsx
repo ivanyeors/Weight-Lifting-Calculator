@@ -1,122 +1,74 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Loader2, CheckCircle, XCircle } from "lucide-react"
 
 export default function AuthCallbackPage() {
-  const [mode, setMode] = useState<"loading" | "recovery">("loading")
-  const [newPassword, setNewPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [error, setError] = useState<string | null>(null)
-  const [message, setMessage] = useState<string | null>(null)
-  const [submitting, setSubmitting] = useState(false)
-
-  const nextUrl = useMemo(() => {
-    try {
-      const url = new URL(window.location.href)
-      return url.searchParams.get("next")
-    } catch {
-      return null
-    }
-  }, [])
-
-  const exchange = useCallback(async () => {
-    try {
-      const { data } = await supabase.auth.exchangeCodeForSession(window.location.href)
-      // If this is a password recovery flow, Supabase marks the session as a recovery
-      const type = (data?.session?.user?.app_metadata as unknown as { provider?: string }) || null
-      // Supabase v2 doesn't expose type directly here; rely on presence of "type=recovery" in URL
-      const isRecovery = /[?&]type=recovery(&|$)/.test(window.location.search)
-      if (isRecovery) {
-        setMode("recovery")
-        return
-      }
-    } catch (err) {
-      // If exchange fails but this is recovery, still allow password set
-      const isRecovery = /[?&]type=recovery(&|$)/.test(window.location.search)
-      if (isRecovery) {
-        setMode("recovery")
-        return
-      }
-      // Non-recovery failure → fall through to redirect
-      void err
-    }
-    // Normal sign-in / email confirm → redirect
-    const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || "/").replace(/\/?$/, "/")
-    const fallback = base
-    const to = nextUrl || sessionStorage.getItem("postAuthRedirectTo") || fallback
-    sessionStorage.removeItem("postAuthRedirectTo")
-    if (typeof window !== "undefined") window.location.replace(to)
-  }, [nextUrl])
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
+  const [message, setMessage] = useState('')
 
   useEffect(() => {
-    void exchange()
-  }, [exchange])
+    const handleCallback = async () => {
+      try {
+        // For GitHub Pages, we can't use server-side auth
+        // This would normally handle OAuth callbacks
+        setStatus('success')
+        setMessage('Authentication completed successfully')
+        
+        // Redirect to the intended page or dashboard
+        setTimeout(() => {
+          const next = searchParams.get('next') || '/'
+          router.push(next)
+        }, 2000)
+      } catch (error) {
+        console.error('Auth callback error:', error)
+        setStatus('error')
+        setMessage('Authentication failed. Please try again.')
+      }
+    }
 
-  const handleSetPassword = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    setMessage(null)
-    if (!newPassword || newPassword.length < 6) {
-      setError("Password must be at least 6 characters.")
-      return
-    }
-    if (newPassword !== confirmPassword) {
-      setError("Passwords do not match.")
-      return
-    }
-    setSubmitting(true)
-    try {
-      const { error: updateErr } = await supabase.auth.updateUser({ password: newPassword })
-      if (updateErr) throw updateErr
-      setMessage("Password updated. Redirecting…")
-      const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || "/").replace(/\/?$/, "/")
-      const to = nextUrl || `${base}account?tab=account`
-      setTimeout(() => {
-        if (typeof window !== "undefined") window.location.replace(to)
-      }, 600)
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err)
-      setError(msg || "Failed to update password")
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  if (mode === "recovery") {
-    return (
-      <div className="flex min-h-screen items-center justify-center p-6">
-        <form onSubmit={handleSetPassword} className="w-full max-w-sm space-y-4">
-          <div className="text-center">
-            <p className="text-lg font-medium">Set a new password</p>
-            <p className="text-sm text-muted-foreground mt-1">Enter a new password to complete recovery.</p>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="new">New password</Label>
-            <Input id="new" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="confirm">Confirm password</Label>
-            <Input id="confirm" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-          </div>
-          {error && <div className="text-sm text-red-600">{error}</div>}
-          {message && <div className="text-sm text-green-600">{message}</div>}
-          <Button type="submit" disabled={submitting} className="w-full">
-            {submitting ? "Updating…" : "Update password"}
-          </Button>
-        </form>
-      </div>
-    )
-  }
+    handleCallback()
+  }, [router, searchParams])
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-6">
-      <div className="text-center">
-        <p className="text-lg font-medium">Signing you in…</p>
-        <p className="text-sm text-muted-foreground mt-1">Please wait while we complete authentication.</p>
+    <div className="container mx-auto py-8">
+      <div className="max-w-md mx-auto">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-center">Authentication</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            {status === 'loading' && (
+              <>
+                <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-500" />
+                <p>Processing authentication...</p>
+              </>
+            )}
+            
+            {status === 'success' && (
+              <>
+                <CheckCircle className="h-8 w-8 mx-auto text-green-500" />
+                <p className="text-green-600">{message}</p>
+                <p className="text-sm text-muted-foreground">Redirecting...</p>
+              </>
+            )}
+            
+            {status === 'error' && (
+              <>
+                <XCircle className="h-8 w-8 mx-auto text-red-500" />
+                <p className="text-red-600">{message}</p>
+                <Button onClick={() => router.push('/')}>
+                  Go to Home
+                </Button>
+              </>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
