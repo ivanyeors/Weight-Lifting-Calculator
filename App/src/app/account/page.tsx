@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 
 import { supabase } from "@/lib/supabaseClient"
@@ -14,10 +14,10 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 
-import { LoginForm } from "@/components/login-form"
+ 
 import { PricingPlansClient } from "@/components/pricing-plans-client"
 import { ThemeSelectionCard } from "@/components/theme-selection-card"
-import { GoogleCalendarSync } from "@/components/google-calendar-sync"
+ 
 import { useGoogleCalendar } from "@/hooks/useGoogleCalendar"
 import { plans } from "@/lib/plans"
 import { toast } from "sonner"
@@ -25,7 +25,6 @@ import { toast } from "sonner"
 type SupabaseIdentity = { identity_id: string; provider: string; last_sign_in_at: string | null }
 
 export default function AccountPage() {
-  const router = useRouter()
 
   const [loading, setLoading] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
@@ -41,7 +40,6 @@ export default function AccountPage() {
   const [savingPassword, setSavingPassword] = useState(false)
   const [activeTab, setActiveTab] = useState("account")
   const [currentPlan, setCurrentPlan] = useState<string>('Free')
-  const [showGoogleCalendarSync, setShowGoogleCalendarSync] = useState(false)
   const searchParams = useSearchParams()
 
   // Google Calendar integration
@@ -53,7 +51,9 @@ export default function AccountPage() {
     accounts: googleCalendarAccounts,
     removeAccount: removeGoogleCalendarAccount,
     logout: disconnectGoogleCalendar,
-    fetchEvents
+    fetchEvents,
+    getAuthUrl,
+    handleAuthCallback
   } = useGoogleCalendar({ autoSync: true })
 
   const canChangePassword = useMemo(() => identities.some(i => i.provider === "email"), [identities])
@@ -75,6 +75,34 @@ export default function AccountPage() {
       fetchEvents()
     }
   }, [isGoogleCalendarConnected, fetchEvents])
+
+  // Handle OAuth callback from sessionStorage (no modal)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const code = sessionStorage.getItem('googleCalendarCode')
+    const rawState = sessionStorage.getItem('googleCalendarState') || undefined
+    if (!code) return
+    // Clear stored values immediately to avoid loops
+    sessionStorage.removeItem('googleCalendarCode')
+    sessionStorage.removeItem('googleCalendarState')
+    // Complete auth then refresh events
+    // Optional nonce validation
+    let state: string | undefined = rawState
+    try {
+      if (rawState && rawState.startsWith('%7B')) {
+        const parsed = JSON.parse(decodeURIComponent(rawState)) as { next?: string; nonce?: string }
+        const expected = sessionStorage.getItem('googleCalendarNonce')
+        if (parsed?.nonce && expected && parsed.nonce !== expected) {
+          toast.error('Security check failed. Please try connecting again.')
+          return
+        }
+        state = rawState
+      }
+    } catch {}
+    handleAuthCallback(code, state)
+      .then(() => setTimeout(() => { void fetchEvents() }, 300))
+      .catch(() => { /* error surfaced via hook state */ })
+  }, [handleAuthCallback, fetchEvents])
 
   useEffect(() => {
     let unsub: (() => void) | null = null
@@ -461,7 +489,11 @@ export default function AccountPage() {
               <div className="flex gap-3">
                 {!isGoogleCalendarConnected ? (
                   <Button 
-                    onClick={() => setShowGoogleCalendarSync(true)}
+                    onClick={() => {
+                      const accountUrl = '/account?tab=calendar'
+                      const authUrl = getAuthUrl(accountUrl)
+                      if (typeof window !== 'undefined') window.location.href = authUrl
+                    }}
                     disabled={isGoogleCalendarLoading}
                     className="flex-1"
                   >
@@ -470,7 +502,11 @@ export default function AccountPage() {
                 ) : (
                   <>
                     <Button 
-                      onClick={() => setShowGoogleCalendarSync(true)}
+                      onClick={() => {
+                        const accountUrl = '/account?tab=calendar'
+                        const authUrl = getAuthUrl(accountUrl)
+                        if (typeof window !== 'undefined') window.location.href = authUrl
+                      }}
                       variant="outline"
                       className="flex-1"
                     >
@@ -630,41 +666,7 @@ export default function AccountPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Google Calendar Sync Modal */}
-      {showGoogleCalendarSync && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-background rounded-lg shadow-xl max-w-md w-full">
-            <GoogleCalendarSync
-              onEventsSync={(syncedEvents) => {
-                console.log('Synced events:', syncedEvents)
-                toast.success(`Successfully synced ${syncedEvents.length} events`)
-                setShowGoogleCalendarSync(false)
-              }}
-              onEventCreate={(event) => {
-                console.log('Event created in Google Calendar:', event)
-                toast.success('Event created in Google Calendar')
-              }}
-              onEventUpdate={(eventId, event) => {
-                console.log('Event updated in Google Calendar:', eventId, event)
-                toast.success('Event updated in Google Calendar')
-              }}
-              onEventDelete={(eventId) => {
-                console.log('Event deleted from Google Calendar:', eventId)
-                toast.success('Event deleted from Google Calendar')
-              }}
-            />
-            <div className="p-4 border-t">
-              <Button 
-                onClick={() => setShowGoogleCalendarSync(false)}
-                variant="outline"
-                className="w-full"
-              >
-                Close
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      
     </div>
   )
 }

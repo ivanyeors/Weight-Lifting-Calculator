@@ -447,7 +447,14 @@ export function CalendarView() {
             </div>
           )}
           <Button 
-            onClick={() => setShowGoogleCalendarSync(true)}
+            onClick={() => {
+              // Get base URL from env or default to '/'
+              const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/')
+              // Redirect to account page with calendar tab selected
+              if (typeof window !== 'undefined') {
+                window.location.href = `${base}account?tab=calendar`
+              }
+            }}
             variant="outline"
             className="flex items-center gap-2"
             disabled={isGoogleCalendarLoading}

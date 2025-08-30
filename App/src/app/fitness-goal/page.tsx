@@ -23,10 +23,17 @@ import {
   Clock,
   Calculator,
   User,
-  Activity
+  Activity,
+  BarChart3,
+  PieChart,
+  LineChart,
+  Plus,
+  Target as TargetIcon,
+  Settings
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
+import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart as RechartsPieChart, Pie, Cell } from 'recharts'
 
 // TypeScript interfaces for data structures
 interface FitnessGoal {
@@ -82,6 +89,16 @@ const activityMultipliers = {
   moderately_active: 1.55,
   very_active: 1.725,
   extremely_active: 1.9
+}
+
+// Chart colors
+const CHART_COLORS = {
+  primary: '#3b82f6',
+  secondary: '#64748b',
+  success: '#10b981',
+  warning: '#f59e0b',
+  danger: '#ef4444',
+  muted: '#94a3b8'
 }
 
 export default function FitnessGoalPage() {
@@ -214,12 +231,97 @@ export default function FitnessGoalPage() {
     return physiqueOption ? physiqueOption.label : physique
   }
 
+  // Generate chart data for weight progress
+  const getWeightChartData = () => {
+    if (!calculatedPlan) return []
+    
+    const data = []
+    const days = calculatedPlan.timeFrame || 30
+    const weightDiff = calculatedPlan.targetWeight - calculatedPlan.currentWeight
+    const dailyChange = weightDiff / days
+
+    for (let i = 0; i <= days; i++) {
+      const currentWeight = calculatedPlan.currentWeight + (dailyChange * i)
+      data.push({
+        day: i,
+        currentWeight: Math.round(currentWeight * 10) / 10,
+        targetWeight: calculatedPlan.targetWeight
+      })
+    }
+    return data
+  }
+
+  // Generate macro comparison data
+  const getMacroComparisonData = () => {
+    if (!calculatedPlan) return []
+    
+    return [
+      { name: 'Protein', current: 0, target: calculatedPlan.proteinTarget, color: CHART_COLORS.primary },
+      { name: 'Carbs', current: 0, target: calculatedPlan.carbsTarget, color: CHART_COLORS.success },
+      { name: 'Fat', current: 0, target: calculatedPlan.fatTarget, color: CHART_COLORS.warning }
+    ]
+  }
+
+  // Generate macro distribution data for pie chart
+  const getMacroDistributionData = () => {
+    if (!calculatedPlan) return []
+    
+    return [
+      { name: 'Protein', value: calculatedPlan.proteinTarget, color: CHART_COLORS.primary },
+      { name: 'Carbs', value: calculatedPlan.carbsTarget, color: CHART_COLORS.success },
+      { name: 'Fat', value: calculatedPlan.fatTarget, color: CHART_COLORS.warning }
+    ]
+  }
+
+  // Dashboard Empty State Component
+  const DashboardEmptyState = () => (
+    <div className="col-span-full text-center py-12">
+      <div className="mx-auto max-w-md">
+        <BarChart3 className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+        <h3 className="text-lg font-semibold mb-2">No Fitness Plan Created Yet</h3>
+        <p className="text-muted-foreground mb-4">
+          Create your first fitness plan to see your progress dashboard with charts and analytics.
+        </p>
+        <Button onClick={() => document.getElementById('settings-section')?.scrollIntoView({ behavior: 'smooth' })}>
+          <Plus className="mr-2 h-4 w-4" />
+          Create Plan
+        </Button>
+      </div>
+    </div>
+  )
+
+  // Plan Empty State Component
+  const PlanEmptyState = () => (
+    <div className="text-center py-12">
+      <TargetIcon className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+      <h3 className="text-xl font-semibold mb-2">Ready to Start Your Fitness Journey?</h3>
+      <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
+        Fill out the form on the left to create your personalized fitness plan and see your goals come to life.
+      </p>
+      <div className="space-y-2 text-sm text-muted-foreground">
+        <div className="flex items-center justify-center gap-2">
+          <div className="w-2 h-2 bg-primary rounded-full"></div>
+          <span>Set your fitness goals</span>
+        </div>
+        <div className="flex items-center justify-center gap-2">
+          <div className="w-2 h-2 bg-primary rounded-full"></div>
+          <span>Choose your target physique</span>
+        </div>
+        <div className="flex items-center justify-center gap-2">
+          <div className="w-2 h-2 bg-primary rounded-full"></div>
+          <span>Get personalized recommendations</span>
+        </div>
+      </div>
+    </div>
+  )
+
   return (
     <div className="p-6 space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Fitness Goal Planner</h1>
-          <p className="text-muted-foreground">Set your fitness goals and get a personalized plan</p>
+          <p className="text-muted-foreground">Set your fitness goals and track your progress with detailed analytics</p>
         </div>
         <div className="max-w-sm">
           <UserSwitcher />
@@ -232,294 +334,467 @@ export default function FitnessGoalPage() {
         <p className="text-muted-foreground">Select a user in Users to personalize.</p>
       )}
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Goal Selection */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5" />
-              Select Your Goal
-            </CardTitle>
-            <CardDescription>Choose what you want to achieve</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-3">
-              {goalTypes.map((goal) => {
-                const Icon = goal.icon
-                return (
-                  <Button
-                    key={goal.value}
-                    variant={selectedGoal === goal.value ? "default" : "outline"}
-                    className="justify-start h-auto p-4"
-                    onClick={() => setSelectedGoal(goal.value)}
-                  >
-                    <Icon className={cn("h-5 w-5 mr-3", goal.color)} />
-                    <div className="text-left">
-                      <div className="font-medium">{goal.label}</div>
+      {/* Dashboard Section */}
+      <div className="space-y-4">
+        <h2 className="text-2xl font-semibold flex items-center gap-2">
+          <BarChart3 className="h-6 w-6" />
+          Progress Dashboard
+        </h2>
+        
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {calculatedPlan ? (
+            <>
+              {/* Weight Progress Chart */}
+              <Card className="md:col-span-2">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <LineChart className="h-5 w-5" />
+                    Weight Progress
+                  </CardTitle>
+                  <CardDescription>Your weight journey from start to target</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RechartsLineChart data={getWeightChartData()}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="day" />
+                        <YAxis />
+                        <Tooltip />
+                        <Line 
+                          type="monotone" 
+                          dataKey="currentWeight" 
+                          stroke={CHART_COLORS.primary} 
+                          strokeWidth={3}
+                          name="Current Weight"
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="targetWeight" 
+                          stroke={CHART_COLORS.success} 
+                          strokeWidth={2}
+                          strokeDasharray="5 5"
+                          name="Target Weight"
+                        />
+                      </RechartsLineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Macro Comparison Chart */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    Macro Targets
+                  </CardTitle>
+                  <CardDescription>Daily macronutrient goals</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={getMacroComparisonData()} layout="horizontal">
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis type="number" />
+                        <YAxis dataKey="name" type="category" />
+                        <Tooltip />
+                        <Bar dataKey="target" fill={CHART_COLORS.primary} name="Target" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Macro Distribution Pie Chart */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <PieChart className="h-5 w-5" />
+                    Macro Distribution
+                  </CardTitle>
+                  <CardDescription>Daily calorie breakdown</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RechartsPieChart>
+                        <Pie
+                          data={getMacroDistributionData()}
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={80}
+                          dataKey="value"
+                          label={({ name, value }) => `${name}: ${value}g`}
+                        >
+                          {getMacroDistributionData().map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </RechartsPieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Progress Summary Cards */}
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-primary mb-2">
+                      {calculatedPlan.timeFrame}
                     </div>
-                  </Button>
-                )
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                    <div className="text-sm text-muted-foreground">Days to Goal</div>
+                  </div>
+                </CardContent>
+              </Card>
 
-        {/* Body Physique Selection */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Target Body Physique
-            </CardTitle>
-            <CardDescription>What type of physique are you aiming for?</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Select value={selectedPhysique} onValueChange={setSelectedPhysique}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select body physique" />
-              </SelectTrigger>
-              <SelectContent>
-                {bodyPhysiques.map((physique) => (
-                  <SelectItem key={physique.value} value={physique.value}>
-                    <div>
-                      <div className="font-medium">{physique.label}</div>
-                      <div className="text-sm text-muted-foreground">{physique.description}</div>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-primary mb-2">
+                      {Math.abs(calculatedPlan.targetWeight - calculatedPlan.currentWeight).toFixed(1)} kg
                     </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </CardContent>
-        </Card>
-
-        {/* Weight Inputs */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Scale className="h-5 w-5" />
-              Current & Target Weight
-            </CardTitle>
-            <CardDescription>Enter your current and target weights</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="current-weight">Current Weight (kg)</Label>
-                <Input
-                  id="current-weight"
-                  type="number"
-                  placeholder="70"
-                  value={currentWeight || ''}
-                  onChange={(e) => setCurrentWeight(Number(e.target.value))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="target-weight">Target Weight (kg)</Label>
-                <Input
-                  id="target-weight"
-                  type="number"
-                  placeholder="65"
-                  value={targetWeight || ''}
-                  onChange={(e) => setTargetWeight(Number(e.target.value))}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Time Frame Selection */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CalendarIcon className="h-5 w-5" />
-              Time Frame
-            </CardTitle>
-            <CardDescription>Set your goal timeline</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Start Date</Label>
-              <Popover open={showCalendar} onOpenChange={setShowCalendar}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={startDate}
-                    onSelect={(date) => {
-                      setStartDate(date || new Date())
-                      setShowCalendar(false)
-                    }}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="space-y-2">
-              <Label>End Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={endDate}
-                    onSelect={setEndDate}
-                    initialFocus
-                    disabled={(date) => date < startDate}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Generate Plan Button */}
-      <div className="flex justify-center">
-        <Button 
-          size="lg" 
-          onClick={generatePlan}
-          disabled={!selectedGoal || !selectedPhysique || !currentWeight || !targetWeight || !endDate}
-          className="px-8"
-        >
-          <Calculator className="mr-2 h-5 w-5" />
-          Generate Fitness Plan
-        </Button>
-      </div>
-
-      {/* Calculated Plan Display */}
-      {calculatedPlan && (
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5" />
-              Your Personalized Fitness Plan
-            </CardTitle>
-            <CardDescription>
-              Based on your {getGoalIcon(calculatedPlan.goalType).name} goal to {calculatedPlan.goalType.replace('_', ' ')} 
-              and achieve a {getPhysiqueLabel(calculatedPlan.bodyPhysique)} physique
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Plan Summary */}
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <div className="text-2xl font-bold text-primary">
-                  {calculatedPlan.timeFrame}
-                </div>
-                <div className="text-sm text-muted-foreground">Days</div>
-              </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <div className="text-2xl font-bold text-primary">
-                  {Math.abs(calculatedPlan.targetWeight - calculatedPlan.currentWeight).toFixed(1)} kg
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  {calculatedPlan.goalType === 'lose_weight' ? 'To Lose' : 'To Gain'}
-                </div>
-              </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <div className="text-2xl font-bold text-primary">
-                  {calculatedPlan.dailyCalorieDeficit ? 
-                    `${calculatedPlan.dailyCalorieDeficit.toFixed(0)} kcal` :
-                    calculatedPlan.dailyCalorieSurplus ? 
-                    `${calculatedPlan.dailyCalorieSurplus.toFixed(0)} kcal` : 
-                    '0 kcal'
-                  }
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  Daily {calculatedPlan.dailyCalorieDeficit ? 'Deficit' : 'Surplus'}
-                </div>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Macronutrients */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Daily Macronutrient Targets</h3>
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label>Protein</Label>
-                    <Badge variant="secondary">{calculatedPlan.proteinTarget}g</Badge>
-                  </div>
-                  <Progress value={75} className="h-2" />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label>Carbohydrates</Label>
-                    <Badge variant="secondary">{calculatedPlan.carbsTarget}g</Badge>
-                  </div>
-                  <Progress value={60} className="h-2" />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label>Fat</Label>
-                    <Badge variant="secondary">{calculatedPlan.fatTarget}g</Badge>
-                  </div>
-                  <Progress value={45} className="h-2" />
-                </div>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Recommendations */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Recommendations</h3>
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <Clock className="h-5 w-5 mt-0.5 text-blue-500" />
-                  <div>
-                    <div className="font-medium">Timeline</div>
                     <div className="text-sm text-muted-foreground">
-                      {format(calculatedPlan.startDate, "PPP")} to {calculatedPlan.endDate && format(calculatedPlan.endDate, "PPP")}
+                      {calculatedPlan.goalType === 'lose_weight' ? 'To Lose' : 'To Gain'}
                     </div>
                   </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <TrendingDown className="h-5 w-5 mt-0.5 text-green-500" />
-                  <div>
-                    <div className="font-medium">Weekly Progress</div>
-                    <div className="text-sm text-muted-foreground">
-                      Aim to {calculatedPlan.goalType === 'lose_weight' ? 'lose' : 'gain'} {(Math.abs(calculatedPlan.targetWeight - calculatedPlan.currentWeight) / (calculatedPlan.timeFrame! / 7)).toFixed(2)} kg per week
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Dumbbell className="h-5 w-5 mt-0.5 text-purple-500" />
-                  <div>
-                    <div className="font-medium">Exercise Focus</div>
-                    <div className="text-sm text-muted-foreground">
-                      {calculatedPlan.goalType === 'build_muscle' ? 
-                        'Focus on strength training 3-4 times per week with progressive overload' :
-                        calculatedPlan.goalType === 'lose_weight' ?
-                        'Combine cardio (3-4 times/week) with strength training (2-3 times/week)' :
-                        'Balanced approach with strength training and moderate cardio'
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-primary mb-2">
+                      {calculatedPlan.dailyCalorieDeficit ? 
+                        `${calculatedPlan.dailyCalorieDeficit.toFixed(0)}` :
+                        calculatedPlan.dailyCalorieSurplus ? 
+                        `${calculatedPlan.dailyCalorieSurplus.toFixed(0)}` : 
+                        '0'
                       }
                     </div>
+                    <div className="text-sm text-muted-foreground">
+                      Daily {calculatedPlan.dailyCalorieDeficit ? 'Deficit' : 'Surplus'} (kcal)
+                    </div>
                   </div>
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            <DashboardEmptyState />
+          )}
+        </div>
+      </div>
+
+      {/* Main Content Section */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Settings Area - Left Side */}
+        <div id="settings-section" className="space-y-6">
+          <h2 className="text-2xl font-semibold flex items-center gap-2">
+            <Settings className="h-6 w-6" />
+            Plan Settings
+          </h2>
+
+          {/* Goal Selection */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5" />
+                Select Your Goal
+              </CardTitle>
+              <CardDescription>Choose what you want to achieve</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-3">
+                {goalTypes.map((goal) => {
+                  const Icon = goal.icon
+                  return (
+                    <Button
+                      key={goal.value}
+                      variant={selectedGoal === goal.value ? "default" : "outline"}
+                      className="justify-start h-auto p-4"
+                      onClick={() => setSelectedGoal(goal.value)}
+                    >
+                      <Icon className={cn("h-5 w-5 mr-3", goal.color)} />
+                      <div className="text-left">
+                        <div className="font-medium">{goal.label}</div>
+                      </div>
+                    </Button>
+                  )
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Body Physique Selection */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Target Body Physique
+              </CardTitle>
+              <CardDescription>What type of physique are you aiming for?</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Select value={selectedPhysique} onValueChange={setSelectedPhysique}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select body physique" />
+                </SelectTrigger>
+                <SelectContent>
+                  {bodyPhysiques.map((physique) => (
+                    <SelectItem key={physique.value} value={physique.value}>
+                      <div>
+                        <div className="font-medium">{physique.label}</div>
+                        <div className="text-sm text-muted-foreground">{physique.description}</div>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+
+          {/* Weight Inputs */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Scale className="h-5 w-5" />
+                Current & Target Weight
+              </CardTitle>
+              <CardDescription>Enter your current and target weights</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="current-weight">Current Weight (kg)</Label>
+                  <Input
+                    id="current-weight"
+                    type="number"
+                    placeholder="70"
+                    value={currentWeight || ''}
+                    onChange={(e) => setCurrentWeight(Number(e.target.value))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="target-weight">Target Weight (kg)</Label>
+                  <Input
+                    id="target-weight"
+                    type="number"
+                    placeholder="65"
+                    value={targetWeight || ''}
+                    onChange={(e) => setTargetWeight(Number(e.target.value))}
+                  />
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            </CardContent>
+          </Card>
+
+          {/* Time Frame Selection */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CalendarIcon className="h-5 w-5" />
+                Time Frame
+              </CardTitle>
+              <CardDescription>Set your goal timeline</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Start Date</Label>
+                <Popover open={showCalendar} onOpenChange={setShowCalendar}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={startDate}
+                      onSelect={(date) => {
+                        setStartDate(date || new Date())
+                        setShowCalendar(false)
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div className="space-y-2">
+                <Label>End Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={endDate}
+                      onSelect={setEndDate}
+                      initialFocus
+                      disabled={(date) => date < startDate}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Generate Plan Button */}
+          <Button 
+            size="lg" 
+            onClick={generatePlan}
+            disabled={!selectedGoal || !selectedPhysique || !currentWeight || !targetWeight || !endDate}
+            className="w-full"
+          >
+            <Calculator className="mr-2 h-5 w-5" />
+            Generate Fitness Plan
+          </Button>
+        </div>
+
+        {/* Fitness Plan Area - Right Side */}
+        <div className="space-y-6">
+          <h2 className="text-2xl font-semibold flex items-center gap-2">
+            <Activity className="h-6 w-6" />
+            Your Fitness Plan
+          </h2>
+
+          {calculatedPlan ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5" />
+                  Personalized Fitness Plan
+                </CardTitle>
+                <CardDescription>
+                  Based on your {getGoalIcon(calculatedPlan.goalType).name} goal to {calculatedPlan.goalType.replace('_', ' ')} 
+                  and achieve a {getPhysiqueLabel(calculatedPlan.bodyPhysique)} physique
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Plan Summary */}
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="text-center p-4 bg-muted rounded-lg">
+                    <div className="text-2xl font-bold text-primary">
+                      {calculatedPlan.timeFrame}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Days</div>
+                  </div>
+                  <div className="text-center p-4 bg-muted rounded-lg">
+                    <div className="text-2xl font-bold text-primary">
+                      {Math.abs(calculatedPlan.targetWeight - calculatedPlan.currentWeight).toFixed(1)} kg
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {calculatedPlan.goalType === 'lose_weight' ? 'To Lose' : 'To Gain'}
+                    </div>
+                  </div>
+                  <div className="text-center p-4 bg-muted rounded-lg">
+                    <div className="text-3xl font-bold text-primary">
+                      {calculatedPlan.dailyCalorieDeficit ? 
+                        `${calculatedPlan.dailyCalorieDeficit.toFixed(0)} kcal` :
+                        calculatedPlan.dailyCalorieSurplus ? 
+                        `${calculatedPlan.dailyCalorieSurplus.toFixed(0)} kcal` : 
+                        '0 kcal'
+                      }
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Daily {calculatedPlan.dailyCalorieDeficit ? 'Deficit' : 'Surplus'}
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Macronutrients */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Daily Macronutrient Targets</h3>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label>Protein</Label>
+                        <Badge variant="secondary">{calculatedPlan.proteinTarget}g</Badge>
+                      </div>
+                      <Progress value={75} className="h-2" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label>Carbohydrates</Label>
+                        <Badge variant="secondary">{calculatedPlan.carbsTarget}g</Badge>
+                      </div>
+                      <Progress value={60} className="h-2" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label>Fat</Label>
+                        <Badge variant="secondary">{calculatedPlan.fatTarget}g</Badge>
+                      </div>
+                      <Progress value={45} className="h-2" />
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Recommendations */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Recommendations</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3">
+                      <Clock className="h-5 w-5 mt-0.5 text-blue-500" />
+                      <div>
+                        <div className="font-medium">Timeline</div>
+                        <div className="text-sm text-muted-foreground">
+                          {format(calculatedPlan.startDate, "PPP")} to {calculatedPlan.endDate && format(calculatedPlan.endDate, "PPP")}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <TrendingDown className="h-5 w-5 mt-0.5 text-green-500" />
+                      <div>
+                        <div className="font-medium">Weekly Progress</div>
+                        <div className="text-sm text-muted-foreground">
+                          Aim to {calculatedPlan.goalType === 'lose_weight' ? 'lose' : 'gain'} {(Math.abs(calculatedPlan.targetWeight - calculatedPlan.currentWeight) / (calculatedPlan.timeFrame! / 7)).toFixed(2)} kg per week
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <Dumbbell className="h-5 w-5 mt-0.5 text-purple-500" />
+                      <div>
+                        <div className="font-medium">Exercise Focus</div>
+                        <div className="text-sm text-muted-foreground">
+                          {calculatedPlan.goalType === 'build_muscle' ? 
+                            'Focus on strength training 3-4 times per week with progressive overload' :
+                            calculatedPlan.goalType === 'lose_weight' ?
+                            'Combine cardio (3-4 times/week) with strength training (2-3 times/week)' :
+                            'Balanced approach with strength training and moderate cardio'
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="pt-6">
+                <PlanEmptyState />
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
