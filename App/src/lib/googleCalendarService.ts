@@ -46,9 +46,106 @@ class GoogleCalendarService {
       scopes: [
         'https://www.googleapis.com/auth/calendar',
         'https://www.googleapis.com/auth/calendar.events',
-        'https://www.googleapis.com/auth/calendar.readonly'
+        'https://www.googleapis.com/auth/calendar.readonly',
+        // Needed to validate token and get email/name for the account
+        'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'openid'
       ]
     }
+  }
+
+  // Normalize various datetime representations to Schedule-X friendly format: "YYYY-MM-DD HH:mm"
+  private static normalizeToScheduleX(dateInput?: string): string {
+    try {
+      if (!dateInput) return ''
+      // Already in desired format "YYYY-MM-DD HH:mm"
+      if (/^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}$/.test(dateInput)) return dateInput
+      // Date-only → midnight local
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateInput)) return `${dateInput} 00:00`
+      // ISO or other parseable formats → convert to local and strip seconds/timezone
+      const parsed = new Date(dateInput)
+      if (isNaN(parsed.getTime())) return ''
+      const y = parsed.getFullYear()
+      const m = String(parsed.getMonth() + 1).padStart(2, '0')
+      const d = String(parsed.getDate()).padStart(2, '0')
+      const hh = String(parsed.getHours()).padStart(2, '0')
+      const mm = String(parsed.getMinutes()).padStart(2, '0')
+      return `${y}-${m}-${d} ${hh}:${mm}`
+    } catch {
+      return ''
+    }
+  }
+
+  // Convert a local "YYYY-MM-DD HH:mm" (or similar) to RFC3339 with local offset
+  private static normalizeToRfc3339(dateInput?: string): string {
+    if (!dateInput) return new Date().toISOString()
+    // If it already looks like RFC3339, return as-is
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(\.\d+)?(Z|[+-]\d{2}:\d{2})$/.test(dateInput)) {
+      return dateInput
+    }
+    let date: Date
+    // "YYYY-MM-DD HH:mm"
+    const m = dateInput.match(/^(\d{4})-(\d{2})-(\d{2})\s(\d{2}):(\d{2})$/)
+    if (m) {
+      const [_, y, mo, d, hh, mm] = m
+      // Construct local time
+      date = new Date(Number(y), Number(mo) - 1, Number(d), Number(hh), Number(mm), 0, 0)
+    } else if (/^\d{4}-\d{2}-\d{2}$/.test(dateInput)) {
+      // Date-only → local midnight
+      const [y, mo, d] = dateInput.split('-').map(n => Number(n))
+      date = new Date(y, mo - 1, d, 0, 0, 0, 0)
+    } else {
+      // Fallback to Date parser for any other input
+      date = new Date(dateInput)
+    }
+    if (isNaN(date.getTime())) return new Date().toISOString()
+
+    const pad = (n: number) => String(n).padStart(2, '0')
+    const y = date.getFullYear()
+    const mo = pad(date.getMonth() + 1)
+    const d = pad(date.getDate())
+    const hh = pad(date.getHours())
+    const mm = pad(date.getMinutes())
+    const ss = pad(date.getSeconds())
+    // Local timezone offset in minutes; getTimezoneOffset returns minutes behind UTC
+    const offsetMin = -date.getTimezoneOffset()
+    const sign = offsetMin >= 0 ? '+' : '-'
+    const abs = Math.abs(offsetMin)
+    const offH = pad(Math.floor(abs / 60))
+    const offM = pad(abs % 60)
+    return `${y}-${mo}-${d}T${hh}:${mm}:${ss}${sign}${offH}:${offM}`
+  }
+
+  // Generic authorized fetch with 401 refresh-and-retry
+  private async fetchWithAuth(accountId: string, url: string, init: RequestInit = {}) {
+    const account = this.accounts.get(accountId)
+    const accessToken = account?.accessToken
+    if (!accessToken) throw new Error('Calendar not initialized. Please authenticate first.')
+
+    const withAuth = (token: string) => ({
+      ...init,
+      headers: {
+        ...(init.headers || {}),
+        'Authorization': `Bearer ${token}`,
+        ...(init.headers && (init.headers as any)['Content-Type'] ? {} : (init.body ? { 'Content-Type': 'application/json' } : {}))
+      }
+    })
+
+    let response = await fetch(url, withAuth(accessToken))
+    if (response.status === 401 && account?.refreshToken) {
+      try {
+        const newTokens = await this.refreshAccessTokenWithServer(account.refreshToken)
+        account.accessToken = newTokens.access_token
+        if (newTokens.refresh_token) account.refreshToken = newTokens.refresh_token
+        this.accounts.set(account.id, account)
+        this.saveAccountsToStorage()
+        response = await fetch(url, withAuth(account.accessToken))
+      } catch (e) {
+        console.error('Unable to refresh token on 401:', e)
+      }
+    }
+    return response
   }
 
   // Generate authorization URL for user to grant permissions
@@ -59,7 +156,8 @@ class GoogleCalendarService {
       response_type: 'code',
       scope: this.config.scopes.join(' '),
       access_type: 'offline',
-      prompt: 'consent'
+      prompt: 'consent',
+      include_granted_scopes: 'true'
     })
 
     if (state) {
@@ -103,7 +201,8 @@ class GoogleCalendarService {
       
       // Test the token immediately
       console.log('Testing received token...')
-      const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      // Use OIDC userinfo endpoint
+      const userInfoResponse = await fetch('https://openidconnect.googleapis.com/v1/userinfo', {
         headers: {
           'Authorization': `Bearer ${data.tokens.access_token}`
         }
@@ -118,16 +217,16 @@ class GoogleCalendarService {
       }
       
       const userInfo = await userInfoResponse.json()
-      console.log('User info received:', { id: userInfo.id, email: userInfo.email, name: userInfo.name })
+      console.log('User info received:', { sub: userInfo.sub, email: userInfo.email, name: userInfo.name })
       
       // Generate a unique color for this account
       const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16', '#f97316']
       const color = colors[this.accounts.size % colors.length]
       
       const account: GoogleCalendarAccount = {
-        id: userInfo.id,
+        id: userInfo.sub || userInfo.id,
         email: userInfo.email,
-        name: userInfo.name,
+        name: userInfo.name || userInfo.email,
         accessToken: data.tokens.access_token,
         refreshToken: data.tokens.refresh_token,
         color,
@@ -146,6 +245,22 @@ class GoogleCalendarService {
       console.error('Error handling auth callback:', error)
       throw error
     }
+  }
+
+  // Attempt to refresh an access token using server endpoint
+  private async refreshAccessTokenWithServer(refreshToken: string) {
+    const resp = await fetch('/api/google-calendar/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken })
+    })
+    if (!resp.ok) {
+      const t = await resp.text()
+      throw new Error(`Failed to refresh access token: ${resp.status} ${resp.statusText} ${t}`)
+    }
+    const data = await resp.json()
+    if (!data.tokens?.access_token) throw new Error('No access token in refresh response')
+    return data.tokens
   }
 
 
@@ -251,11 +366,38 @@ class GoogleCalendarService {
         
         // If token is invalid, remove the account
         if (response.status === 401) {
-          console.log('Token is invalid, removing account')
+          console.log('Access token likely expired; attempting refresh...')
+          const account = this.accounts.get(accountId)
+          const rt = account?.refreshToken
+          if (rt) {
+            try {
+              const newTokens = await this.refreshAccessTokenWithServer(rt)
+              // Update token and retry once
+              if (account) {
+                account.accessToken = newTokens.access_token
+                if (newTokens.refresh_token) account.refreshToken = newTokens.refresh_token
+                this.accounts.set(account.id, account)
+                this.saveAccountsToStorage()
+              }
+              const retry = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+                headers: { 'Authorization': `Bearer ${newTokens.access_token}` }
+              })
+              if (!retry.ok) {
+                const retryText = await retry.text()
+                console.error('Retry after refresh failed:', retry.status, retry.statusText, retryText)
+                throw new Error(`Retry failed: ${retry.status} ${retry.statusText}`)
+              }
+              const retryData = await retry.json()
+              console.log('Test connection successful after refresh:', retryData)
+              return retryData
+            } catch (e) {
+              console.error('Token refresh failed:', e)
+            }
+          }
+          console.log('Token is invalid and refresh not possible; removing account')
           this.accounts.delete(accountId)
           this.saveAccountsToStorage()
         }
-        
         throw new Error(`Test connection failed: ${response.status} ${response.statusText}`)
       }
 
@@ -336,12 +478,7 @@ class GoogleCalendarService {
         timeMax: timeMax || endDate.toISOString()
       })
       
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        }
-      })
+      const response = await this.fetchWithAuth(accountId, url)
 
       console.log('Response status:', response.status, response.statusText)
 
@@ -376,12 +513,7 @@ class GoogleCalendarService {
     }
 
     try {
-      const response = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        }
-      })
+      const response = await this.fetchWithAuth(accountId, 'https://www.googleapis.com/calendar/v3/users/me/calendarList')
 
       console.log('Calendar list response status:', response.status, response.statusText)
 
@@ -444,16 +576,10 @@ class GoogleCalendarService {
     }
 
     try {
-      const response = await fetch(
+      const response = await this.fetchWithAuth(
+        accountId,
         `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(event)
-        }
+        { method: 'POST', body: JSON.stringify(event) }
       )
 
       if (!response.ok) {
@@ -475,16 +601,10 @@ class GoogleCalendarService {
     }
 
     try {
-      const response = await fetch(
+      const response = await this.fetchWithAuth(
+        accountId,
         `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events/${eventId}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(event)
-        }
+        { method: 'PUT', body: JSON.stringify(event) }
       )
 
       if (!response.ok) {
@@ -506,14 +626,10 @@ class GoogleCalendarService {
     }
 
     try {
-      const response = await fetch(
+      const response = await this.fetchWithAuth(
+        accountId,
         `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events/${eventId}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          }
-        }
+        { method: 'DELETE' }
       )
 
       if (!response.ok) {
@@ -533,11 +649,11 @@ class GoogleCalendarService {
       summary: scheduleXEvent.title,
       description: scheduleXEvent.description || '',
       start: {
-        dateTime: scheduleXEvent.start,
+        dateTime: GoogleCalendarService.normalizeToRfc3339(scheduleXEvent.start),
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
       },
       end: {
-        dateTime: scheduleXEvent.end,
+        dateTime: GoogleCalendarService.normalizeToRfc3339(scheduleXEvent.end),
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
       },
       location: scheduleXEvent.location || '',
@@ -556,8 +672,8 @@ class GoogleCalendarService {
     return {
       id: googleEvent.id,
       title: googleEvent.summary,
-      start: googleEvent.start.dateTime || googleEvent.start.date,
-      end: googleEvent.end.dateTime || googleEvent.end.date,
+      start: GoogleCalendarService.normalizeToScheduleX(googleEvent.start?.dateTime || googleEvent.start?.date),
+      end: GoogleCalendarService.normalizeToScheduleX(googleEvent.end?.dateTime || googleEvent.end?.date),
       description: googleEvent.description,
       location: googleEvent.location,
       attendees: googleEvent.attendees?.map((attendee: any) => ({

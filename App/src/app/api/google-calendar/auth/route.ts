@@ -16,9 +16,14 @@ export async function GET(request: NextRequest) {
       scope: [
         'https://www.googleapis.com/auth/calendar',
         'https://www.googleapis.com/auth/calendar.events',
-        'https://www.googleapis.com/auth/calendar.readonly'
+        'https://www.googleapis.com/auth/calendar.readonly',
+        // Needed to retrieve user info for account labeling
+        'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'openid'
       ],
-      prompt: 'consent'
+      prompt: 'consent',
+      include_granted_scopes: true
     })
     
     return NextResponse.json({ authUrl })
@@ -33,8 +38,30 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { code, state } = await request.json()
-    
+    const body = await request.json()
+    const { code, state, refreshToken } = body || {}
+
+    // Support refresh flow from client
+    if (refreshToken) {
+      const form = new URLSearchParams({
+        client_id: process.env.GOOGLE_CLIENT_ID!,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+        refresh_token: refreshToken as string,
+        grant_type: 'refresh_token'
+      })
+      const resp = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: form.toString()
+      })
+      if (!resp.ok) {
+        const t = await resp.text()
+        return NextResponse.json({ error: 'Failed to refresh token', details: t }, { status: 500 })
+      }
+      const tokens = await resp.json()
+      return NextResponse.json({ success: true, tokens, state, message: 'Token refreshed' })
+    }
+
     if (!code) {
       return NextResponse.json(
         { error: 'Authorization code is required' },

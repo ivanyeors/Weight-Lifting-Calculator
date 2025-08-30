@@ -90,7 +90,18 @@ export function useGoogleCalendar(options: UseGoogleCalendarOptions = {}) {
 
   // Get authorization URL
   const getAuthUrl = useCallback((state?: string) => {
-    return googleCalendarService.getAuthUrl(state)
+    // Accept either plain next URL or JSON state
+    let preparedState: string | undefined = state
+    try {
+      // If state looks like a path, wrap it with a nonce for CSRF safety
+      if (state && !state.startsWith('{')) {
+        const nonce = Math.random().toString(36).slice(2)
+        preparedState = encodeURIComponent(JSON.stringify({ next: state, nonce }))
+        // Persist nonce for later verification (optional client-side)
+        if (typeof window !== 'undefined') sessionStorage.setItem('googleCalendarNonce', nonce)
+      }
+    } catch {}
+    return googleCalendarService.getAuthUrl(preparedState)
   }, [googleCalendarService])
 
   // Handle authentication callback

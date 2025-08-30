@@ -44,8 +44,24 @@ export async function GET(request: NextRequest) {
               sessionStorage.setItem('googleCalendarCode', code);
               sessionStorage.setItem('googleCalendarState', state || '');
               
-              // Redirect back to the original page
-              const redirectUrl = state ? decodeURIComponent(state) : '/account?tab=calendar';
+              // Determine redirect: support JSON state { next, nonce }
+              let redirectUrl = '/account?tab=calendar'
+              try {
+                if (state) {
+                  const parsed = JSON.parse(decodeURIComponent(state))
+                  if (parsed && typeof parsed === 'object' && parsed.next) {
+                    redirectUrl = parsed.next
+                  } else {
+                    // state is likely a plain URL
+                    redirectUrl = decodeURIComponent(state)
+                  }
+                }
+              } catch (e) {
+                try {
+                  // state might be a plain encoded URL
+                  if (state) redirectUrl = decodeURIComponent(state)
+                } catch (_) {}
+              }
               window.location.href = redirectUrl;
             } else {
               // No code, redirect with error
