@@ -12,6 +12,16 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { supabase } from '@/lib/supabaseClient'
 import { Checkbox } from '@/components/ui/checkbox'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 import { DateRange } from 'react-day-picker'
 import { format, setHours, setMinutes, parse } from 'date-fns'
@@ -62,6 +72,7 @@ interface CalendarEvent {
   targetAccountIds?: string[]
   source?: 'platform' | 'google'
   syncedGoogleEventIds?: Record<string, string>
+  workoutSpaceId?: string
   extendedProps: {
     trainer: string
     participants: User[]
@@ -127,6 +138,11 @@ export function CalendarEventDrawer(props: CalendarEventDrawerProps) {
   const [managedUsers, setManagedUsers] = useState<ManagedUser[]>([])
   const [muscles, setMuscles] = useState<Array<{ id: string; name: string }>>([])
   const [userInjuries, setUserInjuries] = useState<Record<string, string[]>>({})
+  const [confirmOpen, setConfirmOpen] = useState(false)
+
+  useEffect(() => {
+    if (!isOpen) setConfirmOpen(false)
+  }, [isOpen])
 
   useEffect(() => {
     const loadData = async () => {
@@ -293,7 +309,15 @@ export function CalendarEventDrawer(props: CalendarEventDrawerProps) {
           .select('id, name, workout_space_id, exercises, estimated_calories, estimated_time, usage_count')
           .order('updated_at', { ascending: false })
         if (error) throw error
-        const list: WorkoutTemplateCardData[] = (data ?? []).map((t: any) => ({
+        const list: WorkoutTemplateCardData[] = (data ?? []).map((t: {
+          id: string
+          name: string
+          workout_space_id: string | null
+          exercises: unknown
+          estimated_calories: number | null
+          estimated_time: number | null
+          usage_count: number | null
+        }) => ({
           id: t.id,
           name: t.name,
           exerciseCount: Array.isArray(t.exercises) ? t.exercises.length : 0,
@@ -683,13 +707,7 @@ export function CalendarEventDrawer(props: CalendarEventDrawerProps) {
                 <Button 
                   variant="destructive" 
                   className="flex-1" 
-                  onClick={() => {
-                    if (!event) return
-                    const ok = confirm('Delete this session? This will remove it from linked Google calendars as well.')
-                    if (!ok) return
-                    props.onDeleteEvent?.(event.id)
-                    onClose()
-                  }}
+                  onClick={() => setConfirmOpen(true)}
                 >
                   Delete
                 </Button>
@@ -725,7 +743,7 @@ export function CalendarEventDrawer(props: CalendarEventDrawerProps) {
         const end = parseLocal(event.end)
         const pad = (n: number) => String(n).padStart(2, '0')
         const toHHMM = (d: Date) => `${pad(d.getHours())}:${pad(d.getMinutes())}`
-        const spaceId = (event as any).workoutSpaceId || (workoutSpaces.find(ws => ws.name === event.extendedProps.location)?.id || '')
+        const spaceId = (event as { workoutSpaceId?: string }).workoutSpaceId || (workoutSpaces.find(ws => ws.name === event.extendedProps.location)?.id || '')
         setEditData({
           title: event.title,
           date: start,
@@ -914,6 +932,28 @@ export function CalendarEventDrawer(props: CalendarEventDrawerProps) {
 
   return (
     <>
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this session?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove it from linked Google calendars as well. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (event) props.onDeleteEvent?.(event.id)
+                setConfirmOpen(false)
+                onClose()
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       {/* Backdrop */}
       {isOpen && (
         <div 
