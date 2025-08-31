@@ -18,6 +18,11 @@ export interface GoogleCalendarEvent {
   reminders?: {
     useDefault: boolean
   }
+  // Used to carry linkage to a platform event across syncs
+  extendedProperties?: {
+    private?: Record<string, string>
+    shared?: Record<string, string>
+  }
 }
 
 export interface GoogleCalendarConfig {
@@ -30,10 +35,12 @@ export interface GoogleCalendarAccount {
   id: string
   email: string
   name: string
+  customName?: string
   accessToken: string
   refreshToken?: string
   color: string
   connectedAt: string
+  hideDetails?: boolean
 }
 
 class GoogleCalendarService {
@@ -295,7 +302,13 @@ class GoogleCalendarService {
         this.accounts.clear()
         accounts.forEach((account: GoogleCalendarAccount) => {
           console.log('Loading account:', account.id, account.email, account.name)
-          this.accounts.set(account.id, account)
+          // Ensure defaults
+          const normalized: GoogleCalendarAccount = {
+            ...account,
+            hideDetails: typeof account.hideDetails === 'boolean' ? account.hideDetails : false,
+            customName: account.customName || undefined,
+          }
+          this.accounts.set(account.id, normalized)
         })
         console.log('Loaded accounts:', this.accounts.size)
       }
@@ -309,6 +322,10 @@ class GoogleCalendarService {
     try {
       const accountsArray = Array.from(this.accounts.values())
       localStorage.setItem('googleCalendarAccounts', JSON.stringify(accountsArray))
+      // Notify other parts of the app within this tab
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('googleCalendarAccountsUpdated'))
+      }
     } catch (error) {
       console.error('Error saving accounts to storage:', error)
     }
@@ -327,6 +344,33 @@ class GoogleCalendarService {
   // Remove account
   removeAccount(accountId: string) {
     this.accounts.delete(accountId)
+    this.saveAccountsToStorage()
+  }
+
+  // Update account color
+  setAccountColor(accountId: string, color: string) {
+    const acc = this.accounts.get(accountId)
+    if (!acc) return
+    acc.color = color
+    this.accounts.set(accountId, acc)
+    this.saveAccountsToStorage()
+  }
+
+  // Update account custom display name
+  setAccountName(accountId: string, customName: string) {
+    const acc = this.accounts.get(accountId)
+    if (!acc) return
+    acc.customName = customName
+    this.accounts.set(accountId, acc)
+    this.saveAccountsToStorage()
+  }
+
+  // Update account hide details preference
+  setAccountHideDetails(accountId: string, hide: boolean) {
+    const acc = this.accounts.get(accountId)
+    if (!acc) return
+    acc.hideDetails = hide
+    this.accounts.set(accountId, acc)
     this.saveAccountsToStorage()
   }
 
@@ -576,14 +620,45 @@ class GoogleCalendarService {
     }
 
     try {
+      // Normalize and validate payload before sending
+      const summary = (event.summary && String(event.summary).trim()) || 'Workout'
+      const startIso = GoogleCalendarService.normalizeToRfc3339(event.start?.dateTime)
+      let endIso = GoogleCalendarService.normalizeToRfc3339(event.end?.dateTime)
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+      const startDate = new Date(startIso)
+      let endDate = new Date(endIso)
+      if (!(endDate.getTime() > startDate.getTime())) {
+        endDate = new Date(startDate.getTime() + 30 * 60 * 1000)
+        endIso = endDate.toISOString()
+      }
+
+      const safeEvent: GoogleCalendarEvent = {
+        summary,
+        description: event.description || '',
+        start: { dateTime: startIso, timeZone: tz },
+        end: { dateTime: endIso, timeZone: tz },
+        location: event.location || undefined,
+        attendees: Array.isArray(event.attendees)
+          ? event.attendees
+              .filter(a => a && a.email)
+              .map(a => ({ email: a.email, displayName: a.displayName }))
+          : undefined,
+        reminders: event.reminders ?? { useDefault: true },
+        extendedProperties: event.extendedProperties && (Object.keys(event.extendedProperties.private || {}).length > 0 || Object.keys(event.extendedProperties.shared || {}).length > 0)
+          ? event.extendedProperties
+          : undefined
+      }
+
       const response = await this.fetchWithAuth(
         accountId,
         `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events`,
-        { method: 'POST', body: JSON.stringify(event) }
+        { method: 'POST', body: JSON.stringify(safeEvent) }
       )
 
       if (!response.ok) {
-        throw new Error(`Failed to create event: ${response.statusText}`)
+        let detail = ''
+        try { detail = await response.text() } catch {}
+        throw new Error(`Failed to create event: ${response.status} ${response.statusText} ${detail}`)
       }
 
       return await response.json()
@@ -601,14 +676,40 @@ class GoogleCalendarService {
     }
 
     try {
+      // Normalize provided times if present and ensure end > start when both provided
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+      const startIso = event.start?.dateTime ? GoogleCalendarService.normalizeToRfc3339(event.start.dateTime) : undefined
+      let endIso = event.end?.dateTime ? GoogleCalendarService.normalizeToRfc3339(event.end.dateTime) : undefined
+      if (startIso && endIso) {
+        const s = new Date(startIso)
+        let e = new Date(endIso)
+        if (!(e.getTime() > s.getTime())) {
+          e = new Date(s.getTime() + 30 * 60 * 1000)
+          endIso = e.toISOString()
+        }
+      }
+
+      const safeEvent: Partial<GoogleCalendarEvent> = {
+        ...(event.summary !== undefined ? { summary: (event.summary || 'Workout') as string } : {}),
+        ...(event.description !== undefined ? { description: event.description || '' } : {}),
+        ...(startIso ? { start: { dateTime: startIso, timeZone: tz } } : {}),
+        ...(endIso ? { end: { dateTime: endIso, timeZone: tz } } : {}),
+        ...(event.location !== undefined ? { location: event.location } : {}),
+        ...(Array.isArray(event.attendees) ? { attendees: event.attendees.filter(a => a && a.email).map(a => ({ email: a.email, displayName: a.displayName })) } : {}),
+        ...(event.reminders !== undefined ? { reminders: event.reminders } : {}),
+        ...(event.extendedProperties !== undefined ? { extendedProperties: event.extendedProperties } : {})
+      }
+
       const response = await this.fetchWithAuth(
         accountId,
         `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events/${eventId}`,
-        { method: 'PUT', body: JSON.stringify(event) }
+        { method: 'PUT', body: JSON.stringify(safeEvent) }
       )
 
       if (!response.ok) {
-        throw new Error(`Failed to update event: ${response.statusText}`)
+        let detail = ''
+        try { detail = await response.text() } catch {}
+        throw new Error(`Failed to update event: ${response.status} ${response.statusText} ${detail}`)
       }
 
       return await response.json()
@@ -645,25 +746,34 @@ class GoogleCalendarService {
 
   // Convert schedule-x event to Google Calendar format
   convertToGoogleEvent(scheduleXEvent: any): GoogleCalendarEvent {
+    const title = (scheduleXEvent.title && String(scheduleXEvent.title).trim()) || 'Workout'
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+    const startIso = GoogleCalendarService.normalizeToRfc3339(scheduleXEvent.start)
+    let endIso = GoogleCalendarService.normalizeToRfc3339(scheduleXEvent.end)
+    const s = new Date(startIso)
+    let e = new Date(endIso)
+    if (!(e.getTime() > s.getTime())) {
+      e = new Date(s.getTime() + 30 * 60 * 1000)
+      endIso = e.toISOString()
+    }
+
+    const attendees = Array.isArray(scheduleXEvent.attendees)
+      ? scheduleXEvent.attendees
+          .filter((a: any) => a && a.email)
+          .map((a: any) => ({ email: a.email, displayName: a.name }))
+      : undefined
+
+    const extendedPrivate: Record<string, string> = scheduleXEvent.id ? { platformEventId: String(scheduleXEvent.id) } : {}
+
     return {
-      summary: scheduleXEvent.title,
+      summary: title,
       description: scheduleXEvent.description || '',
-      start: {
-        dateTime: GoogleCalendarService.normalizeToRfc3339(scheduleXEvent.start),
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-      },
-      end: {
-        dateTime: GoogleCalendarService.normalizeToRfc3339(scheduleXEvent.end),
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-      },
-      location: scheduleXEvent.location || '',
-      attendees: scheduleXEvent.attendees?.map((attendee: any) => ({
-        email: attendee.email,
-        displayName: attendee.name
-      })) || [],
-      reminders: {
-        useDefault: true
-      }
+      start: { dateTime: startIso, timeZone: tz },
+      end: { dateTime: endIso, timeZone: tz },
+      location: scheduleXEvent.location || undefined,
+      attendees,
+      reminders: { useDefault: true },
+      extendedProperties: Object.keys(extendedPrivate).length > 0 ? { private: extendedPrivate } : undefined
     }
   }
 
@@ -683,7 +793,8 @@ class GoogleCalendarService {
       googleEventId: googleEvent.id,
       accountId: googleEvent._accountId,
       accountEmail: googleEvent._accountEmail,
-      accountColor: googleEvent._accountColor
+      accountColor: googleEvent._accountColor,
+      platformEventId: googleEvent?.extendedProperties?.private?.platformEventId
     }
   }
 }

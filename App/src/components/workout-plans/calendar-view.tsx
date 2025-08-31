@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { Plus, Calendar as CalendarIcon, RefreshCw } from 'lucide-react'
+import { Plus, Calendar as CalendarIcon, PanelLeft, PanelRight } from 'lucide-react'
 
 // Schedule-X imports
 import { useCalendarApp, ScheduleXCalendar } from '@schedule-x/react'
@@ -19,7 +19,7 @@ import { createResizePlugin } from '@schedule-x/resize'
 import '@schedule-x/theme-shadcn/dist/index.css'
 
 import { CalendarEventDrawer } from './calendar-event-drawer'
-import { GoogleCalendarSync } from '@/components/google-calendar-sync'
+import { CalendarSidebar } from './calendar-sidebar'
 import { useGoogleCalendar } from '@/hooks/useGoogleCalendar'
 import { supabase } from '@/lib/supabaseClient'
 
@@ -57,6 +57,10 @@ interface CalendarEvent {
   googleEventId?: string // Google Calendar event ID
   accountId?: string // Google Calendar account ID
   accountEmail?: string // Google Calendar account email
+  // For platform events, maintain per-account Google event linkage
+  syncedGoogleEventIds?: Record<string, string>
+  // Target Google account IDs selected for syncing
+  targetAccountIds?: string[]
   extendedProps: {
     trainer: string
     participants: User[]
@@ -78,98 +82,31 @@ export function CalendarView() {
     events: googleCalendarEvents,
     accounts: googleCalendarAccounts,
     convertFromGoogleEvent,
+    convertToGoogleEvent,
     fetchEvents,
-    debugState,
-    clearAllData
+    createEvent: createGoogleEvent,
+    updateEvent: updateGoogleEvent
   } = useGoogleCalendar({ autoSync: true })
 
-  const [events, setEvents] = useState<CalendarEvent[]>(() => {
-    // Get current date and create events for this week
-    const now = new Date()
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    const tomorrow = new Date(today)
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    const dayAfterTomorrow = new Date(today)
-    dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2)
-    
-    return [
-      {
-        id: '1',
-        title: 'Strength Training',
-        start: `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')} 09:00`, // 9 AM today
-        end: `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')} 10:00`, // 10 AM today
-        backgroundColor: '#3b82f6',
-        borderColor: '#2563eb',
-        source: 'platform',
-        extendedProps: {
-          trainer: 'Sarah Wilson',
-          participants: [
-            {
-              id: '1',
-              name: 'John Doe',
-              email: 'john@example.com',
-              status: 'active',
-              medicalConditions: ['Knee injury'],
-              lastAttendance: '2024-01-15',
-              trainer: 'Sarah Wilson',
-              phone: '+1-555-0123'
-            },
-            {
-              id: '2',
-              name: 'Jane Smith',
-              email: 'jane@example.com',
-              status: 'active',
-              medicalConditions: [],
-              lastAttendance: '2024-01-15',
-              trainer: 'Sarah Wilson',
-              phone: '+1-555-0124'
-            }
-          ],
-          plan: 'Strength Training',
-          location: 'Gym A',
-          maxParticipants: 8,
-          currentParticipants: 2,
-          medicalFlags: ['Knee injury'],
-          attendance: {
-            '1': 'present',
-            '2': 'present'
-          } as Record<string, 'present' | 'absent' | 'late' | 'cancelled'>
-        }
-      },
-      {
-        id: '2',
-        title: 'Cardio Session',
-        start: `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')} 14:00`, // 2 PM tomorrow
-        end: `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')} 15:00`, // 3 PM tomorrow
-        backgroundColor: '#10b981',
-        borderColor: '#059669',
-        source: 'platform',
-        extendedProps: {
-          trainer: 'Mike Johnson',
-          participants: [
-            {
-              id: '3',
-              name: 'Bob Wilson',
-              email: 'bob@example.com',
-              status: 'active',
-              medicalConditions: ['Back pain', 'Diabetes'],
-              lastAttendance: '2024-01-12',
-              trainer: 'Mike Johnson',
-              phone: '+1-555-0125'
-            }
-          ],
-          plan: 'Cardio Training',
-          location: 'Gym B',
-          maxParticipants: 6,
-          currentParticipants: 1,
-          medicalFlags: ['Back pain', 'Diabetes'],
-          attendance: {
-            '3': 'present'
-          } as Record<string, 'present' | 'absent' | 'late' | 'cancelled'>
-        }
+  // Per-account visibility toggles
+  const [visibleAccounts, setVisibleAccounts] = useState<Record<string, boolean>>({})
+
+  // Initialize and sync visibility with accounts
+  useEffect(() => {
+    if (googleCalendarAccounts.length === 0) {
+      setVisibleAccounts({})
+      return
+    }
+    setVisibleAccounts(prev => {
+      const next: Record<string, boolean> = {}
+      for (const acc of googleCalendarAccounts) {
+        next[acc.id] = typeof prev[acc.id] === 'boolean' ? prev[acc.id] : true
       }
-    ]
-  })
+      return next
+    })
+  }, [googleCalendarAccounts])
+
+  const [events, setEvents] = useState<CalendarEvent[]>([])
 
   const [trainers] = useState<Trainer[]>([
     {
@@ -197,11 +134,27 @@ export function CalendarView() {
   const [workoutSpaces, setWorkoutSpaces] = useState<{ id: string; name: string }[]>([])
 
 
-  
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [drawerMode, setDrawerMode] = useState<'view' | 'create' | 'edit'>('view')
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
-  const [showGoogleCalendarSync, setShowGoogleCalendarSync] = useState(false)
+  const [prefillDates, setPrefillDates] = useState<{ start: string; end: string } | null>(null)
+  const previewEventIdRef = useRef<string | null>(null)
+  
+  // Resolve which Google account to sync to based on selected trainer
+  const resolveTargetAccountId = useCallback((ev: CalendarEvent): string | null => {
+    try {
+      const trainerName = ev?.extendedProps?.trainer
+      if (!trainerName) return null
+      const trainer = trainers.find(t => t.name === trainerName)
+      if (!trainer) return null
+      const account = googleCalendarAccounts.find(a => a.email === trainer.email)
+      return account?.id || null
+    } catch {
+      return null
+    }
+  }, [trainers, googleCalendarAccounts])
+  
   // Removed prefill dates - will implement later
 
   // Removed preview state - using drag-to-create instead
@@ -246,27 +199,52 @@ export function CalendarView() {
       console.log('Processing Google Calendar events...')
       const googleEvents = googleCalendarEvents.map(googleEvent => {
         console.log('Processing event:', googleEvent)
-        const convertedEvent = convertFromGoogleEvent(googleEvent)
+        const convertedEvent = convertFromGoogleEvent(googleEvent) as {
+          platformEventId?: string
+          title: string
+          start: string
+          end: string
+          location?: string
+          attendees?: Array<{ email: string; name: string }>
+          accountId?: string
+          accountEmail?: string
+        }
         console.log('Converted event:', convertedEvent)
         const account = googleCalendarAccounts.find(acc => acc.id === convertedEvent.accountId)
         console.log('Found account:', account)
         
+        const hide = !!account?.hideDetails
+        const baseColor = account?.color || '#6b7280'
+        const borderColor = account?.color || '#4b5563'
+        const rgba10 = (hexColor: string): string => {
+          // Convert #rrggbb to rgba with 0.1 alpha
+          const m = hexColor.match(/^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i)
+          if (!m) return 'rgba(107,114,128,0.1)'
+          const r = Number.parseInt(m[1], 16)
+          const g = Number.parseInt(m[2], 16)
+          const b = Number.parseInt(m[3], 16)
+          return `rgba(${r}, ${g}, ${b}, 0.1)`
+        }
+        // Skip Google events that are mirrors of platform events to avoid duplicates
+        if (convertedEvent.platformEventId) {
+          return null as unknown as CalendarEvent
+        }
         const calendarEvent = {
           id: `google-${googleEvent.id}`,
-          title: convertedEvent.title,
+          title: hide ? 'Busy' : convertedEvent.title,
           start: convertedEvent.start,
           end: convertedEvent.end,
-          backgroundColor: account?.color || '#6b7280', // Use account color or fallback to grey
-          borderColor: account?.color || '#4b5563',
+          backgroundColor: hide ? rgba10(baseColor) : baseColor, // 10% opacity when hidden
+          borderColor: hide ? rgba10(borderColor) : borderColor,
           source: 'google' as const,
           googleEventId: googleEvent.id,
           accountId: convertedEvent.accountId,
           accountEmail: convertedEvent.accountEmail,
           extendedProps: {
-            trainer: account?.name || 'Google Calendar',
-            participants: convertedEvent.attendees || [],
-            plan: convertedEvent.title,
-            location: convertedEvent.location || '',
+            trainer: hide ? 'Busy' : (account?.name || 'Google Calendar'),
+            participants: [],
+            plan: hide ? 'Busy' : convertedEvent.title,
+            location: hide ? '' : (convertedEvent.location || ''),
             maxParticipants: 0,
             currentParticipants: 0,
             medicalFlags: [],
@@ -276,14 +254,16 @@ export function CalendarView() {
         
         console.log('Created calendar event:', calendarEvent)
         return calendarEvent
-      })
+      }).filter(Boolean) as CalendarEvent[]
 
       console.log('All Google events processed:', googleEvents)
 
       // Filter out existing Google events and add new ones
       setEvents(prev => {
         const platformEvents = prev.filter(event => event.source === 'platform')
-        const allEvents = [...platformEvents, ...googleEvents]
+        // Filter Google events by visible accounts
+        const filteredGoogle = googleEvents.filter(e => !e.accountId || visibleAccounts[e.accountId] !== false)
+        const allEvents = [...platformEvents, ...filteredGoogle]
         console.log('Updated events state:', allEvents)
         return allEvents
       })
@@ -292,7 +272,7 @@ export function CalendarView() {
     } else {
       console.log('Google Calendar not connected or no events')
     }
-  }, [googleCalendarEvents, isGoogleCalendarConnected, googleCalendarAccounts, convertFromGoogleEvent])
+  }, [googleCalendarEvents, isGoogleCalendarConnected, googleCalendarAccounts, convertFromGoogleEvent, visibleAccounts])
 
 
   
@@ -303,6 +283,43 @@ export function CalendarView() {
   const dragAndDropPlugin = useMemo(() => createDragAndDropPlugin(), [])
   const resizePlugin = useMemo(() => createResizePlugin(30), []) // 30 minute intervals when resizing
   
+  type CalendarTheme = {
+    colorName: string
+    lightColors: { main: string; container: string; onContainer: string }
+    darkColors: { main: string; container: string; onContainer: string }
+  }
+
+  const dynamicCalendars = useMemo<Record<string, CalendarTheme>>(() => {
+    const rgba10 = (hex: string) => {
+      const m = hex?.match(/^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i)
+      if (!m) return 'rgba(107,114,128,0.1)'
+      const r = Number.parseInt(m[1], 16)
+      const g = Number.parseInt(m[2], 16)
+      const b = Number.parseInt(m[3], 16)
+      return `rgba(${r}, ${g}, ${b}, 0.1)`
+    }
+    const base: Record<string, CalendarTheme> = {
+      'workout-calendar': {
+        colorName: 'blue',
+        lightColors: { main: '#3b82f6', container: '#dbeafe', onContainer: '#1e40af' },
+        darkColors: { main: '#60a5fa', onContainer: '#dbeafe', container: '#1e3a8a' }
+      }
+    }
+    for (const acc of googleCalendarAccounts) {
+      const key = `gc-${acc.id}`
+      const visibleColor = acc.color || '#3b82f6'
+      const hiddenColor = rgba10(visibleColor)
+      const main = acc.hideDetails ? hiddenColor : visibleColor
+      // Use similar values for container/onContainer; tweak if needed
+      base[key] = {
+        colorName: 'custom',
+        lightColors: { main, container: main, onContainer: '#111827' },
+        darkColors: { main, onContainer: '#F9FAFB', container: main }
+      }
+    }
+    return base
+  }, [googleCalendarAccounts])
+
   const calendar = useCalendarApp({
     views: [createViewDay(), createViewWeek(), createViewMonthGrid(), createViewMonthAgenda()], // Pass all views to let Schedule-X handle view switching
     events: events.map(event => ({
@@ -310,23 +327,9 @@ export function CalendarView() {
       title: event.title,
       start: event.start,
       end: event.end,
-      calendarId: 'workout-calendar'
+      calendarId: event.source === 'google' && event.accountId ? `gc-${event.accountId}` : 'workout-calendar'
     })),
-    calendars: {
-      'workout-calendar': {
-        colorName: 'blue',
-        lightColors: {
-          main: '#3b82f6',
-          container: '#dbeafe',
-          onContainer: '#1e40af'
-        },
-        darkColors: {
-          main: '#60a5fa',
-          onContainer: '#dbeafe',
-          container: '#1e3a8a'
-        }
-      }
-    },
+    calendars: dynamicCalendars,
     plugins: [eventsService, dragAndDropPlugin, resizePlugin],
     theme: 'shadcn',
     isDark: true,
@@ -336,12 +339,19 @@ export function CalendarView() {
         const foundEvent = events.find(e => e.id === event.id)
         if (foundEvent) {
           setSelectedEvent(foundEvent)
-          setDrawerMode('view')
+          setDrawerMode(foundEvent.source === 'platform' ? 'edit' : 'view')
           setDrawerOpen(true)
         }
       },
-      onEventUpdate: (updatedEvent) => {
-        // Handle event drag and drop updates
+      onEventUpdate: async (updatedEvent) => {
+        const existing = events.find(e => e.id === updatedEvent.id)
+        if (existing && existing.source === 'google') {
+          // Block drag/resize on Google events
+          setEvents(prev => [...prev])
+          return
+        }
+        if (!existing) return
+
         setEvents(prev => prev.map(event => 
           event.id === updatedEvent.id 
             ? { 
@@ -351,6 +361,46 @@ export function CalendarView() {
               }
             : event
         ))
+
+        // Sync platform event updates to the selected Google account(s)
+        try {
+          const scheduleXEvent = {
+            id: existing.id,
+            title: existing.title,
+            start: updatedEvent.start,
+            end: updatedEvent.end,
+            description: '',
+            // Workout space maps to Google location
+            location: existing.extendedProps?.location || '',
+            attendees: existing.extendedProps?.participants?.map(p => ({ email: p.email, name: p.name })) || []
+          }
+          const gEvent = convertToGoogleEvent(scheduleXEvent)
+          const selectedTargets = Array.isArray(existing.targetAccountIds) && existing.targetAccountIds.length > 0
+            ? existing.targetAccountIds
+            : (() => {
+                const fallback = resolveTargetAccountId(existing)
+                return fallback ? [fallback] : []
+              })()
+          if (selectedTargets.length === 0) {
+            console.warn('No selected Google accounts found; skipping Google sync for update')
+            return
+          }
+          const linked = existing.syncedGoogleEventIds || {}
+          await Promise.all(selectedTargets.map(async targetId => {
+            const linkedId = linked[targetId]
+            if (linkedId) {
+              await updateGoogleEvent(targetId, linkedId, gEvent)
+            } else {
+              const { id: createdId } = await createGoogleEvent(targetId, gEvent) as { id: string }
+              setEvents(prev => prev.map(ev => ev.id === existing.id ? ({
+                ...ev,
+                syncedGoogleEventIds: { ...(ev.syncedGoogleEventIds || {}), [targetId]: createdId }
+              }) : ev))
+            }
+          }))
+        } catch (e) {
+          console.error('Error preparing Google event update', e)
+        }
       }
     }
   })
@@ -382,13 +432,205 @@ export function CalendarView() {
           title: event.title,
           start: event.start,
           end: event.end,
-          calendarId: 'workout-calendar'
+          calendarId: event.source === 'google' && event.accountId ? `gc-${event.accountId}` : 'workout-calendar'
         })
       })
       
       console.log('Schedule-X calendar updated. Total events:', eventsService.getAll().length)
     }
   }, [events, eventsService, calendar])
+
+
+  // Force per-event colors (override theme vars) after render
+  const calendarRootRef = useRef<HTMLDivElement>(null)
+  const eventsRef = useRef<CalendarEvent[]>([])
+  const accountsRef = useRef(googleCalendarAccounts)
+  useEffect(() => { eventsRef.current = events }, [events])
+  useEffect(() => { accountsRef.current = googleCalendarAccounts }, [googleCalendarAccounts])
+
+  // Helper to clear preview event block
+  const clearPreviewBlock = useCallback(() => {
+    try {
+      const id = previewEventIdRef.current
+      if (id) {
+        eventsService.remove(id)
+      }
+    } catch {
+      // noop
+    } finally {
+      previewEventIdRef.current = null
+    }
+  }, [eventsService])
+
+  // Delegate click on time grid to open create drawer with prefill and show a 10% opacity placeholder
+  useEffect(() => {
+    const root = calendarRootRef.current
+    if (!root) return
+
+    const findHourHeight = (col: HTMLElement): number | null => {
+      const hourEl = col.querySelector('.sx__time-grid__hour, .sx__time-grid-hour') as HTMLElement | null
+      if (hourEl) return hourEl.getBoundingClientRect().height
+      const anyHour = root.querySelector('.sx__time-grid__hour, .sx__time-grid-hour') as HTMLElement | null
+      if (anyHour) return anyHour.getBoundingClientRect().height
+      // Fallback: derive from column full scroll height
+      const totalHeight = (col as HTMLElement).scrollHeight || (col as HTMLElement).getBoundingClientRect().height
+      return totalHeight ? totalHeight / 24 : null
+    }
+
+    const findColumnEl = (startEl: HTMLElement | null): HTMLElement | null => {
+      if (!startEl) return null
+      const selectors = [
+        '[data-time-grid-date]',
+        '[data-date]',
+        '.sx__time-grid__day',
+        '.sx__time-grid-day',
+        '.sx__day-column'
+      ]
+      for (const sel of selectors) {
+        const el = startEl.closest(sel) as HTMLElement | null
+        if (el) return el
+      }
+      return null
+    }
+
+    const extractDateString = (col: HTMLElement | null): string | null => {
+      if (!col) return null
+      const fromAttr = col.getAttribute('data-time-grid-date')
+        || col.getAttribute('data-date')
+        || (col as HTMLElement & { dataset?: Record<string, string> }).dataset?.timeGridDate
+        || (col as HTMLElement & { dataset?: Record<string, string> }).dataset?.date
+      return fromAttr || null
+    }
+
+    const onClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      // Ignore clicks on existing events or headers
+      if (target.closest('.sx__event')) return
+
+      const col = findColumnEl(target)
+      if (!col) return
+
+      const dateStr = extractDateString(col)
+      if (!dateStr) return
+
+      const hourHeight = findHourHeight(col)
+      if (!hourHeight || hourHeight <= 0) return
+
+      const rect = col.getBoundingClientRect()
+      const scrollable = (col.closest('.sx__view-container') || root.querySelector('.sx__view-container') || col.closest('.sx__view')) as HTMLElement | null
+      const scrollTop = scrollable?.scrollTop || 0
+      const y = e.clientY - rect.top + scrollTop
+      let hour = Math.floor(y / hourHeight)
+      if (hour < 0) hour = 0
+      if (hour > 23) hour = 23
+      const pad = (n: number) => String(n).padStart(2, '0')
+      const start = `${dateStr} ${pad(hour)}:00`
+      const end = `${dateStr} ${pad(Math.min(hour + 1, 23))}:59`
+
+      // Set prefill and open drawer
+      setPrefillDates({ start, end })
+      setDrawerMode('create')
+      setDrawerOpen(true)
+
+      // Add a preview placeholder block via eventsService
+      try {
+        // Remove previous preview if any
+        clearPreviewBlock()
+        const id = `preview-${Date.now()}`
+        previewEventIdRef.current = id
+        eventsService.add({
+          id,
+          title: 'New Session',
+          start,
+          end,
+          calendarId: 'workout-calendar'
+        })
+        // Style the preview block with 10% opacity
+        requestAnimationFrame(() => {
+          try {
+            const el = root.querySelector(`[data-event-id="${id}"]`) as HTMLElement | null
+            if (el) {
+              el.style.backgroundColor = 'rgba(59, 130, 246, 0.10)'
+              el.style.borderColor = 'rgba(59, 130, 246, 0.20)'
+              el.style.setProperty('border-inline-start-color', 'rgba(59, 130, 246, 0.20)')
+              el.style.color = 'rgba(255,255,255,0.6)'
+            }
+          } catch {
+            // noop
+          }
+        })
+      } catch {
+        // noop
+      }
+    }
+
+    root.addEventListener('click', onClick)
+    return () => {
+      root.removeEventListener('click', onClick)
+    }
+  }, [eventsService, clearPreviewBlock])
+
+  useEffect(() => {
+    if (!events || events.length === 0) return
+    const applyColors = () => {
+      try {
+        eventsRef.current.forEach(ev => {
+          if (ev.source !== 'google') return
+          const el = document.querySelector(`[data-event-id="${ev.id}"]`) as HTMLElement | null
+          if (!el) return
+          if (ev.backgroundColor) el.style.backgroundColor = ev.backgroundColor
+          if (ev.borderColor) {
+            el.style.setProperty('border-inline-start-color', ev.borderColor)
+            el.style.borderColor = ev.borderColor
+          }
+          // Text color: white (or 10% white when hidden)
+          const acc = accountsRef.current.find(a => a.id === ev.accountId)
+          const textColor = acc?.hideDetails ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,1)'
+          el.style.color = textColor
+          // Override common Schedule-X on-container text vars used in templates
+          el.style.setProperty('--sx-color-on-blue-container', textColor)
+          el.style.setProperty('--sx-color-on-primary-container', textColor)
+        })
+      } catch {
+        // noop
+      }
+    }
+    const raf = requestAnimationFrame(() => {
+      applyColors()
+      setTimeout(applyColors, 0)
+    })
+    return () => cancelAnimationFrame(raf)
+  }, [events])
+
+  // Re-apply colors whenever Schedule-X re-renders DOM (view change, navigation)
+  useEffect(() => {
+    const root = calendarRootRef.current
+    if (!root) return
+    const observer = new MutationObserver(() => {
+      try {
+        const current = eventsRef.current
+        current.forEach(ev => {
+          if (ev.source !== 'google') return
+          const el = root.querySelector(`[data-event-id="${ev.id}"]`) as HTMLElement | null
+          if (!el) return
+          if (ev.backgroundColor) el.style.backgroundColor = ev.backgroundColor
+          if (ev.borderColor) {
+            el.style.setProperty('border-inline-start-color', ev.borderColor)
+            el.style.borderColor = ev.borderColor
+          }
+          const acc = accountsRef.current.find(a => a.id === ev.accountId)
+          const textColor = acc?.hideDetails ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,1)'
+          el.style.color = textColor
+          el.style.setProperty('--sx-color-on-blue-container', textColor)
+          el.style.setProperty('--sx-color-on-primary-container', textColor)
+        })
+      } catch {
+        // noop
+      }
+    })
+    observer.observe(root, { childList: true, subtree: true })
+    return () => observer.disconnect()
+  }, [])
 
 
 
@@ -424,96 +666,187 @@ export function CalendarView() {
     }))
   }, [])
 
-  const handleCreateEvent = (eventData: CalendarEvent) => {
-    setEvents(prev => [...prev, eventData])
+  const handleCreateEvent = async (eventData: CalendarEvent) => {
+    // Clear any preview block once we commit to creating
+    clearPreviewBlock()
+    const platformEvent: CalendarEvent = {
+      ...eventData,
+      source: 'platform',
+      syncedGoogleEventIds: eventData.syncedGoogleEventIds || {}
+    }
+    setEvents(prev => [...prev, platformEvent])
+
+    if (isGoogleCalendarConnected && googleCalendarAccounts.length > 0) {
+      try {
+        const scheduleXEvent = {
+          id: platformEvent.id,
+          title: platformEvent.title,
+          start: platformEvent.start,
+          end: platformEvent.end,
+          description: '',
+          // Workout space maps to Google location
+          location: platformEvent.extendedProps?.location || '',
+          attendees: platformEvent.extendedProps?.participants?.map(p => ({ email: p.email, name: p.name })) || []
+        }
+        const gEvent = convertToGoogleEvent(scheduleXEvent)
+        const selectedTargets = Array.isArray(platformEvent.targetAccountIds) && platformEvent.targetAccountIds.length > 0
+          ? platformEvent.targetAccountIds
+          : (() => {
+              const fallback = resolveTargetAccountId(platformEvent)
+              return fallback ? [fallback] : []
+            })()
+        if (selectedTargets.length === 0) {
+          console.warn('No selected Google accounts found; skipping Google sync for create')
+          return
+        }
+        await Promise.all(selectedTargets.map(async targetId => {
+          const { id: createdId } = await createGoogleEvent(targetId, gEvent) as { id: string }
+          setEvents(prev => prev.map(ev => ev.id === platformEvent.id ? ({
+            ...ev,
+            syncedGoogleEventIds: { ...(ev.syncedGoogleEventIds || {}), [targetId]: createdId }
+          }) : ev))
+        }))
+      } catch (e) {
+        console.error('Failed to prepare Google event creation', e)
+      }
+    }
+  }
+
+  const handleUpdateEvent = async (eventId: string, partial: Partial<CalendarEvent>) => {
+    const existing = events.find(e => e.id === eventId)
+    if (!existing) return
+    if (existing.source === 'google') {
+      // Do not allow editing Google events here
+      return
+    }
+
+    // Merge update locally
+    setEvents(prev => prev.map(ev => {
+      if (ev.id !== eventId) return ev
+      const merged: CalendarEvent = {
+        ...ev,
+        ...partial,
+        extendedProps: { ...ev.extendedProps, ...(partial.extendedProps || {}) }
+      }
+      return merged
+    }))
+
+    // Sync to Google for selected targets
+    try {
+      const base = events.find(e => e.id === eventId)
+      if (!base) return
+      const next: CalendarEvent = {
+        ...base,
+        ...partial,
+        extendedProps: { ...base.extendedProps, ...(partial.extendedProps || {}) }
+      }
+      const scheduleXEvent = {
+        id: next.id,
+        title: next.title,
+        start: next.start,
+        end: next.end,
+        description: '',
+        location: next.extendedProps?.location || '',
+        attendees: next.extendedProps?.participants?.map(p => ({ email: p.email, name: p.name })) || []
+      }
+      const gEvent = convertToGoogleEvent(scheduleXEvent)
+      const selectedTargets = Array.isArray(next.targetAccountIds) && next.targetAccountIds.length > 0
+        ? next.targetAccountIds
+        : (() => {
+            const fallback = resolveTargetAccountId(next)
+            return fallback ? [fallback] : []
+          })()
+      if (!isGoogleCalendarConnected || selectedTargets.length === 0) return
+      const linked = next.syncedGoogleEventIds || {}
+      await Promise.all(selectedTargets.map(async targetId => {
+        const linkedId = linked[targetId]
+        if (linkedId) {
+          await updateGoogleEvent(targetId, linkedId, gEvent)
+        } else {
+          const { id: createdId } = await createGoogleEvent(targetId, gEvent) as { id: string }
+          setEvents(prev => prev.map(ev => ev.id === next.id ? ({
+            ...ev,
+            syncedGoogleEventIds: { ...(ev.syncedGoogleEventIds || {}), [targetId]: createdId }
+          }) : ev))
+        }
+      }))
+    } catch (e) {
+      console.error('Failed to sync updated event to Google', e)
+    }
   }
 
   const handleCloseDrawer = () => {
+    clearPreviewBlock()
     setDrawerOpen(false)
     setSelectedEvent(null)
+    setPrefillDates(null)
   }
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Add Event Button */}
-      <div className="flex items-center justify-between p-4 border-b bg-background">
-        <div className="text-sm text-muted-foreground">
-          Workout Plans
-        </div>
-        <div className="flex items-center gap-2">
-          {googleCalendarError && (
-            <div className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded">
-              Google Calendar Error
-            </div>
-          )}
-          <Button 
-            onClick={() => {
-              // Get base URL from env or default to '/'
-              const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/')
-              // Redirect to account page with calendar tab selected
-              if (typeof window !== 'undefined') {
-                window.location.href = `${base}account?tab=calendar`
-              }
-            }}
-            variant="outline"
-            className="flex items-center gap-2"
-            disabled={isGoogleCalendarLoading}
-          >
-            <CalendarIcon className="w-4 h-4" />
-            {isGoogleCalendarLoading ? 'Loading...' : isGoogleCalendarConnected ? 'Connected' : 'Connect'}
-          </Button>
-          {isGoogleCalendarConnected && (
-            <>
-              <Button 
-                onClick={() => {
-                  console.log('Manual refresh of Google Calendar events')
-                  fetchEvents()
-                }}
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                <RefreshCw className="w-4 h-4" />
-              </Button>
-              <Button 
-                onClick={() => {
-                  console.log('Debug Google Calendar state')
-                  debugState()
-                }}
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                Debug
-              </Button>
-              <Button 
-                onClick={() => {
-                  console.log('Clearing all Google Calendar data')
-                  clearAllData()
-                  window.location.reload()
-                }}
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                Clear Data
-              </Button>
-            </>
-          )}
-          <Button 
-            onClick={handleAddEvent}
-            className="bg-primary hover:bg-primary/90"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Event
-          </Button>
-        </div>
-      </div>
+    <div className="flex h-screen">
+      <CalendarSidebar
+        collapsed={sidebarCollapsed}
+        accounts={googleCalendarAccounts.map(a => ({ id: a.id, email: a.email, name: (a.customName || a.name || null), color: a.color || null }))}
+        visibleAccounts={visibleAccounts}
+        setVisibleAccounts={(next) => setVisibleAccounts(next)}
+      />
+      {!sidebarCollapsed && (
+        <div
+          className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+          onClick={() => setSidebarCollapsed(true)}
+          aria-hidden
+        />
+      )}
 
-      {/* Calendar */}
-      <div 
-        className="flex-1 min-h-0 sx-react-calendar-wrapper dark relative"
-      >
+      <div className="flex-1 flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b bg-background">
+          <div className="flex items-center gap-2">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 p-0"
+              onClick={() => setSidebarCollapsed(v => !v)}
+              aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {sidebarCollapsed ? <PanelRight className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
+            </Button>
+            <div className="text-sm text-muted-foreground">Workout Plans</div>
+          </div>
+          <div className="flex items-center gap-2">
+            {googleCalendarError && (
+              <div className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded">
+                Google Calendar Error
+              </div>
+            )}
+            <Button 
+              onClick={() => {
+                const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/')
+                if (typeof window !== 'undefined') {
+                  window.location.href = `${base}account?tab=calendar`
+                }
+              }}
+              variant="outline"
+              className="flex items-center gap-2"
+              disabled={isGoogleCalendarLoading}
+            >
+              <CalendarIcon className="w-4 h-4" />
+              {isGoogleCalendarLoading ? 'Loading...' : isGoogleCalendarConnected ? 'Add account' : 'Connect'}
+            </Button>
+            <Button 
+              onClick={handleAddEvent}
+              className="bg-primary hover:bg-primary/90"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Event
+            </Button>
+          </div>
+        </div>
+
+        {/* Calendar */}
+        <div 
+          className="flex-1 min-h-0 sx-react-calendar-wrapper dark relative"
+          ref={calendarRootRef}
+        >
 
 
         <style jsx global>{`
@@ -832,55 +1165,29 @@ export function CalendarView() {
           .sx__event__resize-handle--end {
             cursor: ns-resize !important;
           }
+
+          /* Keep default cursor for time grid */
         
           
         `}</style>
-        <ScheduleXCalendar calendarApp={calendar} />
+          <ScheduleXCalendar calendarApp={calendar} />
+        </div>
+
+        {/* Event Drawer */}
+        <CalendarEventDrawer
+          isOpen={drawerOpen}
+          onClose={handleCloseDrawer}
+          mode={drawerMode}
+          event={selectedEvent}
+          trainers={trainers}
+          workoutSpaces={workoutSpaces}
+          accounts={googleCalendarAccounts.map(a => ({ id: a.id, email: a.email, name: a.name, customName: a.customName || null }))}
+          prefillDates={prefillDates || undefined}
+          onCreateEvent={handleCreateEvent}
+          onUpdateEvent={handleUpdateEvent}
+          onUpdateAttendance={updateAttendance}
+        />
       </div>
-
-             {/* Event Drawer */}
-       <CalendarEventDrawer
-         isOpen={drawerOpen}
-         onClose={handleCloseDrawer}
-         mode={drawerMode}
-         event={selectedEvent}
-         trainers={trainers}
-         workoutSpaces={workoutSpaces}
-         onCreateEvent={handleCreateEvent}
-         onUpdateAttendance={updateAttendance}
-       />
-
-       {/* Google Calendar Sync Modal */}
-       {showGoogleCalendarSync && (
-         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-           <div className="bg-background rounded-lg shadow-xl max-w-md w-full">
-             <GoogleCalendarSync
-               onEventsSync={(syncedEvents) => {
-                 console.log('Synced events:', syncedEvents)
-                 setShowGoogleCalendarSync(false)
-               }}
-               onEventCreate={(event) => {
-                 console.log('Event created in Google Calendar:', event)
-               }}
-               onEventUpdate={(eventId, event) => {
-                 console.log('Event updated in Google Calendar:', eventId, event)
-               }}
-               onEventDelete={(eventId) => {
-                 console.log('Event deleted from Google Calendar:', eventId)
-               }}
-             />
-             <div className="p-4 border-t">
-               <Button 
-                 onClick={() => setShowGoogleCalendarSync(false)}
-                 variant="outline"
-                 className="w-full"
-               >
-                 Close
-               </Button>
-             </div>
-           </div>
-         </div>
-       )}
     </div>
   )
 }

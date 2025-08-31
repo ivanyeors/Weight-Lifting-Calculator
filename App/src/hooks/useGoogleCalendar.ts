@@ -46,6 +46,19 @@ export function useGoogleCalendar(options: UseGoogleCalendarOptions = {}) {
       isAuthenticated,
       accounts
     }))
+    // Listen to cross-component updates in same tab
+    const onUpdated = () => {
+      const updated = googleCalendarService.getAccounts()
+      setState(prev => ({ ...prev, accounts: updated, isAuthenticated: updated.length > 0 }))
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('googleCalendarAccountsUpdated', onUpdated)
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('googleCalendarAccountsUpdated', onUpdated)
+      }
+    }
   }, [googleCalendarService])
 
   // Fetch events when authentication state changes
@@ -267,6 +280,25 @@ export function useGoogleCalendar(options: UseGoogleCalendarOptions = {}) {
     }))
   }, [googleCalendarService])
 
+  // Update account color
+  const setAccountColor = useCallback((accountId: string, color: string) => {
+    googleCalendarService.setAccountColor(accountId, color)
+    const accounts = googleCalendarService.getAccounts()
+    setState(prev => ({ ...prev, accounts }))
+  }, [googleCalendarService])
+
+  const setAccountName = useCallback((accountId: string, customName: string) => {
+    googleCalendarService.setAccountName(accountId, customName)
+    const accounts = googleCalendarService.getAccounts()
+    setState(prev => ({ ...prev, accounts }))
+  }, [googleCalendarService])
+
+  const setAccountHideDetails = useCallback((accountId: string, hide: boolean) => {
+    googleCalendarService.setAccountHideDetails(accountId, hide)
+    const accounts = googleCalendarService.getAccounts()
+    setState(prev => ({ ...prev, accounts }))
+  }, [googleCalendarService])
+
   // Logout all accounts
   const logout = useCallback(() => {
     localStorage.removeItem('googleCalendarAccounts')
@@ -306,6 +338,9 @@ export function useGoogleCalendar(options: UseGoogleCalendarOptions = {}) {
     deleteEvent,
     removeAccount,
     logout,
+    setAccountColor,
+    setAccountName,
+    setAccountHideDetails,
 
     // Utilities
     convertToGoogleEvent,

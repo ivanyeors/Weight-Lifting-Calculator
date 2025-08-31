@@ -1,15 +1,17 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Calendar, Clock, MapPin, AlertTriangle, Users, X } from 'lucide-react'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { supabase } from '@/lib/supabaseClient'
+import { Checkbox } from '@/components/ui/checkbox'
 
 import { DateRange } from 'react-day-picker'
 import { format, setHours, setMinutes } from 'date-fns'
@@ -44,6 +46,8 @@ interface CalendarEvent {
   end: string
   backgroundColor: string
   borderColor: string
+  targetAccountIds?: string[]
+  source?: 'platform' | 'google'
   extendedProps: {
     trainer: string
     participants: User[]
@@ -67,45 +71,191 @@ interface CalendarEventDrawerProps {
   onUpdateEvent?: (eventId: string, eventData: Partial<CalendarEvent>) => void
   onUpdateAttendance?: (eventId: string, userId: string, status: 'present' | 'absent' | 'late' | 'cancelled') => void
   prefillDates?: { start: string; end: string }
+  // Provide connected accounts for multi-select
+  accounts?: { id: string; email: string; name?: string | null; customName?: string | null }[]
 }
 
-export function CalendarEventDrawer({
-  isOpen,
-  onClose,
-  mode,
-  event,
-  trainers,
-  workoutSpaces,
-  onCreateEvent,
-  onUpdateAttendance,
-  prefillDates
-}: CalendarEventDrawerProps) {
+export function CalendarEventDrawer(props: CalendarEventDrawerProps) {
+  const {
+    isOpen,
+    onClose,
+    mode,
+    event,
+    workoutSpaces,
+    accounts = [],
+    onCreateEvent,
+    prefillDates
+  } = props
   const [newEventData, setNewEventData] = useState({
     title: '',
     dateRange: undefined as DateRange | undefined,
     startTime: '09:00',
     endTime: '10:00',
-    trainer: '',
     workoutSpaceId: '',
-    maxParticipants: 8,
-    description: ''
+    description: '',
+    targetAccountIds: [] as string[],
+    participantIds: [] as string[]
   })
+
+  // Managed users for Participants section (from Users page)
+  type ManagedUser = {
+    id: string
+    name: string
+    medical_conditions: string[] | null
+  }
+  const [managedUsers, setManagedUsers] = useState<ManagedUser[]>([])
+  const [muscles, setMuscles] = useState<Array<{ id: string; name: string }>>([])
+  const [userInjuries, setUserInjuries] = useState<Record<string, string[]>>({})
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        // Load users
+        const { data: usersData } = await supabase
+          .from('managed_users')
+          .select('id, name, medical_conditions')
+          .order('updated_at', { ascending: false })
+
+        const users = (usersData ?? []) as ManagedUser[]
+        setManagedUsers(users)
+
+        // Load muscles for label names
+        const { data: musclesData } = await supabase
+          .from('muscles')
+          .select('id, name')
+          .order('name', { ascending: true })
+        setMuscles((musclesData ?? []) as Array<{ id: string; name: string }>)
+
+        // Load injuries mapping
+        const ids = users.map(u => u.id)
+        if (ids.length > 0) {
+          const { data: inj } = await supabase
+            .from('managed_user_injuries')
+            .select('user_id, muscle_id')
+            .in('user_id', ids)
+          const map: Record<string, string[]> = {}
+          ;(inj ?? []).forEach((r: { user_id: string; muscle_id: string }) => {
+            const uid = r.user_id
+            const mid = r.muscle_id
+            if (!map[uid]) map[uid] = []
+            map[uid].push(mid)
+          })
+          setUserInjuries(map)
+        } else {
+          setUserInjuries({})
+        }
+      } catch {
+        // fail silently for drawer
+        // console.error('Failed to load managed users for drawer', e)
+      }
+    }
+    if (isOpen) loadData()
+  }, [isOpen])
+
+  const muscleIdToName = useMemo(() => {
+    const m: Record<string, string> = {}
+    muscles.forEach((mm) => { m[mm.id] = mm.name })
+    return m
+  }, [muscles])
+
+  // Simple shadcn-style combobox multi-select for participants
+  function ParticipantsMultiSelect({
+    items,
+    value,
+    onChange,
+    placeholder = 'Select participants'
+  }: {
+    items: Array<{ id: string; name: string }>
+    value: string[]
+    onChange: (ids: string[]) => void
+    placeholder?: string
+  }) {
+    const [open, setOpen] = useState(false)
+    const [query, setQuery] = useState('')
+    const filtered = useMemo(() => {
+      const q = query.trim().toLowerCase()
+      if (!q) return items
+      return items.filter(i => i.name.toLowerCase().includes(q))
+    }, [items, query])
+
+    const toggle = (id: string, checked: boolean) => {
+      const setIds = new Set(value)
+      if (checked) setIds.add(id)
+      else setIds.delete(id)
+      onChange(Array.from(setIds))
+    }
+
+    const selectedLabels = value
+      .map(id => items.find(i => i.id === id)?.name || id)
+      .filter(Boolean)
+
+    return (
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button variant="outline" role="combobox" aria-expanded={open} className="w-full justify-between">
+            <span className="truncate">
+              {selectedLabels.length > 0 ? selectedLabels.join(', ') : placeholder}
+            </span>
+            <span className="ml-2 text-xs text-muted-foreground">{selectedLabels.length}</span>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[--radix-popover-trigger-width] p-2" align="start">
+          <div className="space-y-2">
+            <Input placeholder="Search..." value={query} onChange={(e) => setQuery(e.target.value)} />
+            <div className="max-h-64 overflow-auto space-y-1">
+              {filtered.map((opt) => {
+                const checked = value.includes(opt.id)
+                return (
+                  <Checkbox
+                    key={opt.id}
+                    variant="chip"
+                    checked={checked}
+                    onCheckedChange={(c) => toggle(opt.id, c === true)}
+                    className="text-sm w-full justify-between"
+                  >
+                    <span className="truncate">{opt.name}</span>
+                  </Checkbox>
+                )
+              })}
+              {filtered.length === 0 && (
+                <div className="text-xs text-muted-foreground px-1 py-2">No results</div>
+              )}
+            </div>
+            {value.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {value.map(id => {
+                  const label = items.find(i => i.id === id)?.name || id
+                  return <Badge key={id} variant="secondary" className="text-[10px] px-2 py-0.5">{label}</Badge>
+                })}
+              </div>
+            )}
+          </div>
+        </PopoverContent>
+      </Popover>
+    )
+  }
 
   // Reset form when drawer opens for creation
   useEffect(() => {
     if (isOpen && mode === 'create') {
+      const toHHMM = (d: Date) => {
+        const pad = (n: number) => String(n).padStart(2, '0')
+        return `${pad(d.getHours())}:${pad(d.getMinutes())}`
+      }
+      const startPrefill = prefillDates ? new Date(prefillDates.start) : null
+      const endPrefill = prefillDates ? new Date(prefillDates.end) : null
       setNewEventData({
         title: '',
         dateRange: prefillDates ? {
-          from: new Date(prefillDates.start),
-          to: new Date(prefillDates.end)
+          from: startPrefill as Date,
+          to: endPrefill as Date
         } : undefined,
-        startTime: '09:00',
-        endTime: '10:00',
-        trainer: '',
+        startTime: startPrefill ? toHHMM(startPrefill) : '09:00',
+        endTime: endPrefill ? toHHMM(endPrefill) : '10:00',
         workoutSpaceId: '',
-        maxParticipants: 8,
-        description: ''
+        description: '',
+        targetAccountIds: [],
+        participantIds: []
       })
     }
   }, [isOpen, mode, prefillDates])
@@ -113,7 +263,6 @@ export function CalendarEventDrawer({
   const handleCreateEvent = () => {
     if (!newEventData.title || !newEventData.dateRange?.from) return
 
-    const trainer = trainers.find(t => t.id === newEventData.trainer)
     const workoutSpace = workoutSpaces.find(s => s.id === newEventData.workoutSpaceId)
     
     // Parse start and end times
@@ -126,6 +275,25 @@ export function CalendarEventDrawer({
       ? setMinutes(setHours(newEventData.dateRange.to, endHour), endMinute)
       : setMinutes(setHours(newEventData.dateRange.from, endHour), endMinute)
     
+    const selectedAccounts = accounts.filter(a => newEventData.targetAccountIds.includes(a.id))
+    const trainerLabel = selectedAccounts[0] ? (selectedAccounts[0].customName || selectedAccounts[0].name || selectedAccounts[0].email) : 'Unassigned'
+
+    // Build participants from selected managed users
+    const selectedParticipants = newEventData.participantIds
+      .map(id => managedUsers.find(u => u.id === id))
+      .filter(Boolean)
+      .map(u => ({
+        id: (u as ManagedUser).id,
+        name: (u as ManagedUser).name,
+        email: '',
+        status: 'active' as const,
+        medicalConditions: ((u as ManagedUser).medical_conditions ?? []),
+        lastAttendance: '',
+        trainer: trainerLabel,
+        phone: '',
+        avatar: undefined
+      }))
+
     const eventData = {
       id: Date.now().toString(),
       title: newEventData.title,
@@ -133,16 +301,20 @@ export function CalendarEventDrawer({
       end: format(endDate, "yyyy-MM-dd HH:mm"),
       backgroundColor: '#3b82f6',
       borderColor: '#2563eb',
+      targetAccountIds: [...newEventData.targetAccountIds],
       extendedProps: {
-        trainer: trainer?.name || 'Unassigned',
-        participants: [],
+        trainer: trainerLabel,
+        participants: selectedParticipants as unknown as User[],
         plan: newEventData.title,
         location: workoutSpace?.name || 'No location specified',
-        maxParticipants: newEventData.maxParticipants,
-        currentParticipants: 0,
+        maxParticipants: selectedParticipants.length,
+        currentParticipants: selectedParticipants.length,
         medicalFlags: [],
         attendance: {}
-      }
+      },
+      // Store selected accounts for sync
+      syncedGoogleEventIds: {},
+      source: 'platform' as const
     }
 
     onCreateEvent?.(eventData)
@@ -236,20 +408,48 @@ export function CalendarEventDrawer({
           )}
         </div>
         
-        <div>
-          <Label>Trainer</Label>
-          <Select value={newEventData.trainer} onValueChange={(value) => setNewEventData(prev => ({ ...prev, trainer: value }))}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select trainer" />
-            </SelectTrigger>
-            <SelectContent>
-              {trainers.map((trainer) => (
-                <SelectItem key={trainer.id} value={trainer.id}>
-                  {trainer.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="space-y-2">
+          <Label>Accounts to sync</Label>
+          <div className="flex flex-wrap gap-2">
+            {accounts.map(acc => {
+              const label = acc.customName || acc.name || acc.email
+              const selected = newEventData.targetAccountIds.includes(acc.id)
+              return (
+                <button
+                  key={acc.id}
+                  type="button"
+                  onClick={() => setNewEventData(prev => ({
+                    ...prev,
+                    targetAccountIds: selected
+                      ? prev.targetAccountIds.filter(id => id !== acc.id)
+                      : [...prev.targetAccountIds, acc.id]
+                  }))}
+                  className={`px-2 py-1 text-xs rounded border ${selected ? 'bg-primary text-primary-foreground' : ''}`}
+                >
+                  {label}
+                </button>
+              )
+            })}
+          </div>
+          {newEventData.targetAccountIds.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {newEventData.targetAccountIds.map(id => {
+                const acc = accounts.find(a => a.id === id)
+                const label = acc ? (acc.customName || acc.name || acc.email) : id
+                return <Badge key={id} variant="secondary">{label}</Badge>
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Participants multi-select from Users (combobox) */}
+        <div className="space-y-2">
+          <Label>Participants</Label>
+          <ParticipantsMultiSelect
+            items={managedUsers.map(u => ({ id: u.id, name: u.name }))}
+            value={newEventData.participantIds}
+            onChange={(ids) => setNewEventData(prev => ({ ...prev, participantIds: ids }))}
+          />
         </div>
         
         <div>
@@ -268,15 +468,7 @@ export function CalendarEventDrawer({
           </Select>
         </div>
         
-        <div>
-          <Label>Max Participants</Label>
-          <Input 
-            type="number" 
-            placeholder="8" 
-            value={newEventData.maxParticipants}
-            onChange={(e) => setNewEventData(prev => ({ ...prev, maxParticipants: parseInt(e.target.value) || 8 }))}
-          />
-        </div>
+        {/* Max participants derived from selection; no numeric field */}
         
         <div>
           <Label>Description</Label>
@@ -340,70 +532,215 @@ export function CalendarEventDrawer({
             </div>
           </div>
           
-          {/* Participants with Attendance */}
+          {/* Participants (from selected event participants) */}
           <div className="space-y-3">
             <Label className="text-sm font-medium">Participants & Attendance</Label>
             <div className="space-y-2 max-h-64 overflow-y-auto">
-              {event.extendedProps.participants.map((participant) => (
-                <div key={participant.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="w-8 h-8">
-                      <AvatarImage src={participant.avatar} />
-                      <AvatarFallback className="text-xs">
-                        {participant.name.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="font-medium text-sm">{participant.name}</div>
-                      <div className="text-xs text-muted-foreground">{participant.email}</div>
-                      {participant.medicalConditions.length > 0 && (
-                        <div className="flex items-center gap-1 mt-1">
-                          <AlertTriangle className="w-3 h-3 text-red-500" />
-                          <span className="text-xs text-red-600">
-                            {participant.medicalConditions.join(', ')}
-                          </span>
-                        </div>
-                      )}
+              {(event.extendedProps.participants || []).map((p) => {
+                const injuryNames = (userInjuries[p.id] || []).map((mid) => muscleIdToName[mid]).filter(Boolean)
+                const medical = (p.medicalConditions ?? [])
+                return (
+                  <div key={p.id} className="p-3 border rounded-lg">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="font-medium text-sm">{p.name}</div>
+                        {medical.length > 0 && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <AlertTriangle className="w-3 h-3 text-red-500" />
+                            <span className="text-xs text-red-600">
+                              {medical.join(', ')}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
+                    {injuryNames.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {injuryNames.map((name) => (
+                          <Badge key={name} variant="secondary" className="text-[10px] px-2 py-0.5">{name}</Badge>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Select
-                      value={event.extendedProps.attendance[participant.id] || 'present'}
-                      onValueChange={(value) => onUpdateAttendance?.(event.id, participant.id, value as 'present' | 'absent' | 'late' | 'cancelled')}
-                    >
-                      <SelectTrigger className="w-24">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="present">Present</SelectItem>
-                        <SelectItem value="late">Late</SelectItem>
-                        <SelectItem value="absent">Absent</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
           
-          {/* Medical Alerts */}
-          {event.extendedProps.medicalFlags.length > 0 && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded">
-              <div className="flex items-center gap-2 text-red-700">
-                <AlertTriangle className="w-4 h-4" />
-                <span className="text-sm font-medium">Medical Conditions Present</span>
-              </div>
-              <div className="text-xs text-red-600 mt-1">
-                {event.extendedProps.medicalFlags.join(', ')}
-              </div>
-            </div>
-          )}
+          {/* Medical Alerts card removed; conditions shown on user cards */}
           
           <div className="flex gap-2 pt-4">
-            <Button variant="outline" className="flex-1">Edit Session</Button>
-            <Button variant="outline" className="flex-1">Manage Participants</Button>
-            <Button variant="outline" className="flex-1">View Details</Button>
+            <Button variant="outline" className="flex-1" onClick={() => setIsEditing(true)}>Edit Session</Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Edit Session state/UI
+  const [isEditing, setIsEditing] = useState(false)
+  const [editData, setEditData] = useState({
+    title: '',
+    date: undefined as Date | undefined,
+    startTime: '09:00',
+    endTime: '10:00',
+    workoutSpaceId: '',
+    description: '',
+    participantIds: [] as string[]
+  })
+
+  useEffect(() => {
+    if (isOpen && event) {
+      // Prefill edit fields from event when opening drawer or switching event
+      try {
+        const start = new Date(event.start)
+        const end = new Date(event.end)
+        const pad = (n: number) => String(n).padStart(2, '0')
+        const toHHMM = (d: Date) => `${pad(d.getHours())}:${pad(d.getMinutes())}`
+        const guessedSpace = workoutSpaces.find(ws => ws.name === event.extendedProps.location)?.id || ''
+        setEditData({
+          title: event.title,
+          date: start,
+          startTime: toHHMM(start),
+          endTime: toHHMM(end),
+          workoutSpaceId: guessedSpace,
+          description: '',
+          participantIds: (event.extendedProps.participants || []).map(p => p.id)
+        })
+      } catch {
+        // noop
+      }
+      // If the drawer is explicitly opened in 'edit' mode, auto-enter edit
+      setIsEditing(mode === 'edit')
+    }
+  }, [isOpen, event, workoutSpaces, mode])
+
+  const handleSaveEdit = () => {
+    if (!event) return
+    if (!editData.date) return
+    const [sh, sm] = editData.startTime.split(':').map(Number)
+    const [eh, em] = editData.endTime.split(':').map(Number)
+    const start = new Date(editData.date)
+    start.setHours(sh); start.setMinutes(sm); start.setSeconds(0); start.setMilliseconds(0)
+    const end = new Date(editData.date)
+    end.setHours(eh); end.setMinutes(em); end.setSeconds(0); end.setMilliseconds(0)
+    const space = workoutSpaces.find(ws => ws.id === editData.workoutSpaceId)
+
+    // Build participants from selected managed users for edit
+    const selectedParticipants = editData.participantIds
+      .map(id => managedUsers.find(u => u.id === id))
+      .filter(Boolean)
+      .map(u => ({
+        id: (u as ManagedUser).id,
+        name: (u as ManagedUser).name,
+        email: '',
+        status: 'active' as const,
+        medicalConditions: ((u as ManagedUser).medical_conditions ?? []),
+        lastAttendance: '',
+        trainer: event.extendedProps.trainer,
+        phone: '',
+        avatar: undefined
+      }))
+
+    const partial: Partial<CalendarEvent> = {
+      title: editData.title,
+      start: format(start, 'yyyy-MM-dd HH:mm'),
+      end: format(end, 'yyyy-MM-dd HH:mm'),
+      extendedProps: {
+        ...event.extendedProps,
+        plan: editData.title,
+        location: space?.name || event.extendedProps.location,
+        maxParticipants: selectedParticipants.length,
+        currentParticipants: selectedParticipants.length,
+        participants: selectedParticipants as unknown as User[]
+      }
+    }
+    props.onUpdateEvent?.(event.id, partial)
+    setIsEditing(false)
+    onClose()
+  }
+
+  const renderEditForm = () => {
+    if (!event) return null
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Edit Workout Session</h2>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+        <div className="space-y-4">
+          <div>
+            <Label>Session Title</Label>
+            <Input
+              placeholder="Enter session title"
+              value={editData.title}
+              onChange={(e) => setEditData(prev => ({ ...prev, title: e.target.value }))}
+            />
+          </div>
+          <div className="space-y-4">
+            <div>
+              <Label>Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start text-left font-normal">
+                    <Calendar className="mr-2 h-4 w-4" />
+                    {editData.date ? format(editData.date, 'LLL dd, y') : <span>Select date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={editData.date}
+                    onSelect={(date) => setEditData(prev => ({ ...prev, date: date || undefined }))}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="edit-time-from">Start Time</Label>
+                <div className="relative flex w-full items-center gap-2">
+                  <Clock className="text-muted-foreground pointer-events-none absolute left-2.5 size-4 select-none" />
+                  <Input id="edit-time-from" type="time" step="1" value={editData.startTime} onChange={(e) => setEditData(prev => ({ ...prev, startTime: e.target.value }))} className="appearance-none pl-8 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none" />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="edit-time-to">End Time</Label>
+                <div className="relative flex w-full items-center gap-2">
+                  <Clock className="text-muted-foreground pointer-events-none absolute left-2.5 size-4 select-none" />
+                  <Input id="edit-time-to" type="time" step="1" value={editData.endTime} onChange={(e) => setEditData(prev => ({ ...prev, endTime: e.target.value }))} className="appearance-none pl-8 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <Label>Workout Space</Label>
+            <Select value={editData.workoutSpaceId} onValueChange={(value) => setEditData(prev => ({ ...prev, workoutSpaceId: value }))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select workout space" />
+              </SelectTrigger>
+              <SelectContent>
+                {workoutSpaces.map((space) => (
+                  <SelectItem key={space.id} value={space.id}>{space.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Participants multi-select from Users (edit via combobox) */}
+          <div className="space-y-2">
+            <Label>Participants</Label>
+            <ParticipantsMultiSelect
+              items={managedUsers.map(u => ({ id: u.id, name: u.name }))}
+              value={editData.participantIds}
+              onChange={(ids) => setEditData(prev => ({ ...prev, participantIds: ids }))}
+            />
+          </div>
+          <div className="flex gap-2 pt-4">
+            <Button className="flex-1" onClick={handleSaveEdit} disabled={!editData.title || !editData.date}>Save Changes</Button>
+            <Button variant="outline" className="flex-1" onClick={() => setIsEditing(false)}>Cancel</Button>
           </div>
         </div>
       </div>
@@ -428,7 +765,8 @@ export function CalendarEventDrawer({
       >
         <div className="h-full overflow-y-auto p-6">
           {mode === 'create' && renderCreateForm()}
-          {mode === 'view' && renderEventDetails()}
+          {mode === 'edit' && renderEditForm()}
+          {mode === 'view' && (isEditing ? renderEditForm() : renderEventDetails())}
         </div>
       </div>
     </>
