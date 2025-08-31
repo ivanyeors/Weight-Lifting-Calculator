@@ -51,8 +51,9 @@ export function CreateTemplateDrawer({ open, onOpenChange, onSave }: CreateTempl
   const [exercises, setExercises] = useState<Exercise[]>([])
   const [workoutSpaces, setWorkoutSpaces] = useState<WorkoutSpace[]>([])
   const [loading, setLoading] = useState(false)
+  const [allowedExerciseIds, setAllowedExerciseIds] = useState<Set<string>>(new Set())
 
-  // Load exercises and workout spaces
+  // Load exercises and workout spaces (prefer DB, fallback to local JSONs)
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -116,15 +117,40 @@ export function CreateTemplateDrawer({ open, onOpenChange, onSave }: CreateTempl
     }
   }, [open])
 
+  // When workout space changes, load allowed exercises for that space
+  useEffect(() => {
+    const loadAllowed = async () => {
+      if (!open) return
+      if (!workoutSpaceId) { setAllowedExerciseIds(new Set()); return }
+      try {
+        const { data, error } = await supabase
+          .from('available_exercises_for_space')
+          .select('exercise_id')
+          .eq('space_id', workoutSpaceId)
+        if (error) throw error
+        const ids = new Set<string>((data ?? []).map((r: any) => r.exercise_id as string))
+        setAllowedExerciseIds(ids)
+      } catch (err) {
+        console.error('Failed to load allowed exercises for space', err)
+        // Fallback: allow all when view is not accessible
+        setAllowedExerciseIds(new Set(exercises.map(e => e.id)))
+      }
+    }
+    loadAllowed()
+  }, [open, workoutSpaceId, exercises])
+
   // Filter exercises based on search
   const filteredExercises = useMemo(() => {
-    if (!exerciseSearch) return exercises
+    const base = workoutSpaceId
+      ? exercises.filter(e => allowedExerciseIds.has(e.id))
+      : []
+    if (!exerciseSearch) return base
     const searchLower = exerciseSearch.toLowerCase()
-    return exercises.filter(exercise => 
+    return base.filter(exercise => 
       exercise.name.toLowerCase().includes(searchLower) ||
       exercise.description.toLowerCase().includes(searchLower)
     )
-  }, [exercises, exerciseSearch])
+  }, [exercises, exerciseSearch, workoutSpaceId, allowedExerciseIds])
 
   const handleSave = () => {
     if (!name.trim() || !workoutSpaceId || selectedExercises.size === 0) return

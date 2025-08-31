@@ -51,12 +51,15 @@ interface CalendarEvent {
   title: string
   start: string
   end: string
+  description?: string
   backgroundColor: string
   borderColor: string
   source?: 'platform' | 'google' // Track event source
   googleEventId?: string // Google Calendar event ID
   accountId?: string // Google Calendar account ID
   accountEmail?: string // Google Calendar account email
+  // Selected workout space (DB foreign key)
+  workoutSpaceId?: string
   // For platform events, maintain per-account Google event linkage
   syncedGoogleEventIds?: Record<string, string>
   // Target Google account IDs selected for syncing
@@ -70,6 +73,16 @@ interface CalendarEvent {
     currentParticipants: number
     medicalFlags: string[]
     attendance: Record<string, 'present' | 'absent' | 'late' | 'cancelled'>
+    // Optional: associated workout template card metadata
+    workoutTemplate?: {
+      id: string
+      name: string
+      exerciseCount: number
+      estimatedCalories: number
+      estimatedTime: number
+      usageCount: number
+      workoutSpace?: string
+    }
   }
 }
 
@@ -85,7 +98,8 @@ export function CalendarView() {
     convertToGoogleEvent,
     fetchEvents,
     createEvent: createGoogleEvent,
-    updateEvent: updateGoogleEvent
+    updateEvent: updateGoogleEvent,
+    deleteEvent: deleteGoogleEvent
   } = useGoogleCalendar({ autoSync: true })
 
   // Per-account visibility toggles
@@ -107,6 +121,8 @@ export function CalendarView() {
   }, [googleCalendarAccounts])
 
   const [events, setEvents] = useState<CalendarEvent[]>([])
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([])
+  const [selectedSpaceIds, setSelectedSpaceIds] = useState<string[]>([])
 
   const [trainers] = useState<Trainer[]>([
     {
@@ -140,6 +156,8 @@ export function CalendarView() {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
   const [prefillDates, setPrefillDates] = useState<{ start: string; end: string } | null>(null)
   const previewEventIdRef = useRef<string | null>(null)
+
+  // All times are handled as local strings: 'yyyy-MM-dd HH:mm'
   
   // Resolve which Google account to sync to based on selected trainer
   const resolveTargetAccountId = useCallback((ev: CalendarEvent): string | null => {
@@ -179,6 +197,187 @@ export function CalendarView() {
     loadWorkoutSpaces()
   }, [])
 
+  // Helpers to convert between local 'yyyy-MM-dd HH:mm' and ISO strings for DB
+  const toIsoFromLocal = useCallback((local: string): string => {
+    try {
+      // local like '2025-01-31 09:00'
+      const [datePart, timePart] = local.split(' ')
+      const [year, month, day] = datePart.split('-').map(Number)
+      const [hour, minute] = timePart.split(':').map(Number)
+      const d = new Date()
+      d.setFullYear(year)
+      d.setMonth(month - 1)
+      d.setDate(day)
+      d.setHours(hour, minute, 0, 0)
+      return d.toISOString()
+    } catch {
+      return new Date(local).toISOString()
+    }
+  }, [])
+
+  const toLocalFromIso = useCallback((iso: string): string => {
+    try {
+      const d = new Date(iso)
+      const pad = (n: number) => String(n).padStart(2, '0')
+      const yyyy = d.getFullYear()
+      const mm = pad(d.getMonth() + 1)
+      const dd = pad(d.getDate())
+      const hh = pad(d.getHours())
+      const min = pad(d.getMinutes())
+      return `${yyyy}-${mm}-${dd} ${hh}:${min}`
+    } catch {
+      return iso
+    }
+  }, [])
+
+  // Load existing platform sessions from Supabase (with participants)
+  useEffect(() => {
+    const loadSessions = async () => {
+      try {
+        type DbSession = {
+          id: string
+          title: string
+          start_at: string
+          end_at: string
+          description?: string | null
+          location?: string | null
+          background_color?: string | null
+          border_color?: string | null
+          workout_template_id?: string | null
+          workout_space_id?: string | null
+          google_linked?: Record<string, string> | null
+        }
+
+        const { data: sessions, error } = await supabase
+          .from('workout_sessions')
+          .select('*')
+          .order('start_at', { ascending: true })
+        if (error) throw error
+
+        const sessionIds = (sessions ?? ([] as DbSession[])).map((s) => s.id)
+        let participantsRows: Array<{ session_id: string; user_id: string; attendance: string | null }> = []
+        if (sessionIds.length > 0) {
+          const { data: prs, error: perr } = await supabase
+            .from('workout_session_participants')
+            .select('session_id, user_id, attendance')
+            .in('session_id', sessionIds)
+          if (perr) throw perr
+          participantsRows = (prs ?? []) as typeof participantsRows
+        }
+
+        // Load workout templates metadata for referenced sessions
+        const templateIds = Array.from(new Set(((sessions ?? []) as DbSession[])
+          .map(s => s.workout_template_id)
+          .filter((v): v is string => !!v)))
+
+        const templatesMap: Record<string, {
+          id: string
+          name: string
+          exercisesCount: number
+          estimatedCalories?: number | null
+          estimatedTime?: number | null
+          usageCount?: number | null
+        }> = {}
+
+        if (templateIds.length > 0) {
+          const { data: tpls, error: tErr } = await supabase
+            .from('workout_templates')
+            .select('id, name, exercises, estimated_calories, estimated_time, usage_count')
+            .in('id', templateIds)
+          if (tErr) throw tErr
+          for (const t of (tpls ?? []) as Array<{ id: string; name: string; exercises?: unknown; estimated_calories?: number | null; estimated_time?: number | null; usage_count?: number | null }>) {
+            const exercisesArray = Array.isArray(t.exercises) ? (t.exercises as unknown[]) : []
+            templatesMap[t.id] = {
+              id: t.id,
+              name: t.name,
+              exercisesCount: exercisesArray.length,
+              estimatedCalories: t.estimated_calories ?? null,
+              estimatedTime: t.estimated_time ?? null,
+              usageCount: t.usage_count ?? null
+            }
+          }
+        }
+
+        // Build CalendarEvent[] from DB
+        const bySession: Record<string, Array<{ user_id: string; attendance: string | null }>> = {}
+        participantsRows.forEach(r => {
+          if (!bySession[r.session_id]) bySession[r.session_id] = []
+          bySession[r.session_id].push({ user_id: r.user_id, attendance: r.attendance })
+        })
+
+        // Load user details for participants
+        const allUserIds = Array.from(new Set(participantsRows.map(r => r.user_id)))
+        const usersMap: Record<string, { id: string; name: string; email?: string | null; medical_conditions?: string[] | null }> = {}
+        if (allUserIds.length > 0) {
+          const { data: usersData } = await supabase
+            .from('managed_users')
+            .select('id, name, medical_conditions, note')
+            .in('id', allUserIds)
+          for (const u of (usersData ?? []) as Array<{ id: string; name: string; medical_conditions?: string[] | null }>) {
+            usersMap[u.id] = { id: u.id, name: u.name, email: null, medical_conditions: u.medical_conditions }
+          }
+        }
+
+        const platformFromDb: CalendarEvent[] = (sessions ?? []).map((s: DbSession) => {
+          const users = (bySession[s.id] || []).map(row => {
+            const u = usersMap[row.user_id]
+            return {
+              id: row.user_id,
+              name: u?.name || 'User',
+              email: u?.email || '',
+              status: 'active' as const,
+              medicalConditions: (u?.medical_conditions ?? []) as string[],
+              lastAttendance: '',
+              trainer: 'Unassigned',
+              phone: ''
+            }
+          })
+          const tpl = s.workout_template_id ? templatesMap[s.workout_template_id] : undefined
+          const linked = (s.google_linked || {}) as Record<string, string>
+          return {
+            id: s.id,
+            title: s.title,
+            start: toLocalFromIso(s.start_at),
+            end: toLocalFromIso(s.end_at),
+            description: s.description || '',
+            backgroundColor: s.background_color || '#3b82f6',
+            borderColor: s.border_color || '#1e40af',
+            source: 'platform' as const,
+            workoutSpaceId: s.workout_space_id || undefined,
+            syncedGoogleEventIds: linked,
+            extendedProps: {
+              trainer: 'Unassigned',
+              participants: users as unknown as User[],
+              plan: tpl?.name || s.title,
+              location: s.location || '',
+              maxParticipants: users.length,
+              currentParticipants: users.length,
+              medicalFlags: [],
+              attendance: {},
+              workoutTemplate: tpl ? {
+                id: tpl.id,
+                name: tpl.name,
+                exerciseCount: tpl.exercisesCount,
+                estimatedCalories: (tpl.estimatedCalories ?? 0),
+                estimatedTime: (tpl.estimatedTime ?? 0),
+                usageCount: (tpl.usageCount ?? 0)
+              } : undefined
+            }
+          } as CalendarEvent
+        })
+
+        setEvents(prev => {
+          // Keep any Google events already in memory; replace platform set with DB sessions
+          const googleOnly = prev.filter(e => e.source === 'google')
+          return [...platformFromDb, ...googleOnly]
+        })
+      } catch (e) {
+        console.error('Failed to load sessions from DB', e)
+      }
+    }
+    loadSessions()
+  }, [toLocalFromIso])
+
   // Fetch Google Calendar events when component mounts or connection state changes
   useEffect(() => {
     if (isGoogleCalendarConnected) {
@@ -197,9 +396,25 @@ export function CalendarView() {
     
     if (isGoogleCalendarConnected && googleCalendarEvents.length > 0) {
       console.log('Processing Google Calendar events...')
-      const googleEvents = googleCalendarEvents.map(googleEvent => {
+
+      // Build two collections:
+      // - platformGroups: platform (canonical) events reconstructed from Google mirrors
+      // - externalGoogleEvents: Google-only events not originated from platform
+      const platformGroups = new Map<string, { base: CalendarEvent; linked: Record<string, string> }>()
+      const externalGoogleEvents: CalendarEvent[] = []
+
+      const rgba10 = (hexColor: string): string => {
+        const m = hexColor?.match(/^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i)
+        if (!m) return 'rgba(107,114,128,0.1)'
+        const r = Number.parseInt(m[1], 16)
+        const g = Number.parseInt(m[2], 16)
+        const b = Number.parseInt(m[3], 16)
+        return `rgba(${r}, ${g}, ${b}, 0.1)`
+      }
+
+      for (const googleEvent of googleCalendarEvents) {
         console.log('Processing event:', googleEvent)
-        const convertedEvent = convertFromGoogleEvent(googleEvent) as {
+        const converted = convertFromGoogleEvent(googleEvent) as {
           platformEventId?: string
           title: string
           start: string
@@ -209,66 +424,167 @@ export function CalendarView() {
           accountId?: string
           accountEmail?: string
         }
-        console.log('Converted event:', convertedEvent)
-        const account = googleCalendarAccounts.find(acc => acc.id === convertedEvent.accountId)
+        console.log('Converted event:', converted)
+        const account = googleCalendarAccounts.find(acc => acc.id === converted.accountId)
         console.log('Found account:', account)
-        
+
+        if (converted.platformEventId) {
+          // Reconstruct platform event so it persists across refreshes and keeps full opacity
+          const existing = platformGroups.get(converted.platformEventId)
+          const trainerName = account?.name || 'Trainer'
+          const participants = (converted.attendees || []).map(a => ({
+            id: a.email,
+            name: a.name,
+            email: a.email,
+            status: 'active' as const,
+            medicalConditions: [],
+            lastAttendance: '',
+            trainer: trainerName,
+            phone: ''
+          }))
+
+          const basePlatform: CalendarEvent = existing?.base || {
+            id: converted.platformEventId,
+            title: converted.title,
+            start: converted.start,
+            end: converted.end,
+            description: '',
+            // Use workout calendar theme; platform events should be full opacity
+            backgroundColor: '#3b82f6',
+            borderColor: '#1e40af',
+            source: 'platform' as const,
+            extendedProps: {
+              trainer: trainerName,
+              participants,
+              plan: converted.title,
+              location: converted.location || '',
+              maxParticipants: 0,
+              currentParticipants: participants.length,
+              medicalFlags: [],
+              attendance: {}
+            }
+          }
+
+          const linked = existing?.linked || {}
+          if (converted.accountId && googleEvent.id) {
+            linked[converted.accountId] = googleEvent.id
+          }
+          platformGroups.set(converted.platformEventId, { base: basePlatform, linked })
+          continue
+        }
+
+        // External Google-only event (not linked to platform)
         const hide = !!account?.hideDetails
         const baseColor = account?.color || '#6b7280'
         const borderColor = account?.color || '#4b5563'
-        const rgba10 = (hexColor: string): string => {
-          // Convert #rrggbb to rgba with 0.1 alpha
-          const m = hexColor.match(/^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i)
-          if (!m) return 'rgba(107,114,128,0.1)'
-          const r = Number.parseInt(m[1], 16)
-          const g = Number.parseInt(m[2], 16)
-          const b = Number.parseInt(m[3], 16)
-          return `rgba(${r}, ${g}, ${b}, 0.1)`
-        }
-        // Skip Google events that are mirrors of platform events to avoid duplicates
-        if (convertedEvent.platformEventId) {
-          return null as unknown as CalendarEvent
-        }
-        const calendarEvent = {
+
+        const calendarEvent: CalendarEvent = {
           id: `google-${googleEvent.id}`,
-          title: hide ? 'Busy' : convertedEvent.title,
-          start: convertedEvent.start,
-          end: convertedEvent.end,
-          backgroundColor: hide ? rgba10(baseColor) : baseColor, // 10% opacity when hidden
+          title: hide ? 'Busy' : converted.title,
+          start: converted.start,
+          end: converted.end,
+          backgroundColor: hide ? rgba10(baseColor) : baseColor,
           borderColor: hide ? rgba10(borderColor) : borderColor,
-          source: 'google' as const,
+          source: 'google',
           googleEventId: googleEvent.id,
-          accountId: convertedEvent.accountId,
-          accountEmail: convertedEvent.accountEmail,
+          accountId: converted.accountId,
+          accountEmail: converted.accountEmail,
           extendedProps: {
             trainer: hide ? 'Busy' : (account?.name || 'Google Calendar'),
             participants: [],
-            plan: hide ? 'Busy' : convertedEvent.title,
-            location: hide ? '' : (convertedEvent.location || ''),
+            plan: hide ? 'Busy' : converted.title,
+            location: hide ? '' : (converted.location || ''),
             maxParticipants: 0,
             currentParticipants: 0,
             medicalFlags: [],
             attendance: {}
           }
-        } as CalendarEvent
-        
-        console.log('Created calendar event:', calendarEvent)
-        return calendarEvent
-      }).filter(Boolean) as CalendarEvent[]
+        }
+        externalGoogleEvents.push(calendarEvent)
+      }
 
-      console.log('All Google events processed:', googleEvents)
+      const reconstructedPlatformEvents: CalendarEvent[] = Array.from(platformGroups.values()).map(group => ({
+        ...group.base,
+        syncedGoogleEventIds: { ...(group.base.syncedGoogleEventIds || {}), ...group.linked },
+        targetAccountIds: Object.keys(group.linked)
+      }))
 
-      // Filter out existing Google events and add new ones
+      console.log('External Google events:', externalGoogleEvents)
+
       setEvents(prev => {
-        const platformEvents = prev.filter(event => event.source === 'platform')
-        // Filter Google events by visible accounts
-        const filteredGoogle = googleEvents.filter(e => !e.accountId || visibleAccounts[e.accountId] !== false)
-        const allEvents = [...platformEvents, ...filteredGoogle]
-        console.log('Updated events state:', allEvents)
-        return allEvents
+        // Keep existing platform events as-is; do not reconstruct from Google mirrors
+        const platformOnly = prev.filter(e => e.source === 'platform')
+
+        // Build a set of linked Google ids from platform events to hide mirrors
+        const linkedSet = new Set<string>()
+        for (const ev of platformOnly) {
+          const map = ev.syncedGoogleEventIds || {}
+          for (const [accId, gId] of Object.entries(map)) {
+            if (accId && gId) linkedSet.add(`${accId}|${gId}`)
+          }
+        }
+
+        // Helper: check if a Google event overlaps a platform event with same title/time
+        const overlapsPlatform = (g: { start: string; end: string; title: string; accountId?: string }) => {
+          const gs = new Date(g.start).getTime()
+          const ge = new Date(g.end).getTime()
+          const THRESH = 2 * 60 * 1000 // 2 minutes
+          return platformOnly.some(p => {
+            const ps = new Date(p.start).getTime()
+            const pe = new Date(p.end).getTime()
+            const timesClose = Math.abs(ps - gs) <= THRESH && Math.abs(pe - ge) <= THRESH
+            const titleMatch = (p.title || '').trim() === (g.title || '').trim()
+            return timesClose && titleMatch
+          })
+        }
+
+        // First, filter by visibility and remove any Google event already linked to a platform session
+        const visibleGoogle = externalGoogleEvents.filter(e => {
+          if (e.accountId && visibleAccounts[e.accountId] === false) return false
+          const key = e.accountId && e.googleEventId ? `${e.accountId}|${e.googleEventId}` : null
+          if (key && linkedSet.has(key)) return false
+          if (overlapsPlatform({ start: e.start, end: e.end, title: e.title, accountId: e.accountId })) return false
+          return true
+        })
+
+        // Deduplicate Google events by googleEventId (prefer tinted rgba 10% if available),
+        // then by time/title signature across accounts
+        const byId = new Map<string, CalendarEvent>()
+        for (const ev of visibleGoogle) {
+          const idKey = ev.googleEventId ? `${ev.googleEventId}` : `${ev.accountId}|${ev.id}`
+          const isTinted = typeof ev.backgroundColor === 'string' && ev.backgroundColor.startsWith('rgba(')
+          const existing = byId.get(idKey)
+          if (!existing) {
+            byId.set(idKey, ev)
+            continue
+          }
+          const existingTinted = typeof existing.backgroundColor === 'string' && existing.backgroundColor.startsWith('rgba(')
+          // Prefer tinted one
+          if (isTinted && !existingTinted) byId.set(idKey, ev)
+        }
+
+        // Also dedupe by start/end/title signature, keep tinted preferred
+        const bySig = new Map<string, CalendarEvent>()
+        for (const ev of byId.values()) {
+          const sig = `${ev.start}|${ev.end}|${(ev.title || '').trim()}`
+          const existing = bySig.get(sig)
+          const isTinted = typeof ev.backgroundColor === 'string' && ev.backgroundColor.startsWith('rgba(')
+          if (!existing) {
+            bySig.set(sig, ev)
+            continue
+          }
+          const existingTinted = typeof existing.backgroundColor === 'string' && existing.backgroundColor.startsWith('rgba(')
+          if (isTinted && !existingTinted) bySig.set(sig, ev)
+        }
+
+        const dedupedGoogle = Array.from(bySig.values())
+        const nextEvents = [...platformOnly, ...dedupedGoogle]
+        console.log('Updated events state (deduped):', nextEvents)
+        return nextEvents
       })
     } else if (isGoogleCalendarConnected && googleCalendarEvents.length === 0) {
       console.log('Google Calendar connected but no events found')
+      // Do not clear platform events; keep whatever is already in state
     } else {
       console.log('Google Calendar not connected or no events')
     }
@@ -320,9 +636,59 @@ export function CalendarView() {
     return base
   }, [googleCalendarAccounts])
 
+  const usersForFilter = useMemo(() => {
+    const map = new Map<string, { id: string; name: string; email?: string | null }>()
+    for (const ev of events) {
+      const parts = ev?.extendedProps?.participants || []
+      for (const p of parts) {
+        if (!p?.id) continue
+        if (!map.has(p.id)) map.set(p.id, { id: p.id, name: p.name, email: p.email })
+      }
+    }
+    return Array.from(map.values())
+  }, [events])
+
+  const spacesForFilter = useMemo(() => {
+    const ids = new Set<string>()
+    const list: { id: string; name: string }[] = []
+    for (const s of workoutSpaces) {
+      if (!ids.has(s.id)) {
+        ids.add(s.id)
+        list.push({ id: s.id, name: s.name })
+      }
+    }
+    return list
+  }, [workoutSpaces])
+
+  const visibleEvents = useMemo(() => {
+    let out = events
+    if (selectedUserIds && selectedUserIds.length > 0) {
+      const selectedUsers = new Set(selectedUserIds)
+      out = out.filter(ev => {
+        if (!ev?.extendedProps?.participants || ev.extendedProps.participants.length === 0) return false
+        return ev.extendedProps.participants.some(p => selectedUsers.has(p.id))
+      })
+    }
+    if (selectedSpaceIds && selectedSpaceIds.length > 0) {
+      const selectedSpaces = new Set(selectedSpaceIds)
+      out = out.filter(ev => {
+        // Prefer explicit workoutSpaceId if present
+        const evSpaceId = (ev as { workoutSpaceId?: string }).workoutSpaceId
+        if (evSpaceId) return selectedSpaces.has(evSpaceId)
+        // Fallback: match by location name
+        const loc = ev?.extendedProps?.location || ''
+        return Array.from(selectedSpaces).some(spaceId => {
+          const ws = workoutSpaces.find(ws => ws.id === spaceId)
+          return ws ? loc === ws.name : false
+        })
+      })
+    }
+    return out
+  }, [events, selectedUserIds, selectedSpaceIds, workoutSpaces])
+
   const calendar = useCalendarApp({
     views: [createViewDay(), createViewWeek(), createViewMonthGrid(), createViewMonthAgenda()], // Pass all views to let Schedule-X handle view switching
-    events: events.map(event => ({
+    events: visibleEvents.map(event => ({
       id: event.id,
       title: event.title,
       start: event.start,
@@ -339,7 +705,7 @@ export function CalendarView() {
         const foundEvent = events.find(e => e.id === event.id)
         if (foundEvent) {
           setSelectedEvent(foundEvent)
-          setDrawerMode(foundEvent.source === 'platform' ? 'edit' : 'view')
+          setDrawerMode('view')
           setDrawerOpen(true)
         }
       },
@@ -369,7 +735,7 @@ export function CalendarView() {
             title: existing.title,
             start: updatedEvent.start,
             end: updatedEvent.end,
-            description: '',
+            description: existing.description || '',
             // Workout space maps to Google location
             location: existing.extendedProps?.location || '',
             attendees: existing.extendedProps?.participants?.map(p => ({ email: p.email, name: p.name })) || []
@@ -409,7 +775,7 @@ export function CalendarView() {
 
   // Update calendar events when events state changes
   useEffect(() => {
-    console.log('Updating Schedule-X calendar with events:', events)
+    console.log('Updating Schedule-X calendar with events:', visibleEvents)
     if (eventsService && calendar) {
       // Clear existing events and add new ones
       const existingEvents = eventsService.getAll()
@@ -418,8 +784,8 @@ export function CalendarView() {
         eventsService.remove(event.id)
       })
       
-      console.log('Adding new events to Schedule-X:', events.length)
-      events.forEach(event => {
+      console.log('Adding new events to Schedule-X:', visibleEvents.length)
+      visibleEvents.forEach(event => {
         console.log('Adding event to Schedule-X:', {
           id: event.id,
           title: event.title,
@@ -438,14 +804,22 @@ export function CalendarView() {
       
       console.log('Schedule-X calendar updated. Total events:', eventsService.getAll().length)
     }
-  }, [events, eventsService, calendar])
+  }, [visibleEvents, eventsService, calendar])
 
 
   // Force per-event colors (override theme vars) after render
   const calendarRootRef = useRef<HTMLDivElement>(null)
   const eventsRef = useRef<CalendarEvent[]>([])
   const accountsRef = useRef(googleCalendarAccounts)
-  useEffect(() => { eventsRef.current = events }, [events])
+  const pointerInfoRef = useRef<{
+    startX: number
+    startY: number
+    moved: boolean
+    onResize: boolean
+    eventId: string | null
+    startedOnEvent: boolean
+  } | null>(null)
+  useEffect(() => { eventsRef.current = visibleEvents }, [visibleEvents])
   useEffect(() => { accountsRef.current = googleCalendarAccounts }, [googleCalendarAccounts])
 
   // Helper to clear preview event block
@@ -516,10 +890,21 @@ export function CalendarView() {
       const hourHeight = findHourHeight(col)
       if (!hourHeight || hourHeight <= 0) return
 
-      const rect = col.getBoundingClientRect()
-      const scrollable = (col.closest('.sx__view-container') || root.querySelector('.sx__view-container') || col.closest('.sx__view')) as HTMLElement | null
-      const scrollTop = scrollable?.scrollTop || 0
-      const y = e.clientY - rect.top + scrollTop
+      // Determine the true scrollable ancestor to compute pointer offset accurately
+      const findScrollableAncestor = (start: HTMLElement): HTMLElement | null => {
+        let cur: HTMLElement | null = start
+        while (cur && cur !== root) {
+          const style = window.getComputedStyle(cur)
+          if ((style.overflowY === 'auto' || style.overflowY === 'scroll') && cur.scrollHeight > cur.clientHeight) {
+            return cur
+          }
+          cur = cur.parentElement as HTMLElement | null
+        }
+        return (root.querySelector('.sx__view-container') as HTMLElement) || null
+      }
+      const scrollable = findScrollableAncestor(col) || root
+      const containerRect = scrollable.getBoundingClientRect()
+      const y = e.clientY - containerRect.top + scrollable.scrollTop
       let hour = Math.floor(y / hourHeight)
       if (hour < 0) hour = 0
       if (hour > 23) hour = 23
@@ -570,8 +955,68 @@ export function CalendarView() {
     }
   }, [eventsService, clearPreviewBlock])
 
+  // Event interactions: open on true click, allow drag-move and resize without opening
   useEffect(() => {
-    if (!events || events.length === 0) return
+    const root = calendarRootRef.current
+    if (!root) return
+    const CLICK_MOVE_TOLERANCE = 5
+    const getEventIdFromTarget = (evtTarget: EventTarget | null): string | null => {
+      const el = (evtTarget as HTMLElement | null)?.closest('[data-event-id], .sx__event') as HTMLElement | null
+      if (!el) return null
+      const id = el.getAttribute('data-event-id')
+      return id || null
+    }
+    const onPointerDown = (e: PointerEvent) => {
+      const target = e.target as HTMLElement
+      const eventId = getEventIdFromTarget(target)
+      const onResize = !!(target.closest('.sx__event__resize-handle') || target.closest('.sx__time-grid-event-resize-handle'))
+      const startedOnEvent = !!eventId
+      pointerInfoRef.current = {
+        startX: e.clientX,
+        startY: e.clientY,
+        moved: false,
+        onResize,
+        eventId: eventId || null,
+        startedOnEvent
+      }
+    }
+    const onPointerMove = (e: PointerEvent) => {
+      const info = pointerInfoRef.current
+      if (!info) return
+      const dx = Math.abs(e.clientX - info.startX)
+      const dy = Math.abs(e.clientY - info.startY)
+      if (dx > CLICK_MOVE_TOLERANCE || dy > CLICK_MOVE_TOLERANCE) {
+        info.moved = true
+      }
+    }
+    const onPointerUp = () => {
+      const info = pointerInfoRef.current
+      pointerInfoRef.current = null
+      if (!info) return
+      if (!info.startedOnEvent) return
+      if (info.onResize || info.moved) return
+      const id = info.eventId
+      if (!id) return
+      const found = eventsRef.current.find(ev => ev.id === id)
+      if (!found) return
+      setSelectedEvent(found)
+      setDrawerMode('view')
+      setDrawerOpen(true)
+    }
+    root.addEventListener('pointerdown', onPointerDown, true)
+    root.addEventListener('pointermove', onPointerMove, true)
+    root.addEventListener('pointerup', onPointerUp, true)
+    root.addEventListener('pointercancel', onPointerUp, true)
+    return () => {
+      root.removeEventListener('pointerdown', onPointerDown, true as unknown as EventListenerOptions)
+      root.removeEventListener('pointermove', onPointerMove, true as unknown as EventListenerOptions)
+      root.removeEventListener('pointerup', onPointerUp, true as unknown as EventListenerOptions)
+      root.removeEventListener('pointercancel', onPointerUp, true as unknown as EventListenerOptions)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!visibleEvents || visibleEvents.length === 0) return
     const applyColors = () => {
       try {
         eventsRef.current.forEach(ev => {
@@ -600,7 +1045,7 @@ export function CalendarView() {
       setTimeout(applyColors, 0)
     })
     return () => cancelAnimationFrame(raf)
-  }, [events])
+  }, [visibleEvents])
 
   // Re-apply colors whenever Schedule-X re-renders DOM (view change, navigation)
   useEffect(() => {
@@ -674,7 +1119,44 @@ export function CalendarView() {
       source: 'platform',
       syncedGoogleEventIds: eventData.syncedGoogleEventIds || {}
     }
-    setEvents(prev => [...prev, platformEvent])
+    // Persist to DB first to get a stable UUID id, then set events with DB id
+    let createdSessionId: string | null = null
+    try {
+      const { data: inserted, error } = await supabase
+        .from('workout_sessions')
+        .insert({
+          owner_id: (await supabase.auth.getUser()).data.user?.id,
+          title: platformEvent.title,
+          start_at: toIsoFromLocal(platformEvent.start),
+          end_at: toIsoFromLocal(platformEvent.end),
+          description: platformEvent.description || '',
+          location: platformEvent.extendedProps?.location || '',
+          background_color: platformEvent.backgroundColor,
+          border_color: platformEvent.borderColor,
+          workout_space_id: platformEvent.workoutSpaceId || null,
+          workout_template_id: platformEvent.extendedProps?.workoutTemplate?.id || null,
+          google_linked: platformEvent.syncedGoogleEventIds || {}
+        })
+        .select('id')
+        .single()
+      if (error) throw error
+      const newId = inserted.id as string
+      createdSessionId = newId
+
+      // Insert participants
+      const parts = platformEvent.extendedProps?.participants || []
+      if (parts.length > 0) {
+        const rows = parts.map(p => ({ session_id: newId, user_id: p.id }))
+        await supabase.from('workout_session_participants').insert(rows)
+      }
+
+      const stored: CalendarEvent = { ...platformEvent, id: newId }
+      setEvents(prev => prev.map(e => e.id === platformEvent.id ? stored : e).concat(prev.every(e => e.id !== platformEvent.id) ? [stored] : []))
+    } catch (e) {
+      console.error('Failed to persist workout session', e)
+      // Fallback to local insert to avoid UX loss
+      setEvents(prev => [...prev, platformEvent])
+    }
 
     if (isGoogleCalendarConnected && googleCalendarAccounts.length > 0) {
       try {
@@ -683,7 +1165,7 @@ export function CalendarView() {
           title: platformEvent.title,
           start: platformEvent.start,
           end: platformEvent.end,
-          description: '',
+          description: platformEvent.description || '',
           // Workout space maps to Google location
           location: platformEvent.extendedProps?.location || '',
           attendees: platformEvent.extendedProps?.participants?.map(p => ({ email: p.email, name: p.name })) || []
@@ -701,10 +1183,19 @@ export function CalendarView() {
         }
         await Promise.all(selectedTargets.map(async targetId => {
           const { id: createdId } = await createGoogleEvent(targetId, gEvent) as { id: string }
-          setEvents(prev => prev.map(ev => ev.id === platformEvent.id ? ({
+          const dbId = (createdSessionId as string) || platformEvent.id
+          setEvents(prev => prev.map(ev => ev.id === dbId ? ({
             ...ev,
             syncedGoogleEventIds: { ...(ev.syncedGoogleEventIds || {}), [targetId]: createdId }
           }) : ev))
+          try {
+            // Persist linkage to DB using the DB id
+            await supabase.from('workout_sessions')
+              .update({ google_linked: { ...(platformEvent.syncedGoogleEventIds || {}), [targetId]: createdId } })
+              .eq('id', dbId)
+          } catch {
+            // non-fatal: linkage will be rebuilt on next sync
+          }
         }))
       } catch (e) {
         console.error('Failed to prepare Google event creation', e)
@@ -731,6 +1222,37 @@ export function CalendarView() {
       return merged
     }))
 
+    // Persist to DB
+    try {
+      const next = events.find(e => e.id === eventId)
+      const merged: CalendarEvent = {
+        ...(next as CalendarEvent),
+        ...partial,
+        extendedProps: { ...(next as CalendarEvent).extendedProps, ...(partial.extendedProps || {}) }
+      }
+      await supabase.from('workout_sessions')
+        .update({
+          title: merged.title,
+          start_at: toIsoFromLocal(merged.start),
+          end_at: toIsoFromLocal(merged.end),
+          description: merged.description || '',
+          location: merged.extendedProps?.location || '',
+          workout_space_id: merged.workoutSpaceId || null,
+          workout_template_id: merged.extendedProps?.workoutTemplate?.id || null
+        })
+        .eq('id', eventId)
+
+      // Upsert participants
+      const parts = merged.extendedProps?.participants || []
+      await supabase.from('workout_session_participants').delete().eq('session_id', eventId)
+      if (parts.length > 0) {
+        const rows = parts.map(p => ({ session_id: eventId, user_id: p.id }))
+        await supabase.from('workout_session_participants').insert(rows)
+      }
+    } catch (e) {
+      console.error('Failed to persist session update', e)
+    }
+
     // Sync to Google for selected targets
     try {
       const base = events.find(e => e.id === eventId)
@@ -745,7 +1267,7 @@ export function CalendarView() {
         title: next.title,
         start: next.start,
         end: next.end,
-        description: '',
+        description: next.description || '',
         location: next.extendedProps?.location || '',
         attendees: next.extendedProps?.participants?.map(p => ({ email: p.email, name: p.name })) || []
       }
@@ -768,10 +1290,54 @@ export function CalendarView() {
             ...ev,
             syncedGoogleEventIds: { ...(ev.syncedGoogleEventIds || {}), [targetId]: createdId }
           }) : ev))
+          try {
+            await supabase.from('workout_sessions')
+              .update({ google_linked: { ...(next.syncedGoogleEventIds || {}), [targetId]: createdId } })
+              .eq('id', next.id)
+          } catch {
+            // non-fatal
+          }
         }
       }))
     } catch (e) {
       console.error('Failed to sync updated event to Google', e)
+    }
+  }
+
+  // Delete event locally and in Google (for all linked accounts)
+  const handleDeleteEvent = async (eventId: string) => {
+    const existing = events.find(e => e.id === eventId)
+    if (!existing) return
+    if (existing.source === 'google') {
+      // Do not delete Google-origin events from our UI
+      return
+    }
+
+    // Remove locally first for snappy UX
+    setEvents(prev => prev.filter(e => e.id !== eventId))
+
+    try {
+      // Delete from DB
+      try {
+        await supabase.from('workout_sessions').delete().eq('id', eventId)
+      } catch {
+        // non-fatal
+      }
+      if (!isGoogleCalendarConnected) return
+      const linked = existing.syncedGoogleEventIds || {}
+      const targetIds = Object.keys(linked)
+      if (targetIds.length === 0) return
+      await Promise.all(targetIds.map(async accountId => {
+        const gId = linked[accountId]
+        if (!gId) return
+        try {
+          await deleteGoogleEvent(accountId, gId)
+        } catch (err) {
+          console.warn('Failed to delete Google event for account', accountId, err)
+        }
+      }))
+    } catch (e) {
+      console.error('Failed to sync deletion to Google', e)
     }
   }
 
@@ -789,6 +1355,12 @@ export function CalendarView() {
         accounts={googleCalendarAccounts.map(a => ({ id: a.id, email: a.email, name: (a.customName || a.name || null), color: a.color || null }))}
         visibleAccounts={visibleAccounts}
         setVisibleAccounts={(next) => setVisibleAccounts(next)}
+        users={usersForFilter}
+        selectedUserIds={selectedUserIds}
+        setSelectedUserIds={setSelectedUserIds}
+        spaces={spacesForFilter}
+        selectedSpaceIds={selectedSpaceIds}
+        setSelectedSpaceIds={setSelectedSpaceIds}
       />
       {!sidebarCollapsed && (
         <div
@@ -1178,7 +1750,7 @@ export function CalendarView() {
           isOpen={drawerOpen}
           onClose={handleCloseDrawer}
           mode={drawerMode}
-          event={selectedEvent}
+          event={selectedEvent || undefined}
           trainers={trainers}
           workoutSpaces={workoutSpaces}
           accounts={googleCalendarAccounts.map(a => ({ id: a.id, email: a.email, name: a.name, customName: a.customName || null }))}
@@ -1186,6 +1758,7 @@ export function CalendarView() {
           onCreateEvent={handleCreateEvent}
           onUpdateEvent={handleUpdateEvent}
           onUpdateAttendance={updateAttendance}
+          onDeleteEvent={handleDeleteEvent}
         />
       </div>
     </div>
