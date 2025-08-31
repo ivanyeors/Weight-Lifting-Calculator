@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSelectedUser } from '@/hooks/use-selected-user'
 import { UserSwitcher } from '@/components/user-switcher'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -33,7 +33,9 @@ import {
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
-import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart as RechartsPieChart, Pie, Cell } from 'recharts'
+import { ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell } from 'recharts'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 
 // TypeScript interfaces for data structures
 interface FitnessGoal {
@@ -111,6 +113,15 @@ export default function FitnessGoalPage() {
   const [endDate, setEndDate] = useState<Date>()
   const [showCalendar, setShowCalendar] = useState(false)
   const [calculatedPlan, setCalculatedPlan] = useState<FitnessGoal | null>(null)
+
+  // Prefill current/target weight from the selected user's profile
+  useEffect(() => {
+    if (user?.inputs?.bodyWeight != null) {
+      const w = Number(user.inputs.bodyWeight)
+      setCurrentWeight(w)
+      if (!targetWeight) setTargetWeight(w)
+    }
+  }, [user])
 
   // Calculate BMR using Mifflin-St Jeor Equation
   const calculateBMR = (weight: number, height: number, age: number, gender: string): number => {
@@ -231,37 +242,6 @@ export default function FitnessGoalPage() {
     return physiqueOption ? physiqueOption.label : physique
   }
 
-  // Generate chart data for weight progress
-  const getWeightChartData = () => {
-    if (!calculatedPlan) return []
-    
-    const data = []
-    const days = calculatedPlan.timeFrame || 30
-    const weightDiff = calculatedPlan.targetWeight - calculatedPlan.currentWeight
-    const dailyChange = weightDiff / days
-
-    for (let i = 0; i <= days; i++) {
-      const currentWeight = calculatedPlan.currentWeight + (dailyChange * i)
-      data.push({
-        day: i,
-        currentWeight: Math.round(currentWeight * 10) / 10,
-        targetWeight: calculatedPlan.targetWeight
-      })
-    }
-    return data
-  }
-
-  // Generate macro comparison data
-  const getMacroComparisonData = () => {
-    if (!calculatedPlan) return []
-    
-    return [
-      { name: 'Protein', current: 0, target: calculatedPlan.proteinTarget, color: CHART_COLORS.primary },
-      { name: 'Carbs', current: 0, target: calculatedPlan.carbsTarget, color: CHART_COLORS.success },
-      { name: 'Fat', current: 0, target: calculatedPlan.fatTarget, color: CHART_COLORS.warning }
-    ]
-  }
-
   // Generate macro distribution data for pie chart
   const getMacroDistributionData = () => {
     if (!calculatedPlan) return []
@@ -341,149 +321,169 @@ export default function FitnessGoalPage() {
           Progress Dashboard
         </h2>
         
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {calculatedPlan ? (
-            <>
-              {/* Weight Progress Chart */}
-              <Card className="md:col-span-2">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <LineChart className="h-5 w-5" />
-                    Weight Progress
-                  </CardTitle>
-                  <CardDescription>Your weight journey from start to target</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RechartsLineChart data={getWeightChartData()}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="day" />
-                        <YAxis />
-                        <Tooltip />
-                        <Line 
-                          type="monotone" 
-                          dataKey="currentWeight" 
-                          stroke={CHART_COLORS.primary} 
-                          strokeWidth={3}
-                          name="Current Weight"
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="targetWeight" 
-                          stroke={CHART_COLORS.success} 
-                          strokeWidth={2}
-                          strokeDasharray="5 5"
-                          name="Target Weight"
-                        />
-                      </RechartsLineChart>
-                    </ResponsiveContainer>
+        {/* Top row: 3 summary cards */}
+        <div className="grid gap-6 md:grid-cols-3">
+          <Card>
+            <CardContent className="pt-6">
+              {calculatedPlan ? (
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-primary mb-2">
+                    {calculatedPlan.timeFrame}
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="text-sm text-muted-foreground">Days to Goal</div>
+                </div>
+              ) : (
+                <div className="h-16 w-full rounded bg-muted/50 animate-pulse" />
+              )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              {calculatedPlan ? (
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-primary mb-2">
+                    {calculatedPlan ? Math.abs(calculatedPlan.targetWeight - calculatedPlan.currentWeight).toFixed(1) : '0'} kg
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {calculatedPlan?.goalType === 'lose_weight' ? 'To Lose' : 'To Gain'}
+                  </div>
+                </div>
+              ) : (
+                <div className="h-16 w-full rounded bg-muted/50 animate-pulse" />
+              )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              {calculatedPlan ? (
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-primary mb-2">
+                    {calculatedPlan.dailyCalorieDeficit ? 
+                      `${calculatedPlan.dailyCalorieDeficit.toFixed(0)} kcal` :
+                      calculatedPlan.dailyCalorieSurplus ? 
+                      `${calculatedPlan.dailyCalorieSurplus.toFixed(0)} kcal` : 
+                      '0 kcal'
+                    }
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Daily {calculatedPlan.dailyCalorieDeficit ? 'Deficit' : 'Surplus'}
+                  </div>
+                </div>
+              ) : (
+                <div className="h-16 w-full rounded bg-muted/50 animate-pulse" />
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
-              {/* Macro Comparison Chart */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5" />
-                    Macro Targets
-                  </CardTitle>
-                  <CardDescription>Daily macronutrient goals</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={getMacroComparisonData()} layout="horizontal">
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis type="number" />
-                        <YAxis dataKey="name" type="category" />
-                        <Tooltip />
-                        <Bar dataKey="target" fill={CHART_COLORS.primary} name="Target" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
+        {/* Middle row: Macro distribution and daily/weekly breakdown */}
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <PieChart className="h-5 w-5" />
+                Macro Distribution
+              </CardTitle>
+              <CardDescription>Daily calorie breakdown</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {calculatedPlan ? (
+                <ChartContainer
+                  config={{
+                    Protein: { label: 'Protein', color: CHART_COLORS.primary },
+                    Carbs: { label: 'Carbs', color: CHART_COLORS.success },
+                    Fat: { label: 'Fat', color: CHART_COLORS.warning },
+                  }}
+                  className="aspect-[4/3]"
+                >
+                  <RechartsPieChart>
+                    <Pie
+                      data={getMacroDistributionData()}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={90}
+                      dataKey="value"
+                      nameKey="name"
+                      label={({ name, value }) => `${name}: ${value}g`}
+                    >
+                      {getMacroDistributionData().map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                  </RechartsPieChart>
+                </ChartContainer>
+              ) : (
+                <div className="aspect-[4/3] w-full rounded-md bg-muted/50 animate-pulse" />
+              )}
+            </CardContent>
+          </Card>
 
-              {/* Macro Distribution Pie Chart */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <PieChart className="h-5 w-5" />
-                    Macro Distribution
-                  </CardTitle>
-                  <CardDescription>Daily calorie breakdown</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RechartsPieChart>
-                        <Pie
-                          data={getMacroDistributionData()}
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={80}
-                          dataKey="value"
-                          label={({ name, value }) => `${name}: ${value}g`}
-                        >
-                          {getMacroDistributionData().map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                      </RechartsPieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Progress Summary Cards */}
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-primary mb-2">
-                      {calculatedPlan.timeFrame}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                Nutrition Breakdown
+              </CardTitle>
+              <CardDescription>Macros and micronutrients</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="daily" className="w-full">
+                <TabsList>
+                  <TabsTrigger value="daily">Daily</TabsTrigger>
+                  <TabsTrigger value="weekly">Weekly</TabsTrigger>
+                </TabsList>
+                <TabsContent value="daily">
+                  {calculatedPlan ? (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <div className="text-sm text-muted-foreground">Protein</div>
+                        <div className="text-xl font-semibold">{calculatedPlan.proteinTarget} g</div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="text-sm text-muted-foreground">Carbs</div>
+                        <div className="text-xl font-semibold">{calculatedPlan.carbsTarget} g</div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="text-sm text-muted-foreground">Fat</div>
+                        <div className="text-xl font-semibold">{calculatedPlan.fatTarget} g</div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="text-sm text-muted-foreground">Micronutrients</div>
+                        <div className="text-sm">Balanced micros recommended</div>
+                      </div>
                     </div>
-                    <div className="text-sm text-muted-foreground">Days to Goal</div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-primary mb-2">
-                      {Math.abs(calculatedPlan.targetWeight - calculatedPlan.currentWeight).toFixed(1)} kg
+                  ) : (
+                    <div className="aspect-[4/3] w-full rounded-md bg-muted/50 animate-pulse" />
+                  )}
+                </TabsContent>
+                <TabsContent value="weekly">
+                  {calculatedPlan ? (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <div className="text-sm text-muted-foreground">Protein</div>
+                        <div className="text-xl font-semibold">{calculatedPlan.proteinTarget * 7} g</div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="text-sm text-muted-foreground">Carbs</div>
+                        <div className="text-xl font-semibold">{calculatedPlan.carbsTarget * 7} g</div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="text-sm text-muted-foreground">Fat</div>
+                        <div className="text-xl font-semibold">{calculatedPlan.fatTarget * 7} g</div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="text-sm text-muted-foreground">Micronutrients</div>
+                        <div className="text-sm">Even distribution across the week</div>
+                      </div>
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      {calculatedPlan.goalType === 'lose_weight' ? 'To Lose' : 'To Gain'}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-primary mb-2">
-                      {calculatedPlan.dailyCalorieDeficit ? 
-                        `${calculatedPlan.dailyCalorieDeficit.toFixed(0)}` :
-                        calculatedPlan.dailyCalorieSurplus ? 
-                        `${calculatedPlan.dailyCalorieSurplus.toFixed(0)}` : 
-                        '0'
-                      }
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Daily {calculatedPlan.dailyCalorieDeficit ? 'Deficit' : 'Surplus'} (kcal)
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </>
-          ) : (
-            <DashboardEmptyState />
-          )}
+                  ) : (
+                    <div className="aspect-[4/3] w-full rounded-md bg-muted/50 animate-pulse" />
+                  )}
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
@@ -599,54 +599,56 @@ export default function FitnessGoalPage() {
               </CardTitle>
               <CardDescription>Set your goal timeline</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Start Date</Label>
-                <Popover open={showCalendar} onOpenChange={setShowCalendar}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start text-left font-normal"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={startDate}
-                      onSelect={(date) => {
-                        setStartDate(date || new Date())
-                        setShowCalendar(false)
-                      }}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div className="space-y-2">
-                <Label>End Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start text-left font-normal"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={endDate}
-                      onSelect={setEndDate}
-                      initialFocus
-                      disabled={(date) => date < startDate}
-                    />
-                  </PopoverContent>
-                </Popover>
+            <CardContent>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Start Date</Label>
+                  <Popover open={showCalendar} onOpenChange={setShowCalendar}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={startDate}
+                        onSelect={(date) => {
+                          setStartDate(date || new Date())
+                          setShowCalendar(false)
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="space-y-2">
+                  <Label>End Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={endDate}
+                        onSelect={setEndDate}
+                        initialFocus
+                        disabled={(date) => date < startDate}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
             </CardContent>
           </Card>

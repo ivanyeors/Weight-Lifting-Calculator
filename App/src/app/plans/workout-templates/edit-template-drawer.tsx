@@ -1,14 +1,15 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { X, Dumbbell, Target, Clock, Lock } from "lucide-react"
+import { X, Dumbbell, Target, Clock, Lock, Plus, Search } from "lucide-react"
 import { supabase } from '@/lib/supabaseClient'
 import { loadAllExerciseData } from '@/lib/exerciseLoader'
 import { useSelectedUser } from '@/hooks/use-selected-user'
@@ -20,6 +21,7 @@ import {
   DrawerFooter,
   DrawerClose,
 } from "@/components/ui/drawer"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 interface Exercise {
   id: string
@@ -61,14 +63,33 @@ export function EditTemplateDrawer({ open, template, onOpenChange, onSave }: Edi
   const [exerciseConfigs, setExerciseConfigs] = useState<ExerciseConfig[]>([])
   const [personalWeights, setPersonalWeights] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(false)
+  const [isAddExerciseOpen, setIsAddExerciseOpen] = useState(false)
+  const [exerciseSearchQuery, setExerciseSearchQuery] = useState("")
+  const [pendingAddExerciseIds, setPendingAddExerciseIds] = useState<Set<string>>(new Set())
+  const [allowedExerciseIds, setAllowedExerciseIds] = useState<Set<string>>(new Set())
 
-  // Load exercises when drawer opens
+  // Load exercises when drawer opens (prefer DB, fallback to loader)
   useEffect(() => {
     const loadExercises = async () => {
       try {
-        // Use the exercise loader which handles Supabase + fallback logic
+        // Try DB first
+        const { data, error } = await supabase
+          .from('exercises')
+          .select('id, name, description, base_weight_factor')
+          .order('name', { ascending: true })
+        if (!error && data && data.length > 0) {
+          const mapped: Exercise[] = data.map((row: any) => ({
+            id: row.id as string,
+            name: (row.name as string) ?? row.id,
+            description: (row.description as string) ?? '',
+            baseWeightFactor: Number(row.base_weight_factor ?? 1.0),
+          }))
+          setExercises(mapped)
+          return
+        }
+
+        // Fallback to loader (merges JSONs)
         const exerciseData = await loadAllExerciseData()
-        
         const mapped: Exercise[] = exerciseData.map((ex) => ({
           id: ex.id,
           name: ex.name,
@@ -76,7 +97,6 @@ export function EditTemplateDrawer({ open, template, onOpenChange, onSave }: Edi
           baseWeightFactor: ex.baseWeightFactor,
           muscleGroups: Object.keys(ex.muscleInvolvement).filter(muscle => ex.muscleInvolvement[muscle] > 0)
         }))
-        
         setExercises(mapped)
       } catch (err) {
         console.error('Failed to load exercises', err)
@@ -89,6 +109,27 @@ export function EditTemplateDrawer({ open, template, onOpenChange, onSave }: Edi
       loadPersonalWeights()
     }
   }, [open, template])
+
+  // Filter available exercises by selected workout space
+  useEffect(() => {
+    const loadAllowed = async () => {
+      if (!open || !template) return
+      if (!template.workoutSpaceId) { setAllowedExerciseIds(new Set()); return }
+      try {
+        const { data, error } = await supabase
+          .from('available_exercises_for_space')
+          .select('exercise_id')
+          .eq('space_id', template.workoutSpaceId)
+        if (error) throw error
+        const ids = new Set<string>((data ?? []).map((r: any) => r.exercise_id as string))
+        setAllowedExerciseIds(ids)
+      } catch (err) {
+        console.error('Failed to load allowed exercises for space', err)
+        setAllowedExerciseIds(new Set(exercises.map(e => e.id)))
+      }
+    }
+    loadAllowed()
+  }, [open, template, exercises])
 
   // Load personal weight data for exercises based on current user
   const loadPersonalWeights = async () => {
@@ -135,6 +176,39 @@ export function EditTemplateDrawer({ open, template, onOpenChange, onSave }: Edi
     setExerciseConfigs(prev => prev.filter(config => config.exerciseId !== exerciseId))
   }
 
+  const togglePendingExercise = (exerciseId: string) => {
+    setPendingAddExerciseIds(prev => {
+      const next = new Set(prev)
+      if (next.has(exerciseId)) next.delete(exerciseId)
+      else next.add(exerciseId)
+      return next
+    })
+  }
+
+  const handleConfirmAddExercises = () => {
+    if (pendingAddExerciseIds.size === 0) return
+    const existingIds = new Set(exerciseConfigs.map(c => c.exerciseId))
+    const toAdd = Array.from(pendingAddExerciseIds).filter(id => !existingIds.has(id))
+    if (toAdd.length === 0) {
+      setIsAddExerciseOpen(false)
+      setPendingAddExerciseIds(new Set())
+      setExerciseSearchQuery("")
+      return
+    }
+
+    const newConfigs: ExerciseConfig[] = toAdd.map(exerciseId => ({
+      exerciseId,
+      sets: 3,
+      reps: 10,
+      restTime: 0,
+    }))
+
+    setExerciseConfigs(prev => [...newConfigs, ...prev])
+    setIsAddExerciseOpen(false)
+    setPendingAddExerciseIds(new Set())
+    setExerciseSearchQuery("")
+  }
+
   const getExerciseName = (exerciseId: string) => {
     return exercises.find(ex => ex.id === exerciseId)?.name || exerciseId
   }
@@ -142,6 +216,22 @@ export function EditTemplateDrawer({ open, template, onOpenChange, onSave }: Edi
   const getExerciseDescription = (exerciseId: string) => {
     return exercises.find(ex => ex.id === exerciseId)?.description || ''
   }
+
+  const availableExercises: Exercise[] = useMemo(() => {
+    const configuredIds = new Set(exerciseConfigs.map(c => c.exerciseId))
+    return exercises
+      .filter(ex => allowedExerciseIds.has(ex.id))
+      .filter(ex => !configuredIds.has(ex.id))
+  }, [exercises, exerciseConfigs, allowedExerciseIds])
+
+  const filteredAvailableExercises: Exercise[] = useMemo(() => {
+    const query = exerciseSearchQuery.trim().toLowerCase()
+    if (!query) return availableExercises
+    return availableExercises.filter(ex =>
+      ex.name.toLowerCase().includes(query) ||
+      (ex.description ?? "").toLowerCase().includes(query)
+    )
+  }, [availableExercises, exerciseSearchQuery])
 
   const calculateEstimatedTime = () => {
     // Rough estimate: 2 minutes per set + 1 minute rest between exercises
@@ -211,7 +301,74 @@ export function EditTemplateDrawer({ open, template, onOpenChange, onSave }: Edi
 
           {/* Exercise Configuration */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Exercise Configuration</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium">Exercise Configuration</h3>
+              <Popover open={isAddExerciseOpen} onOpenChange={(open) => {
+                setIsAddExerciseOpen(open)
+                if (!open) {
+                  setPendingAddExerciseIds(new Set())
+                  setExerciseSearchQuery("")
+                }
+              }}>
+                <PopoverTrigger asChild>
+                  <Button size="sm" variant="secondary">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Exercise
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-96 p-2">
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        placeholder="Search exercises..."
+                        value={exerciseSearchQuery}
+                        onChange={(e) => setExerciseSearchQuery(e.target.value)}
+                        className="pl-8 h-9"
+                      />
+                    </div>
+                    <div className="border rounded-md max-h-80 overflow-y-auto overscroll-contain" onWheelCapture={(e) => e.stopPropagation()}>
+                      {filteredAvailableExercises.length === 0 ? (
+                        <div className="p-3 text-sm text-muted-foreground">No exercises found</div>
+                      ) : (
+                        filteredAvailableExercises.map((ex) => {
+                          const checked = pendingAddExerciseIds.has(ex.id)
+                          return (
+                            <div
+                              key={ex.id}
+                              role="button"
+                              tabIndex={0}
+                              className="flex items-start gap-3 px-3 py-2 hover:bg-muted transition-colors cursor-pointer"
+                              onClick={() => togglePendingExercise(ex.id)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault()
+                                  togglePendingExercise(ex.id)
+                                }
+                              }}
+                            >
+                              <Checkbox checked={checked} onCheckedChange={() => togglePendingExercise(ex.id)} />
+                              <div className="flex flex-col">
+                                <span className="font-medium">{ex.name}</span>
+                                {ex.description && (
+                                  <span className="text-xs text-muted-foreground">{ex.description}</span>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })
+                      )}
+                    </div>
+                    <div className="flex items-center justify-end gap-2 pt-2">
+                      <Button variant="outline" size="sm" onClick={() => { setIsAddExerciseOpen(false); setPendingAddExerciseIds(new Set()); setExerciseSearchQuery("") }}>Cancel</Button>
+                      <Button size="sm" onClick={handleConfirmAddExercises} disabled={pendingAddExerciseIds.size === 0}>
+                        Add{pendingAddExerciseIds.size > 0 ? ` (${pendingAddExerciseIds.size})` : ''}
+                      </Button>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
             
             {exerciseConfigs.map((config, index) => {
               const exercise = exercises.find(ex => ex.id === config.exerciseId)

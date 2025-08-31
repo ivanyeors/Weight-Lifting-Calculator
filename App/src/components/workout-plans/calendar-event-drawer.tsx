@@ -14,7 +14,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { Checkbox } from '@/components/ui/checkbox'
 
 import { DateRange } from 'react-day-picker'
-import { format, setHours, setMinutes } from 'date-fns'
+import { format, setHours, setMinutes, parse } from 'date-fns'
 
 interface User {
   id: string
@@ -39,15 +39,29 @@ interface Trainer {
   avatar?: string
 }
 
+// Minimal card data from @workout-templates/ used for association on events
+interface WorkoutTemplateCardData {
+  id: string
+  name: string
+  exerciseCount: number
+  estimatedCalories: number
+  estimatedTime: number
+  usageCount: number
+  workoutSpaceId?: string
+  workoutSpace?: string
+}
+
 interface CalendarEvent {
   id: string
   title: string
   start: string
   end: string
+  description?: string
   backgroundColor: string
   borderColor: string
   targetAccountIds?: string[]
   source?: 'platform' | 'google'
+  syncedGoogleEventIds?: Record<string, string>
   extendedProps: {
     trainer: string
     participants: User[]
@@ -57,6 +71,8 @@ interface CalendarEvent {
     currentParticipants: number
     medicalFlags: string[]
     attendance: Record<string, 'present' | 'absent' | 'late' | 'cancelled'>
+    // Optional: associated workout template card data (no Google sync)
+    workoutTemplate?: WorkoutTemplateCardData
   }
 }
 
@@ -73,6 +89,7 @@ interface CalendarEventDrawerProps {
   prefillDates?: { start: string; end: string }
   // Provide connected accounts for multi-select
   accounts?: { id: string; email: string; name?: string | null; customName?: string | null }[]
+  onDeleteEvent?: (eventId: string) => void
 }
 
 export function CalendarEventDrawer(props: CalendarEventDrawerProps) {
@@ -94,8 +111,12 @@ export function CalendarEventDrawer(props: CalendarEventDrawerProps) {
     workoutSpaceId: '',
     description: '',
     targetAccountIds: [] as string[],
-    participantIds: [] as string[]
+    participantIds: [] as string[],
+    workoutTemplateId: ''
   })
+
+  // Workout templates (card data) for single-select in create drawer
+  const [workoutTemplates, setWorkoutTemplates] = useState<WorkoutTemplateCardData[]>([])
 
   // Managed users for Participants section (from Users page)
   type ManagedUser = {
@@ -242,8 +263,9 @@ export function CalendarEventDrawer(props: CalendarEventDrawerProps) {
         const pad = (n: number) => String(n).padStart(2, '0')
         return `${pad(d.getHours())}:${pad(d.getMinutes())}`
       }
-      const startPrefill = prefillDates ? new Date(prefillDates.start) : null
-      const endPrefill = prefillDates ? new Date(prefillDates.end) : null
+      const parseLocal = (s: string) => parse(s, 'yyyy-MM-dd HH:mm', new Date())
+      const startPrefill = prefillDates?.start ? parseLocal(prefillDates.start) : null
+      const endPrefill = prefillDates?.end ? parseLocal(prefillDates.end) : null
       setNewEventData({
         title: '',
         dateRange: prefillDates ? {
@@ -255,15 +277,45 @@ export function CalendarEventDrawer(props: CalendarEventDrawerProps) {
         workoutSpaceId: '',
         description: '',
         targetAccountIds: [],
-        participantIds: []
+        participantIds: [],
+        workoutTemplateId: ''
       })
     }
   }, [isOpen, mode, prefillDates])
+
+  // Load workout templates from Supabase
+  useEffect(() => {
+    if (!isOpen) return
+    const loadTemplates = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('workout_templates')
+          .select('id, name, workout_space_id, exercises, estimated_calories, estimated_time, usage_count')
+          .order('updated_at', { ascending: false })
+        if (error) throw error
+        const list: WorkoutTemplateCardData[] = (data ?? []).map((t: any) => ({
+          id: t.id,
+          name: t.name,
+          exerciseCount: Array.isArray(t.exercises) ? t.exercises.length : 0,
+          estimatedCalories: t.estimated_calories ?? 0,
+          estimatedTime: t.estimated_time ?? 0,
+          usageCount: t.usage_count ?? 0,
+          workoutSpaceId: t.workout_space_id ?? undefined,
+          workoutSpace: undefined
+        }))
+        setWorkoutTemplates(list)
+      } catch {
+        setWorkoutTemplates([])
+      }
+    }
+    loadTemplates()
+  }, [isOpen, mode])
 
   const handleCreateEvent = () => {
     if (!newEventData.title || !newEventData.dateRange?.from) return
 
     const workoutSpace = workoutSpaces.find(s => s.id === newEventData.workoutSpaceId)
+    const selectedTemplateCard = workoutTemplates.find(t => t.id === newEventData.workoutTemplateId)
     
     // Parse start and end times
     const [startHour, startMinute] = newEventData.startTime.split(':').map(Number)
@@ -299,9 +351,11 @@ export function CalendarEventDrawer(props: CalendarEventDrawerProps) {
       title: newEventData.title,
       start: format(startDate, "yyyy-MM-dd HH:mm"),
       end: format(endDate, "yyyy-MM-dd HH:mm"),
+      description: newEventData.description,
       backgroundColor: '#3b82f6',
       borderColor: '#2563eb',
       targetAccountIds: [...newEventData.targetAccountIds],
+      workoutSpaceId: newEventData.workoutSpaceId || undefined,
       extendedProps: {
         trainer: trainerLabel,
         participants: selectedParticipants as unknown as User[],
@@ -310,7 +364,8 @@ export function CalendarEventDrawer(props: CalendarEventDrawerProps) {
         maxParticipants: selectedParticipants.length,
         currentParticipants: selectedParticipants.length,
         medicalFlags: [],
-        attendance: {}
+        attendance: {},
+        workoutTemplate: selectedTemplateCard || undefined
       },
       // Store selected accounts for sync
       syncedGoogleEventIds: {},
@@ -454,7 +509,12 @@ export function CalendarEventDrawer(props: CalendarEventDrawerProps) {
         
         <div>
           <Label>Workout Space</Label>
-          <Select value={newEventData.workoutSpaceId} onValueChange={(value) => setNewEventData(prev => ({ ...prev, workoutSpaceId: value }))}>
+          <Select value={newEventData.workoutSpaceId} onValueChange={(value) => setNewEventData(prev => ({ 
+            ...prev, 
+            workoutSpaceId: value,
+            // Clear template if it doesn't belong to selected space
+            workoutTemplateId: prev.workoutTemplateId && workoutTemplates.find(t => t.id === prev.workoutTemplateId)?.workoutSpaceId !== value ? '' : prev.workoutTemplateId
+          }))}>
             <SelectTrigger>
               <SelectValue placeholder="Select workout space" />
             </SelectTrigger>
@@ -464,6 +524,36 @@ export function CalendarEventDrawer(props: CalendarEventDrawerProps) {
                   {space.name}
                 </SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Workout Template selection (single-select combobox) */}
+        <div className="space-y-2">
+          <Label>Workout Template</Label>
+          <Select
+            value={newEventData.workoutTemplateId}
+            onValueChange={(value) => {
+              const tpl = workoutTemplates.find(t => t.id === value)
+              setNewEventData(prev => ({ 
+                ...prev, 
+                workoutTemplateId: value,
+                // If no space chosen yet, adopt the template's space
+                workoutSpaceId: prev.workoutSpaceId || (tpl?.workoutSpaceId || '')
+              }))
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a template (optional)" />
+            </SelectTrigger>
+            <SelectContent>
+              {workoutTemplates
+                .filter(t => !newEventData.workoutSpaceId || t.workoutSpaceId === newEventData.workoutSpaceId)
+                .map((tpl) => (
+                  <SelectItem key={tpl.id} value={tpl.id}>
+                    {tpl.name} • {tpl.exerciseCount} exercises • ~{tpl.estimatedTime}m
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
         </div>
@@ -506,6 +596,14 @@ export function CalendarEventDrawer(props: CalendarEventDrawerProps) {
         </div>
         
         <div className="space-y-4">
+          {event.source === 'google' && (
+            <div className="flex items-start gap-2 rounded-md border p-3">
+              <AlertTriangle className="w-4 h-4 text-yellow-500 mt-0.5" />
+              <div className="text-xs text-muted-foreground">
+                This is a Google Calendar event. Details may be limited and editing is disabled here.
+              </div>
+            </div>
+          )}
           <div className="grid grid-cols-1 gap-3">
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-muted-foreground" />
@@ -531,6 +629,15 @@ export function CalendarEventDrawer(props: CalendarEventDrawerProps) {
               </span>
             </div>
           </div>
+          {event.extendedProps.workoutTemplate && (
+            <div className="rounded-md border p-3 space-y-1">
+              <div className="text-sm font-medium">Workout Template</div>
+              <div className="text-sm">{event.extendedProps.workoutTemplate.name}</div>
+              <div className="text-xs text-muted-foreground">
+                {event.extendedProps.workoutTemplate.exerciseCount} exercises • ~{event.extendedProps.workoutTemplate.estimatedTime}m • ~{event.extendedProps.workoutTemplate.estimatedCalories} cal
+              </div>
+            </div>
+          )}
           
           {/* Participants (from selected event participants) */}
           <div className="space-y-3">
@@ -570,7 +677,26 @@ export function CalendarEventDrawer(props: CalendarEventDrawerProps) {
           {/* Medical Alerts card removed; conditions shown on user cards */}
           
           <div className="flex gap-2 pt-4">
-            <Button variant="outline" className="flex-1" onClick={() => setIsEditing(true)}>Edit Session</Button>
+            {event.source === 'platform' ? (
+              <>
+                <Button variant="outline" className="flex-1" onClick={() => setIsEditing(true)}>Edit Session</Button>
+                <Button 
+                  variant="destructive" 
+                  className="flex-1" 
+                  onClick={() => {
+                    if (!event) return
+                    const ok = confirm('Delete this session? This will remove it from linked Google calendars as well.')
+                    if (!ok) return
+                    props.onDeleteEvent?.(event.id)
+                    onClose()
+                  }}
+                >
+                  Delete
+                </Button>
+              </>
+            ) : (
+              <Button className="flex-1" onClick={onClose}>Close</Button>
+            )}
           </div>
         </div>
       </div>
@@ -586,26 +712,29 @@ export function CalendarEventDrawer(props: CalendarEventDrawerProps) {
     endTime: '10:00',
     workoutSpaceId: '',
     description: '',
-    participantIds: [] as string[]
+    participantIds: [] as string[],
+    workoutTemplateId: ''
   })
 
   useEffect(() => {
     if (isOpen && event) {
       // Prefill edit fields from event when opening drawer or switching event
       try {
-        const start = new Date(event.start)
-        const end = new Date(event.end)
+        const parseLocal = (s: string) => parse(s, 'yyyy-MM-dd HH:mm', new Date())
+        const start = parseLocal(event.start)
+        const end = parseLocal(event.end)
         const pad = (n: number) => String(n).padStart(2, '0')
         const toHHMM = (d: Date) => `${pad(d.getHours())}:${pad(d.getMinutes())}`
-        const guessedSpace = workoutSpaces.find(ws => ws.name === event.extendedProps.location)?.id || ''
+        const spaceId = (event as any).workoutSpaceId || (workoutSpaces.find(ws => ws.name === event.extendedProps.location)?.id || '')
         setEditData({
           title: event.title,
           date: start,
           startTime: toHHMM(start),
           endTime: toHHMM(end),
-          workoutSpaceId: guessedSpace,
-          description: '',
-          participantIds: (event.extendedProps.participants || []).map(p => p.id)
+          workoutSpaceId: spaceId,
+          description: event.description || '',
+          participantIds: (event.extendedProps.participants || []).map(p => p.id),
+          workoutTemplateId: event.extendedProps.workoutTemplate?.id || ''
         })
       } catch {
         // noop
@@ -625,6 +754,7 @@ export function CalendarEventDrawer(props: CalendarEventDrawerProps) {
     const end = new Date(editData.date)
     end.setHours(eh); end.setMinutes(em); end.setSeconds(0); end.setMilliseconds(0)
     const space = workoutSpaces.find(ws => ws.id === editData.workoutSpaceId)
+    const selectedTpl = workoutTemplates.find(t => t.id === editData.workoutTemplateId)
 
     // Build participants from selected managed users for edit
     const selectedParticipants = editData.participantIds
@@ -646,13 +776,15 @@ export function CalendarEventDrawer(props: CalendarEventDrawerProps) {
       title: editData.title,
       start: format(start, 'yyyy-MM-dd HH:mm'),
       end: format(end, 'yyyy-MM-dd HH:mm'),
+      description: editData.description,
       extendedProps: {
         ...event.extendedProps,
         plan: editData.title,
         location: space?.name || event.extendedProps.location,
         maxParticipants: selectedParticipants.length,
         currentParticipants: selectedParticipants.length,
-        participants: selectedParticipants as unknown as User[]
+        participants: selectedParticipants as unknown as User[],
+        workoutTemplate: selectedTpl || undefined
       }
     }
     props.onUpdateEvent?.(event.id, partial)
@@ -717,13 +849,46 @@ export function CalendarEventDrawer(props: CalendarEventDrawerProps) {
           </div>
           <div>
             <Label>Workout Space</Label>
-            <Select value={editData.workoutSpaceId} onValueChange={(value) => setEditData(prev => ({ ...prev, workoutSpaceId: value }))}>
+            <Select value={editData.workoutSpaceId} onValueChange={(value) => setEditData(prev => ({ 
+              ...prev, 
+              workoutSpaceId: value,
+              workoutTemplateId: prev.workoutTemplateId && workoutTemplates.find(t => t.id === prev.workoutTemplateId)?.workoutSpaceId !== value ? '' : prev.workoutTemplateId
+            }))}>
               <SelectTrigger>
                 <SelectValue placeholder="Select workout space" />
               </SelectTrigger>
               <SelectContent>
                 {workoutSpaces.map((space) => (
                   <SelectItem key={space.id} value={space.id}>{space.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Workout Template selection (single-select combobox) */}
+          <div className="space-y-2">
+            <Label>Workout Template</Label>
+            <Select
+              value={editData.workoutTemplateId}
+              onValueChange={(value) => {
+                const tpl = workoutTemplates.find(t => t.id === value)
+                setEditData(prev => ({
+                  ...prev,
+                  workoutTemplateId: value,
+                  workoutSpaceId: prev.workoutSpaceId || (tpl?.workoutSpaceId || '')
+                }))
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a template (optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                {workoutTemplates
+                  .filter(t => !editData.workoutSpaceId || t.workoutSpaceId === editData.workoutSpaceId)
+                  .map((tpl) => (
+                    <SelectItem key={tpl.id} value={tpl.id}>
+                      {tpl.name} • {tpl.exerciseCount} exercises • ~{tpl.estimatedTime}m
+                    </SelectItem>
                 ))}
               </SelectContent>
             </Select>

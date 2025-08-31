@@ -5,7 +5,9 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { UserSwitcher } from '@/components/user-switcher'
-import { Search, RefreshCw } from "lucide-react"
+import { Search, RefreshCw, CheckCircle, AlertCircle, Cloud } from "lucide-react"
+
+type SyncState = 'idle' | 'syncing' | 'success' | 'error'
 
 interface WorkoutTemplatesSidebarProps {
   collapsed: boolean
@@ -13,6 +15,8 @@ interface WorkoutTemplatesSidebarProps {
   setSearchTerm: (value: string) => void
   onSearch: () => void
   onReset: () => void
+  syncStatus: SyncState
+  onRefresh: () => void
 }
 
 export function WorkoutTemplatesSidebar({
@@ -21,6 +25,8 @@ export function WorkoutTemplatesSidebar({
   setSearchTerm,
   onSearch,
   onReset,
+  syncStatus,
+  onRefresh,
 }: WorkoutTemplatesSidebarProps) {
   return (
     <div
@@ -52,6 +58,24 @@ export function WorkoutTemplatesSidebar({
               </div>
 
               <Separator className="my-1" />
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  {syncStatus === 'syncing' && <RefreshCw className="h-4 w-4 animate-spin" />}
+                  {syncStatus === 'success' && <CheckCircle className="h-4 w-4 text-green-600" />}
+                  {syncStatus === 'error' && <AlertCircle className="h-4 w-4 text-red-600" />}
+                  {syncStatus === 'idle' && <Cloud className="h-4 w-4" />}
+                  <span className="hidden sm:inline">
+                    {syncStatus === 'syncing' && 'Syncing...'}
+                    {syncStatus === 'success' && 'Synced'}
+                    {syncStatus === 'error' && 'Sync failed'}
+                    {syncStatus === 'idle' && 'Ready'}
+                  </span>
+                </div>
+                <Button size="icon" variant="ghost" className="h-8 w-8 p-0" aria-label="Refresh" onClick={onRefresh}>
+                  <RefreshCw className={`h-4 w-4 ${syncStatus === 'syncing' ? 'animate-spin' : ''}`} />
+                </Button>
+              </div>
 
               <div className="space-y-3">
                 <Label className="text-sm font-medium">Search Templates</Label>
