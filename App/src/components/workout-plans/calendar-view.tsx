@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { Plus, Calendar as CalendarIcon, PanelLeft, PanelRight } from 'lucide-react'
+import { Plus, Calendar as CalendarIcon, PanelLeft, PanelRight, ChefHat, Minus } from 'lucide-react'
 
 // Schedule-X imports
 import { useCalendarApp, ScheduleXCalendar } from '@schedule-x/react'
@@ -17,6 +17,8 @@ import { createDragAndDropPlugin } from '@schedule-x/drag-and-drop'
 import { createResizePlugin } from '@schedule-x/resize'
 
 import '@schedule-x/theme-shadcn/dist/index.css'
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { createRoot } from 'react-dom/client'
 
 import { CalendarEventDrawer } from './calendar-event-drawer'
 import { CalendarSidebar } from './calendar-sidebar'
@@ -156,6 +158,10 @@ export function CalendarView() {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
   const [prefillDates, setPrefillDates] = useState<{ start: string; end: string } | null>(null)
   const previewEventIdRef = useRef<string | null>(null)
+
+  // Nutrition drawer state
+  const [nutritionDrawerOpen, setNutritionDrawerOpen] = useState(false)
+  const [nutritionDrawerDate, setNutritionDrawerDate] = useState<string | null>(null)
 
   // All times are handled as local strings: 'yyyy-MM-dd HH:mm'
   
@@ -503,11 +509,7 @@ export function CalendarView() {
         externalGoogleEvents.push(calendarEvent)
       }
 
-      const reconstructedPlatformEvents: CalendarEvent[] = Array.from(platformGroups.values()).map(group => ({
-        ...group.base,
-        syncedGoogleEventIds: { ...(group.base.syncedGoogleEventIds || {}), ...group.linked },
-        targetAccountIds: Object.keys(group.linked)
-      }))
+      // Intentionally not using reconstructed platform events
 
       console.log('External Google events:', externalGoogleEvents)
 
@@ -811,6 +813,7 @@ export function CalendarView() {
   const calendarRootRef = useRef<HTMLDivElement>(null)
   const eventsRef = useRef<CalendarEvent[]>([])
   const accountsRef = useRef(googleCalendarAccounts)
+  const headerBuildRaf = useRef<number | null>(null)
   const pointerInfoRef = useRef<{
     startX: number
     startY: number
@@ -1069,12 +1072,197 @@ export function CalendarView() {
           el.style.setProperty('--sx-color-on-blue-container', textColor)
           el.style.setProperty('--sx-color-on-primary-container', textColor)
         })
+        // Also rebuild meal header UI after DOM changes, debounced per frame
+        try {
+          if (headerBuildRaf.current != null) return
+          headerBuildRaf.current = requestAnimationFrame(() => {
+            try {
+              rebuildMealHeaders()
+            } finally {
+              headerBuildRaf.current = null
+            }
+          })
+        } catch {
+          // noop
+        }
       } catch {
         // noop
       }
     })
     observer.observe(root, { childList: true, subtree: true })
     return () => observer.disconnect()
+    return () => {
+      if (headerBuildRaf.current != null) cancelAnimationFrame(headerBuildRaf.current)
+    }
+  }, [])
+
+  // Build meal header UI (meal icon + kcal net pill) in week & day view headers
+  function rebuildMealHeaders() {
+    try {
+      const root = calendarRootRef.current
+      if (!root) return
+      const dateNumberEls = Array.from(root.querySelectorAll('.sx__week-grid__date-number')) as HTMLElement[]
+      if (!dateNumberEls || dateNumberEls.length === 0) return
+      const computeOutKcalsForDate = (dateStr: string | null): number => {
+        if (!dateStr) return 0
+        try {
+          const items = eventsRef.current || []
+          let total = 0
+          for (const ev of items) {
+            if (ev.source !== 'platform') continue
+            if (!ev.start) continue
+            const evDate = (ev.start || '').slice(0, 10)
+            if (evDate !== dateStr) continue
+            const kcal = Number(ev.extendedProps?.workoutTemplate?.estimatedCalories || 0)
+            if (!Number.isNaN(kcal)) total += kcal
+          }
+          return total
+        } catch {
+          return 0
+        }
+      }
+      const computeNetKcals = (outKcals: number, inKcals: number) => outKcals - inKcals
+      for (const dateEl of dateNumberEls) {
+        const headerRow = dateEl.parentElement as HTMLElement | null
+        if (!headerRow) continue
+        const col = (dateEl.closest('[data-time-grid-date], [data-date]') as HTMLElement | null)
+        const dateStr = col?.getAttribute('data-time-grid-date') || col?.getAttribute('data-date') || null
+
+        headerRow.style.display = 'flex'
+        headerRow.style.alignItems = 'center'
+        headerRow.style.justifyContent = 'space-between'
+
+        const existing = headerRow.querySelector('.wl-meal-ui') as HTMLElement | null
+        const out = computeOutKcalsForDate(dateStr)
+        const inn = 0
+        const net = computeNetKcals(out, inn)
+        if (existing && existing.getAttribute('data-net') === String(net)) continue
+        const positive = net > 0
+        const negative = net < 0
+
+        const rightWrap = existing || document.createElement('div')
+        if (!existing) {
+          rightWrap.className = 'wl-meal-ui ml-2 inline-flex items-center gap-2'
+          headerRow.appendChild(rightWrap)
+        } else {
+          while (rightWrap.firstChild) rightWrap.removeChild(rightWrap.firstChild)
+        }
+        rightWrap.setAttribute('data-net', String(net))
+
+        const netPill = document.createElement('span')
+        netPill.className = `inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-medium border ${positive ? 'bg-amber-500/15 text-amber-400 border-amber-500/30' : negative ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' : 'bg-muted text-foreground/60 border-border/40'}`
+        const iconMountForNet = document.createElement('span')
+        iconMountForNet.className = 'inline-flex'
+        netPill.appendChild(iconMountForNet)
+        try {
+          const r = createRoot(iconMountForNet)
+          if (positive) r.render(<Plus className="w-3 h-3" />)
+          else if (negative) r.render(<Minus className="w-3 h-3" />)
+          else r.render(<span className="w-3 h-3" />)
+        } catch {
+          // noop
+        }
+        const value = document.createElement('span')
+        value.className = 'tabular-nums'
+        value.textContent = `${net}`
+        netPill.appendChild(value)
+
+        const btn = document.createElement('button')
+        btn.type = 'button'
+        btn.className = 'inline-flex size-6 items-center justify-center rounded hover:bg-muted/40 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+        btn.title = 'Manage meals for this day'
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation()
+          setNutritionDrawerDate(dateStr)
+          setNutritionDrawerOpen(true)
+        })
+
+        const iconMount = document.createElement('span')
+        iconMount.className = 'pointer-events-none'
+        btn.appendChild(iconMount)
+        try {
+          const root = createRoot(iconMount)
+          root.render(<ChefHat className="w-4 h-4" />)
+        } catch {
+          // noop
+        }
+
+        rightWrap.appendChild(netPill)
+        rightWrap.appendChild(btn)
+      }
+
+      // Day view header (single day)
+      const dayHeading = root.querySelector('.sx__day-view .sx__range-heading') as HTMLElement | null
+      if (dayHeading) {
+        dayHeading.style.display = 'flex'
+        dayHeading.style.alignItems = 'center'
+        dayHeading.style.justifyContent = 'space-between'
+        const existingSingle = dayHeading.querySelector('.wl-meal-ui-single') as HTMLElement | null
+        const wrap = existingSingle || document.createElement('div')
+        if (!existingSingle) {
+          wrap.className = 'wl-meal-ui-single ml-2 inline-flex items-center gap-2'
+          dayHeading.appendChild(wrap)
+        } else {
+          while (wrap.firstChild) wrap.removeChild(wrap.firstChild)
+        }
+
+        const dayCol = root.querySelector('.sx__day-view [data-time-grid-date], .sx__day-view [data-date]') as HTMLElement | null
+        const dayDate = dayCol?.getAttribute('data-time-grid-date') || dayCol?.getAttribute('data-date') || null
+        const out = computeOutKcalsForDate(dayDate)
+        const inn = 0
+        const net = computeNetKcals(out, inn)
+        if (existingSingle && existingSingle.getAttribute('data-net') === String(net)) return
+        const positive = net > 0
+        const negative = net < 0
+
+        const netPill = document.createElement('span')
+        netPill.className = `inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-medium border ${positive ? 'bg-amber-500/15 text-amber-400 border-amber-500/30' : negative ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' : 'bg-muted text-foreground/60 border-border/40'}`
+        const iconMountForNet = document.createElement('span')
+        iconMountForNet.className = 'inline-flex'
+        netPill.appendChild(iconMountForNet)
+        try {
+          const m = createRoot(iconMountForNet)
+          if (positive) m.render(<Plus className="w-3 h-3" />)
+          else if (negative) m.render(<Minus className="w-3 h-3" />)
+          else m.render(<span className="w-3 h-3" />)
+        } catch {
+          // noop
+        }
+        const value = document.createElement('span')
+        value.className = 'tabular-nums'
+        value.textContent = `${net}`
+        netPill.appendChild(value)
+
+        const btn = document.createElement('button')
+        btn.type = 'button'
+        btn.className = 'inline-flex size-6 items-center justify-center rounded hover:bg-muted/40 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+        btn.title = 'Manage meals for this day'
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation()
+          setNutritionDrawerDate(dayDate)
+          setNutritionDrawerOpen(true)
+        })
+        const iconMount = document.createElement('span')
+        iconMount.className = 'pointer-events-none'
+        btn.appendChild(iconMount)
+        try {
+          const mount = createRoot(iconMount)
+          mount.render(<ChefHat className="w-4 h-4" />)
+        } catch {
+          // noop
+        }
+
+        wrap.setAttribute('data-net', String(net))
+        wrap.appendChild(netPill)
+        wrap.appendChild(btn)
+      }
+    } catch {
+      // noop
+    }
+  }
+
+  useEffect(() => {
+    rebuildMealHeaders()
   }, [])
 
 
@@ -1760,6 +1948,28 @@ export function CalendarView() {
           onUpdateAttendance={updateAttendance}
           onDeleteEvent={handleDeleteEvent}
         />
+
+        {/* Nutrition Drawer (Right side) */}
+        <Sheet open={nutritionDrawerOpen} onOpenChange={setNutritionDrawerOpen}>
+          <SheetContent side="right">
+            <SheetHeader>
+              <SheetTitle>Meals for {nutritionDrawerDate || 'selected day'}</SheetTitle>
+              <SheetDescription>
+                No recipes added yet.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="p-4">
+              <Button onClick={() => {
+                const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/')
+                if (typeof window !== 'undefined') {
+                  window.location.href = `${base}plans/nutrition`
+                }
+              }} className="bg-primary hover:bg-primary/90">
+                Add recipes
+              </Button>
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
     </div>
   )
