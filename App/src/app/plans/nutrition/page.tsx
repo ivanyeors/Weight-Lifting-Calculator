@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { NutritionProvider } from '@/lib/nutrition/store'
 import { DashboardOverview } from '@/components/nutrition/DashboardOverview'
+import { MacroBuilder } from '@/components/nutrition/MacroBuilder'
 import { IngredientsTable } from '@/components/nutrition/IngredientsTable'
 import { InventoryTracker } from '@/components/nutrition/InventoryTracker'
 import { RecipeCards } from '@/components/nutrition/RecipeCards'
@@ -52,6 +53,7 @@ export default function PlansNutritionPage() {
         <Tabs defaultValue="dashboard" className="w-full">
           <TabsList>
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="macro-builder">Macro Builder</TabsTrigger>
             <TabsTrigger value="ingredients">Ingredients</TabsTrigger>
             <TabsTrigger value="recipes">Recipes</TabsTrigger>
             <TabsTrigger value="inventory">Inventory</TabsTrigger>
@@ -59,6 +61,9 @@ export default function PlansNutritionPage() {
           </TabsList>
           <TabsContent value="dashboard" className="mt-3">
             <DashboardOverview />
+          </TabsContent>
+          <TabsContent value="macro-builder" className="mt-3">
+            <MacroBuilder />
           </TabsContent>
           <TabsContent value="ingredients" className="mt-3">
             <IngredientsTable />
