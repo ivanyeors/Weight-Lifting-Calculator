@@ -135,6 +135,22 @@ async function upsertExerciseEquipment(mappings: Array<{ exercise_id: string; eq
 	if (error) throw error
 }
 
+// Foods seed
+async function upsertFoods(foods: Array<{ name: string; category?: string; unit_kind: 'mass'|'volume'|'count'; carbs_per_100: number; fats_per_100: number; protein_per_100: number; micros?: Record<string, number> }>) {
+	if (foods.length === 0) return
+	const rows = foods.map(f => ({
+		name: f.name,
+		category: f.category ?? null,
+		unit_kind: f.unit_kind,
+		carbs_per_100: f.carbs_per_100,
+		fats_per_100: f.fats_per_100,
+		protein_per_100: f.protein_per_100,
+		micros: f.micros ?? {}
+	}))
+	const { error } = await supabase.from('foods').upsert(rows, { onConflict: 'name' })
+	if (error) throw error
+}
+
 async function main() {
 	const meta = (await readJson<{ exercises: Array<{ id: string; name: string; description: string }> }>('exercises_meta.json')).exercises
 	const training = (await readJson<{ exercises: Array<{ id: string; baseWeightFactor: number; muscleInvolvement: Record<string, number> }> }>('exercises_training_data.json')).exercises
@@ -154,6 +170,14 @@ async function main() {
 	await upsertEquipment(equipmentSeed.equipment)
 	const equipmentNameToId = await fetchEquipment()
 	await upsertExerciseEquipment(equipmentSeed.exercise_equipment, equipmentNameToId)
+
+	// Foods
+	try {
+		const foodsSeed = await readJson<{ foods: Array<{ name: string; category?: string; unit_kind: 'mass'|'volume'|'count'; carbs_per_100: number; fats_per_100: number; protein_per_100: number; micros?: Record<string, number> }> }>('foods.json')
+		await upsertFoods(foodsSeed.foods)
+	} catch (e) {
+		console.warn('foods.json not found or failed to load; skipping foods seed')
+	}
 
 	console.log('Seed completed')
 }
