@@ -21,6 +21,7 @@ import { ThemeSelectionCard } from "@/components/theme-selection-card"
 import { useGoogleCalendar } from "@/hooks/useGoogleCalendar"
 import { plans } from "@/lib/plans"
 import { toast } from "sonner"
+import { RefreshCw } from "lucide-react"
 
 type SupabaseIdentity = { identity_id: string; provider: string; last_sign_in_at: string | null }
 
@@ -53,7 +54,10 @@ export default function AccountPage() {
     logout: disconnectGoogleCalendar,
     fetchEvents,
     getAuthUrl,
-    handleAuthCallback
+    handleAuthCallback,
+    setAccountColor,
+    setAccountName,
+    setAccountHideDetails
   } = useGoogleCalendar({ autoSync: true })
 
   const canChangePassword = useMemo(() => identities.some(i => i.provider === "email"), [identities])
@@ -414,11 +418,24 @@ export default function AccountPage() {
 
         <TabsContent value="calendar" className="space-y-6">
           <Card>
-            <CardHeader>
-              <CardTitle>Google Calendar Integration</CardTitle>
-              <CardDescription>
-                Connect your Google Calendar to sync workout sessions and view all your events in one place.
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Google Calendar Integration</CardTitle>
+                <CardDescription>
+                  Connect your Google Calendar to sync workout sessions and view all your events in one place.
+                </CardDescription>
+              </div>
+              {isGoogleCalendarConnected && (
+                <Button 
+                  onClick={() => { void fetchEvents() }}
+                  variant="outline"
+                  size="icon"
+                  disabled={isGoogleCalendarLoading}
+                  aria-label="Refresh events"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </Button>
+              )}
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Connection Status */}
@@ -449,32 +466,70 @@ export default function AccountPage() {
                 <div className="space-y-3">
                   <h4 className="font-medium">Connected Accounts:</h4>
                   {googleCalendarAccounts.map((account) => (
-                    <div key={account.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div 
-                          className="w-4 h-4 rounded-full" 
-                          style={{ backgroundColor: account.color }}
-                        />
-                        <div>
-                          <div className="font-medium">{account.name}</div>
-                          <div className="text-sm text-muted-foreground">{account.email}</div>
-                          <div className="text-xs text-muted-foreground">
-                            Connected {new Date(account.connectedAt).toLocaleDateString()}
+                    <div key={account.id} className="p-4 border rounded-lg space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="color"
+                            value={account.color}
+                            onChange={(e) => setAccountColor(account.id, e.target.value)}
+                            className="w-6 h-6 rounded-full p-0 border-0 bg-transparent cursor-pointer"
+                            aria-label={`Set color for ${account.email}`}
+                            title={`Set color for ${account.email}`}
+                          />
+                          <div>
+                            <div className="font-medium">{account.customName || account.name}</div>
+                            <div className="text-sm text-muted-foreground">{account.email}</div>
+                            <div className="text-xs text-muted-foreground">Connected {new Date(account.connectedAt).toLocaleDateString()}</div>
                           </div>
                         </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeGoogleCalendarAccount(account.id)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          Remove
+                        </Button>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeGoogleCalendarAccount(account.id)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        Remove
-                      </Button>
+
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <div className="flex flex-col gap-1">
+                          <Label htmlFor={`customName-${account.id}`}>Display name</Label>
+                          <div className="flex gap-2">
+                            <Input
+                              id={`customName-${account.id}`}
+                              defaultValue={account.customName || ''}
+                              placeholder={account.name}
+                              onBlur={(e) => setAccountName(account.id, e.target.value)}
+                            />
+                            <Button
+                              variant="secondary"
+                              onClick={() => {
+                                const el = document.getElementById(`customName-${account.id}`) as HTMLInputElement | null
+                                if (el) setAccountName(account.id, el.value)
+                              }}
+                            >
+                              Save
+                            </Button>
+                          </div>
+                        </div>
+                        <label className="flex items-center gap-2 text-sm pt-6 md:pt-0">
+                          <input
+                            type="checkbox"
+                            checked={!!account.hideDetails}
+                            onChange={(e) => setAccountHideDetails(account.id, e.target.checked)}
+                          />
+                          <span>Hide details for this account</span>
+                        </label>
+                      </div>
                     </div>
                   ))}
                 </div>
               )}
+
+              {/* Account Visibility Options */}
+              {/* Privacy toggles are integrated per account card above */}
 
               {/* Error Display */}
               {googleCalendarError && (
@@ -513,11 +568,15 @@ export default function AccountPage() {
                       Manage Connection
                     </Button>
                     <Button 
-                      onClick={disconnectGoogleCalendar}
+                      onClick={() => {
+                        const accountUrl = '/account?tab=calendar'
+                        const authUrl = getAuthUrl(accountUrl)
+                        if (typeof window !== 'undefined') window.location.href = authUrl
+                      }}
                       variant="outline"
                       className="flex-1"
                     >
-                      Disconnect
+                      Add account
                     </Button>
                   </>
                 )}
