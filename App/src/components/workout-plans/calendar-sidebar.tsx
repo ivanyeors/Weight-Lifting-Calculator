@@ -28,6 +28,10 @@ interface CalendarSidebarProps {
   spaces: WorkoutSpace[]
   selectedSpaceIds: string[]
   setSelectedSpaceIds: (ids: string[]) => void
+  showWater: boolean
+  setShowWater: (v: boolean) => void
+  showSleep: boolean
+  setShowSleep: (v: boolean) => void
 }
 
 export function CalendarSidebar({
@@ -41,6 +45,10 @@ export function CalendarSidebar({
   spaces,
   selectedSpaceIds,
   setSelectedSpaceIds,
+  showWater,
+  setShowWater,
+  showSleep,
+  setShowSleep,
 }: CalendarSidebarProps) {
   const [userQuery, setUserQuery] = useState("")
   const filteredUsers = useMemo(() => {
@@ -230,6 +238,14 @@ export function CalendarSidebar({
                   </div>
                 </DropdownMenuContent>
               </DropdownMenu>
+            </div>
+
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Wellness Filter</Label>
+              <div className="space-y-2">
+                <Checkbox checked={showWater} onCheckedChange={(c) => setShowWater(Boolean(c))} variant="chip">Drink water</Checkbox>
+                <Checkbox checked={showSleep} onCheckedChange={(c) => setShowSleep(Boolean(c))} variant="chip">Sleep schedule</Checkbox>
+              </div>
             </div>
 
             <Separator className="my-1" />

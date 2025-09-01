@@ -1,0 +1,63 @@
+"use client"
+
+import { useMemo, useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { UserSwitcher } from '@/components/user-switcher'
+
+// Local components (to be created next)
+import { PlanSidebar } from './plan-sidebar'
+import { PlanGradientCard } from './plan-gradient-card'
+import { CreatePlanDrawer } from './plan-create-drawer'
+import { usePlans } from './plan-store'
+import type { Plan } from './plan-types'
+
+export default function PlansPage() {
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [selectedUserId, setSelectedUserId] = useState<string>('')
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
+  const { plans, add, remove, update } = usePlans(selectedUserId || null)
+
+  const handleCreatePlan = () => setDrawerOpen(true)
+
+  const activePlan = useMemo(() => plans.find(p => p.id === selectedPlanId) || null, [plans, selectedPlanId])
+
+  return (
+    <div className="flex h-full">
+      <PlanSidebar
+        selectedUserId={selectedUserId}
+        onSelectUser={(id) => { setSelectedUserId(id); setSelectedPlanId(null) }}
+        onCreatePlan={handleCreatePlan}
+        plans={plans}
+        selectedPlanId={selectedPlanId}
+        onSelectPlan={setSelectedPlanId}
+      />
+
+      <div className="flex-1 flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b bg-background">
+          <div className="flex items-center gap-3">
+            <div className="text-sm text-muted-foreground">Plans</div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button onClick={handleCreatePlan} className="bg-primary hover:bg-primary/90">
+              Create Plan
+            </Button>
+          </div>
+        </div>
+
+        <div className="p-4 space-y-6">
+          <PlanGradientCard userId={selectedUserId} plan={activePlan} />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="rounded border p-3">Food (macros & micro)</div>
+            <div className="rounded border p-3">Water intake levels</div>
+            <div className="rounded border p-3">Sleep graphs</div>
+            <div className="rounded border p-3">Exercises graphs</div>
+          </div>
+        </div>
+      </div>
+
+      <CreatePlanDrawer open={drawerOpen} onOpenChange={setDrawerOpen} userId={selectedUserId} />
+    </div>
+  )
+}
