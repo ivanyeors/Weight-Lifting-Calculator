@@ -33,6 +33,15 @@ const nextConfig = {
       test: /\.svg$/,
       use: ['@svgr/webpack'],
     });
+    config.module.rules.push({
+      test: /\.(glsl|vert|frag)$/i,
+      exclude: /node_modules/,
+      use: [
+        {
+          loader: 'raw-loader',
+        },
+      ],
+    });
     return config;
   },
 }

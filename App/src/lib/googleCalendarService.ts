@@ -15,6 +15,10 @@ export interface GoogleCalendarEvent {
     email: string
     displayName?: string
   }>
+  // When set to 'transparent', the event is shown as free time
+  transparency?: 'opaque' | 'transparent'
+  // Visibility hint
+  visibility?: 'default' | 'public' | 'private' | 'confidential'
   reminders?: {
     useDefault: boolean
   }
@@ -643,6 +647,8 @@ class GoogleCalendarService {
               .filter(a => a && a.email)
               .map(a => ({ email: a.email, displayName: a.displayName }))
           : undefined,
+        transparency: event.transparency,
+        visibility: event.visibility,
         reminders: event.reminders ?? { useDefault: true },
         extendedProperties: event.extendedProperties && (Object.keys(event.extendedProperties.private || {}).length > 0 || Object.keys(event.extendedProperties.shared || {}).length > 0)
           ? event.extendedProperties
@@ -696,6 +702,8 @@ class GoogleCalendarService {
         ...(endIso ? { end: { dateTime: endIso, timeZone: tz } } : {}),
         ...(event.location !== undefined ? { location: event.location } : {}),
         ...(Array.isArray(event.attendees) ? { attendees: event.attendees.filter(a => a && a.email).map(a => ({ email: a.email, displayName: a.displayName })) } : {}),
+        ...(event.transparency !== undefined ? { transparency: event.transparency } : {}),
+        ...(event.visibility !== undefined ? { visibility: event.visibility } : {}),
         ...(event.reminders !== undefined ? { reminders: event.reminders } : {}),
         ...(event.extendedProperties !== undefined ? { extendedProperties: event.extendedProperties } : {})
       }
@@ -765,6 +773,15 @@ class GoogleCalendarService {
 
     const extendedPrivate: Record<string, string> = scheduleXEvent.id ? { platformEventId: String(scheduleXEvent.id) } : {}
 
+    // Mark water events as task-like for downstream filtering/UX
+    if (scheduleXEvent.kind === 'water') {
+      extendedPrivate['platformKind'] = 'water'
+      extendedPrivate['platformCalendarItemType'] = 'task'
+    }
+    if (scheduleXEvent.kind === 'sleep') {
+      extendedPrivate['platformKind'] = 'sleep'
+    }
+
     return {
       summary: title,
       description: scheduleXEvent.description || '',
@@ -772,6 +789,9 @@ class GoogleCalendarService {
       end: { dateTime: endIso, timeZone: tz },
       location: scheduleXEvent.location || undefined,
       attendees,
+      // Show task-like (water) as free time and private by default
+      transparency: scheduleXEvent.kind === 'water' ? 'transparent' : undefined,
+      visibility: scheduleXEvent.kind === 'water' ? 'private' : undefined,
       reminders: { useDefault: true },
       extendedProperties: Object.keys(extendedPrivate).length > 0 ? { private: extendedPrivate } : undefined
     }

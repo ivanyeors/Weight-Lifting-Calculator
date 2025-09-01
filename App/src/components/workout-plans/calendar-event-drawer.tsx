@@ -653,6 +653,58 @@ export function CalendarEventDrawer(props: CalendarEventDrawerProps) {
               </span>
             </div>
           </div>
+
+          {/* Plan-derived status controls (water/sleep) */}
+          {event.extendedProps?.kind && (
+            <div className="rounded-md border p-3 space-y-2">
+              <div className="text-sm font-medium capitalize">{event.extendedProps.kind} status</div>
+              <div className="flex gap-2">
+                <Button size="sm" variant={event.extendedProps.status === 'complete' ? 'default' : 'outline'} onClick={() => props.onUpdateEvent?.(event.id, { extendedProps: { ...event.extendedProps, status: 'complete' } })}>Complete</Button>
+                <Button size="sm" variant={event.extendedProps.status === 'missed' ? 'default' : 'outline'} onClick={() => props.onUpdateEvent?.(event.id, { extendedProps: { ...event.extendedProps, status: 'missed' } })}>Missed</Button>
+                <Button size="sm" variant={event.extendedProps.status === 'pending' ? 'default' : 'outline'} onClick={() => props.onUpdateEvent?.(event.id, { extendedProps: { ...event.extendedProps, status: 'pending' } })}>Pending</Button>
+              </div>
+              {event.extendedProps.kind === 'sleep' && (
+                <div className="grid grid-cols-2 gap-2 pt-2">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Sleep start</Label>
+                    <Input
+                      type="time"
+                      value={format(parse(event.start, 'yyyy-MM-dd HH:mm', new Date()), 'HH:mm')}
+                      onChange={(e) => {
+                        const date = parse(event.start, 'yyyy-MM-dd HH:mm', new Date())
+                        const [h, m] = e.target.value.split(':').map(Number)
+                        const start = new Date(date)
+                        start.setHours(h); start.setMinutes(m); start.setSeconds(0); start.setMilliseconds(0)
+                        const endDate = parse(event.end, 'yyyy-MM-dd HH:mm', new Date())
+                        props.onUpdateEvent?.(event.id, {
+                          start: format(start, 'yyyy-MM-dd HH:mm'),
+                          end: format(endDate, 'yyyy-MM-dd HH:mm')
+                        })
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Sleep end</Label>
+                    <Input
+                      type="time"
+                      value={format(parse(event.end, 'yyyy-MM-dd HH:mm', new Date()), 'HH:mm')}
+                      onChange={(e) => {
+                        const endBase = parse(event.end, 'yyyy-MM-dd HH:mm', new Date())
+                        const [h, m] = e.target.value.split(':').map(Number)
+                        const end = new Date(endBase)
+                        end.setHours(h); end.setMinutes(m); end.setSeconds(0); end.setMilliseconds(0)
+                        const start = parse(event.start, 'yyyy-MM-dd HH:mm', new Date())
+                        props.onUpdateEvent?.(event.id, {
+                          start: format(start, 'yyyy-MM-dd HH:mm'),
+                          end: format(end, 'yyyy-MM-dd HH:mm')
+                        })
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           {event.extendedProps.workoutTemplate && (
             <div className="rounded-md border p-3 space-y-1">
               <div className="text-sm font-medium">Workout Template</div>

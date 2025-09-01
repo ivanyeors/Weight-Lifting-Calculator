@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { Plus, Calendar as CalendarIcon, PanelLeft, PanelRight, ChefHat, Minus } from 'lucide-react'
+import { Plus, Calendar as CalendarIcon, PanelLeft, PanelRight, ChefHat, Minus, Moon } from 'lucide-react'
 
 // Schedule-X imports
 import { useCalendarApp, ScheduleXCalendar } from '@schedule-x/react'
@@ -85,6 +85,9 @@ interface CalendarEvent {
       usageCount: number
       workoutSpace?: string
     }
+    // Plan-derived event kind and status (water/sleep)
+    kind?: 'water' | 'sleep' | 'workout'
+    status?: 'pending' | 'complete' | 'missed'
   }
 }
 
@@ -125,6 +128,8 @@ export function CalendarView() {
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([])
   const [selectedSpaceIds, setSelectedSpaceIds] = useState<string[]>([])
+  const [showWater, setShowWater] = useState(true)
+  const [showSleep, setShowSleep] = useState(true)
 
   const [trainers] = useState<Trainer[]>([
     {
@@ -162,6 +167,12 @@ export function CalendarView() {
   // Nutrition drawer state
   const [nutritionDrawerOpen, setNutritionDrawerOpen] = useState(false)
   const [nutritionDrawerDate, setNutritionDrawerDate] = useState<string | null>(null)
+  // Sleep drawer state
+  const [sleepDrawerOpen, setSleepDrawerOpen] = useState(false)
+  const [sleepDrawerDate, setSleepDrawerDate] = useState<string | null>(null)
+  const [sleepStartInput, setSleepStartInput] = useState<string>('23:00')
+  const [sleepEndInput, setSleepEndInput] = useState<string>('07:00')
+  const [waterLogsDbByDay, setWaterLogsDbByDay] = useState<Record<string, Array<{ id: string; start: string; end: string; status: 'complete' | 'missed'; at: string }>>>({})
 
   // All times are handled as local strings: 'yyyy-MM-dd HH:mm'
   
@@ -373,9 +384,20 @@ export function CalendarView() {
         })
 
         setEvents(prev => {
-          // Keep any Google events already in memory; replace platform set with DB sessions
+          // Keep any Google events already in memory
           const googleOnly = prev.filter(e => e.source === 'google')
-          return [...platformFromDb, ...googleOnly]
+          // Preserve plan-derived platform events (e.g., water/sleep)
+          const nonSessionPlatform = prev.filter(e => (
+            e.source === 'platform' && (
+              e?.extendedProps?.kind === 'water' || e?.extendedProps?.kind === 'sleep'
+            )
+          ))
+          // Merge uniquely by id to avoid duplicates
+          const byId = new Map<string, typeof prev[number]>()
+          for (const ev of [...platformFromDb, ...nonSessionPlatform, ...googleOnly]) {
+            if (!byId.has(ev.id)) byId.set(ev.id, ev)
+          }
+          return Array.from(byId.values())
         })
       } catch (e) {
         console.error('Failed to load sessions from DB', e)
@@ -390,6 +412,152 @@ export function CalendarView() {
       fetchEvents()
     }
   }, [isGoogleCalendarConnected, fetchEvents])
+
+  // Inject plan-derived water/sleep events for next 7 days
+  useEffect(() => {
+    const loadPlanDerived = () => {
+      try {
+        const userId = typeof window !== 'undefined' ? (localStorage.getItem('fitspo:selected_user_id') || '') : ''
+        if (!userId) return
+        const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:plans') : null
+        if (!raw) return
+        type PlanConfig = { water?: { reminders?: string[] }; sleep?: { startTime?: string; endTime?: string } }
+        type StoredPlans = Record<string, Array<{ id: string; userId: string; pillars: Record<string, boolean>; config?: PlanConfig }>>
+        const all = JSON.parse(raw) as StoredPlans
+        const plans = all[userId] || []
+        const active = plans[0] || null
+        if (!active) return
+        const now = new Date()
+        const days = 7
+        const next: CalendarEvent[] = []
+        // Water reminders: default times 09:00, 12:00, 15:00, 18:00 if enabled
+        if (active.pillars?.water) {
+          const times: string[] = (active.config?.water?.reminders && active.config.water.reminders.length > 0)
+            ? active.config.water.reminders
+            : ['09:00', '12:00', '15:00', '18:00']
+          const waterTarget = (isGoogleCalendarConnected && googleCalendarAccounts[0]?.id) ? googleCalendarAccounts[0].id : null
+          for (let d = 0; d < days; d++) {
+            const date = new Date(now)
+            date.setDate(now.getDate() + d)
+            const yyyy = date.getFullYear()
+            const mm = String(date.getMonth() + 1).padStart(2, '0')
+            const dd = String(date.getDate()).padStart(2, '0')
+            for (const t of times) {
+              const [hh, min] = t.split(':')
+              const start = `${yyyy}-${mm}-${dd} ${hh}:${min}`
+              const end = `${yyyy}-${mm}-${dd} ${hh}:${String(Number(min) + 30).padStart(2, '0')}`
+              const tSafe = t.replace(/[^A-Za-z0-9_-]/g, '')
+              next.push({
+                id: `water-${yyyy}${mm}${dd}-${tSafe}`,
+                title: 'Drink water',
+                start,
+                end,
+                backgroundColor: 'rgba(59, 130, 246, 0.10)',
+                borderColor: 'rgba(59, 130, 246, 0.20)',
+                source: 'platform',
+                targetAccountIds: waterTarget ? [waterTarget] : [],
+                syncedGoogleEventIds: {},
+                extendedProps: {
+                  trainer: 'System',
+                  participants: [],
+                  plan: 'Hydration',
+                  location: '',
+                  maxParticipants: 0,
+                  currentParticipants: 0,
+                  medicalFlags: [],
+                  attendance: {},
+                  kind: 'water',
+                  status: 'pending'
+                }
+              })
+            }
+          }
+        }
+        // Sleep blocks: 23:00-07:00 default if enabled
+        if (active.pillars?.sleep) {
+          const startT = active.config?.sleep?.startTime || '23:00'
+          const endT = active.config?.sleep?.endTime || '07:00'
+          for (let d = 0; d < days; d++) {
+            const date = new Date(now)
+            date.setDate(now.getDate() + d)
+            const yyyy = date.getFullYear()
+            const mm = String(date.getMonth() + 1).padStart(2, '0')
+            const dd = String(date.getDate()).padStart(2, '0')
+            const [sh, sm] = startT.split(':')
+            const [eh, em] = endT.split(':')
+            const start = `${yyyy}-${mm}-${dd} ${sh}:${sm}`
+            const endDate = new Date(date)
+            endDate.setDate(date.getDate() + (Number(eh) < Number(sh) ? 1 : 0))
+            const yyyy2 = endDate.getFullYear()
+            const mm2 = String(endDate.getMonth() + 1).padStart(2, '0')
+            const dd2 = String(endDate.getDate()).padStart(2, '0')
+            const end = `${yyyy2}-${mm2}-${dd2} ${eh}:${em}`
+            next.push({
+              id: `sleep-${yyyy}${mm}${dd}`,
+              title: 'Sleep',
+              start,
+              end,
+              backgroundColor: 'rgba(139, 92, 246, 0.15)',
+              borderColor: 'rgba(139, 92, 246, 0.25)',
+              source: 'platform',
+              extendedProps: {
+                trainer: 'System',
+                participants: [],
+                plan: 'Sleep',
+                location: '',
+                maxParticipants: 0,
+                currentParticipants: 0,
+                medicalFlags: [],
+                attendance: {},
+                kind: 'sleep',
+                status: 'pending'
+              }
+            })
+          }
+        }
+        setEvents(prev => {
+          const keep = prev.filter(e => e.extendedProps?.kind !== 'water' && e.extendedProps?.kind !== 'sleep')
+          return [...keep, ...next]
+        })
+      } catch {
+        // noop
+      }
+    }
+    loadPlanDerived()
+    const onChange = () => loadPlanDerived()
+    if (typeof window !== 'undefined') {
+      window.addEventListener('fitspo:plans_changed', onChange)
+      return () => window.removeEventListener('fitspo:plans_changed', onChange)
+    }
+  }, [isGoogleCalendarConnected, googleCalendarAccounts])
+
+  useEffect(() => {
+    const loadHydrationLogs = async () => {
+      try {
+        if (!nutritionDrawerOpen || !nutritionDrawerDate) return
+        const userId = typeof window !== 'undefined' ? (localStorage.getItem('fitspo:selected_user_id') || '') : ''
+        if (!userId) return
+        const { data, error } = await supabase
+          .from('hydration_logs')
+          .select('event_id, start_at, end_at, status, logged_at, day')
+          .eq('user_id', userId)
+          .eq('day', nutritionDrawerDate)
+          .order('logged_at', { ascending: true })
+        if (error) throw error
+        const list = (data ?? []).map((r: { event_id: string; start_at: string; end_at: string; status: 'complete' | 'missed'; logged_at: string }) => ({
+          id: r.event_id,
+          start: toLocalFromIso(r.start_at),
+          end: toLocalFromIso(r.end_at),
+          status: r.status,
+          at: r.logged_at
+        }))
+        setWaterLogsDbByDay(prev => ({ ...prev, [nutritionDrawerDate]: list }))
+      } catch {
+        // ignore if table missing or error
+      }
+    }
+    void loadHydrationLogs()
+  }, [nutritionDrawerOpen, nutritionDrawerDate, toLocalFromIso])
 
   // Sync Google Calendar events when they change
   useEffect(() => {
@@ -674,10 +842,8 @@ export function CalendarView() {
     if (selectedSpaceIds && selectedSpaceIds.length > 0) {
       const selectedSpaces = new Set(selectedSpaceIds)
       out = out.filter(ev => {
-        // Prefer explicit workoutSpaceId if present
         const evSpaceId = (ev as { workoutSpaceId?: string }).workoutSpaceId
         if (evSpaceId) return selectedSpaces.has(evSpaceId)
-        // Fallback: match by location name
         const loc = ev?.extendedProps?.location || ''
         return Array.from(selectedSpaces).some(spaceId => {
           const ws = workoutSpaces.find(ws => ws.id === spaceId)
@@ -685,8 +851,12 @@ export function CalendarView() {
         })
       })
     }
+    if (!showWater) out = out.filter(ev => ev.extendedProps?.kind !== 'water')
+    // Hide completed water tasks
+    out = out.filter(ev => !(ev.extendedProps?.kind === 'water' && ev.extendedProps?.status === 'complete'))
+    if (!showSleep) out = out.filter(ev => ev.extendedProps?.kind !== 'sleep')
     return out
-  }, [events, selectedUserIds, selectedSpaceIds, workoutSpaces])
+  }, [events, selectedUserIds, selectedSpaceIds, workoutSpaces, showWater, showSleep])
 
   const calendar = useCalendarApp({
     views: [createViewDay(), createViewWeek(), createViewMonthGrid(), createViewMonthAgenda()], // Pass all views to let Schedule-X handle view switching
@@ -740,7 +910,8 @@ export function CalendarView() {
             description: existing.description || '',
             // Workout space maps to Google location
             location: existing.extendedProps?.location || '',
-            attendees: existing.extendedProps?.participants?.map(p => ({ email: p.email, name: p.name })) || []
+            attendees: existing.extendedProps?.participants?.map(p => ({ email: p.email, name: p.name })) || [],
+            kind: existing.extendedProps?.kind
           }
           const gEvent = convertToGoogleEvent(scheduleXEvent)
           const selectedTargets = Array.isArray(existing.targetAccountIds) && existing.targetAccountIds.length > 0
@@ -1023,21 +1194,59 @@ export function CalendarView() {
     const applyColors = () => {
       try {
         eventsRef.current.forEach(ev => {
-          if (ev.source !== 'google') return
           const el = document.querySelector(`[data-event-id="${ev.id}"]`) as HTMLElement | null
           if (!el) return
-          if (ev.backgroundColor) el.style.backgroundColor = ev.backgroundColor
-          if (ev.borderColor) {
-            el.style.setProperty('border-inline-start-color', ev.borderColor)
-            el.style.borderColor = ev.borderColor
+
+          // Style Google events per-account
+          if (ev.source === 'google') {
+            if (ev.backgroundColor) el.style.backgroundColor = ev.backgroundColor
+            if (ev.borderColor) {
+              el.style.setProperty('border-inline-start-color', ev.borderColor)
+              el.style.borderColor = ev.borderColor
+            }
+            const acc = accountsRef.current.find(a => a.id === ev.accountId)
+            const textColor = acc?.hideDetails ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,1)'
+            el.style.color = textColor
+            el.style.setProperty('--sx-color-on-blue-container', textColor)
+            el.style.setProperty('--sx-color-on-primary-container', textColor)
+            return
           }
-          // Text color: white (or 10% white when hidden)
-          const acc = accountsRef.current.find(a => a.id === ev.accountId)
-          const textColor = acc?.hideDetails ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,1)'
-          el.style.color = textColor
-          // Override common Schedule-X on-container text vars used in templates
-          el.style.setProperty('--sx-color-on-blue-container', textColor)
-          el.style.setProperty('--sx-color-on-primary-container', textColor)
+
+          // Style sleep events (platform) with purple border + short gradient and white text
+          if (ev.source === 'platform' && ev?.extendedProps?.kind === 'sleep') {
+            const purple = '#8b5cf6' // Tailwind violet-500
+            // Remove any default fill and apply short horizontal gradient from the left
+            el.style.setProperty('background-color', 'transparent', 'important')
+            el.style.setProperty('background-image', 'linear-gradient(90deg, rgba(139, 92, 246, 0.45) 0%, rgba(139, 92, 246, 0.0) 35%)', 'important')
+            el.style.setProperty('background', 'linear-gradient(90deg, rgba(139, 92, 246, 0.45) 0%, rgba(139, 92, 246, 0.0) 35%)', 'important')
+            // Force left accent/border to purple and remove default accent highlight
+            el.style.setProperty('border-inline-start-color', purple, 'important')
+            el.style.setProperty('border-inline-start-width', '3px', 'important')
+            el.style.setProperty('border-left-width', '3px', 'important')
+            el.style.setProperty('border-color', purple, 'important')
+            // Ensure text is white for contrast
+            el.style.setProperty('color', 'rgba(255,255,255,1)', 'important')
+            el.style.setProperty('--sx-color-on-blue-container', 'rgba(255,255,255,1)', 'important')
+            el.style.setProperty('--sx-color-on-primary-container', 'rgba(255,255,255,1)', 'important')
+            // Reduce any hover/active highlight by clearing box shadow if present
+            el.style.setProperty('box-shadow', 'none', 'important')
+          }
+
+          // Style water events (platform) with blue border + short gradient and white text
+          if (ev.source === 'platform' && ev?.extendedProps?.kind === 'water') {
+            const blue = '#3b82f6' // Tailwind blue-500
+            el.style.setProperty('background-color', 'transparent', 'important')
+            el.style.setProperty('background-image', 'linear-gradient(90deg, rgba(59, 130, 246, 0.45) 0%, rgba(59, 130, 246, 0.0) 35%)', 'important')
+            el.style.setProperty('background', 'linear-gradient(90deg, rgba(59, 130, 246, 0.45) 0%, rgba(59, 130, 246, 0.0) 35%)', 'important')
+            el.style.setProperty('border-inline-start-color', blue, 'important')
+            el.style.setProperty('border-inline-start-width', '3px', 'important')
+            el.style.setProperty('border-left-width', '3px', 'important')
+            el.style.setProperty('border-color', blue, 'important')
+            el.style.setProperty('color', 'rgba(255,255,255,1)', 'important')
+            el.style.setProperty('--sx-color-on-blue-container', 'rgba(255,255,255,1)', 'important')
+            el.style.setProperty('--sx-color-on-primary-container', 'rgba(255,255,255,1)', 'important')
+            el.style.setProperty('box-shadow', 'none', 'important')
+          }
         })
       } catch {
         // noop
@@ -1058,19 +1267,52 @@ export function CalendarView() {
       try {
         const current = eventsRef.current
         current.forEach(ev => {
-          if (ev.source !== 'google') return
           const el = root.querySelector(`[data-event-id="${ev.id}"]`) as HTMLElement | null
           if (!el) return
-          if (ev.backgroundColor) el.style.backgroundColor = ev.backgroundColor
-          if (ev.borderColor) {
-            el.style.setProperty('border-inline-start-color', ev.borderColor)
-            el.style.borderColor = ev.borderColor
+
+          if (ev.source === 'google') {
+            if (ev.backgroundColor) el.style.backgroundColor = ev.backgroundColor
+            if (ev.borderColor) {
+              el.style.setProperty('border-inline-start-color', ev.borderColor)
+              el.style.borderColor = ev.borderColor
+            }
+            const acc = accountsRef.current.find(a => a.id === ev.accountId)
+            const textColor = acc?.hideDetails ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,1)'
+            el.style.color = textColor
+            el.style.setProperty('--sx-color-on-blue-container', textColor)
+            el.style.setProperty('--sx-color-on-primary-container', textColor)
+            return
           }
-          const acc = accountsRef.current.find(a => a.id === ev.accountId)
-          const textColor = acc?.hideDetails ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,1)'
-          el.style.color = textColor
-          el.style.setProperty('--sx-color-on-blue-container', textColor)
-          el.style.setProperty('--sx-color-on-primary-container', textColor)
+
+          if (ev.source === 'platform' && ev?.extendedProps?.kind === 'sleep') {
+            const purple = '#8b5cf6'
+            el.style.setProperty('background-color', 'transparent', 'important')
+            el.style.setProperty('background-image', 'linear-gradient(90deg, rgba(139, 92, 246, 0.45) 0%, rgba(139, 92, 246, 0.0) 35%)', 'important')
+            el.style.setProperty('background', 'linear-gradient(90deg, rgba(139, 92, 246, 0.45) 0%, rgba(139, 92, 246, 0.0) 35%)', 'important')
+            el.style.setProperty('border-inline-start-color', purple, 'important')
+            el.style.setProperty('border-inline-start-width', '3px', 'important')
+            el.style.setProperty('border-left-width', '3px', 'important')
+            el.style.setProperty('border-color', purple, 'important')
+            el.style.setProperty('color', 'rgba(255,255,255,1)', 'important')
+            el.style.setProperty('--sx-color-on-blue-container', 'rgba(255,255,255,1)', 'important')
+            el.style.setProperty('--sx-color-on-primary-container', 'rgba(255,255,255,1)', 'important')
+            el.style.setProperty('box-shadow', 'none', 'important')
+          }
+
+          if (ev.source === 'platform' && ev?.extendedProps?.kind === 'water') {
+            const blue = '#3b82f6'
+            el.style.setProperty('background-color', 'transparent', 'important')
+            el.style.setProperty('background-image', 'linear-gradient(90deg, rgba(59, 130, 246, 0.45) 0%, rgba(59, 130, 246, 0.0) 35%)', 'important')
+            el.style.setProperty('background', 'linear-gradient(90deg, rgba(59, 130, 246, 0.45) 0%, rgba(59, 130, 246, 0.0) 35%)', 'important')
+            el.style.setProperty('border-inline-start-color', blue, 'important')
+            el.style.setProperty('border-inline-start-width', '3px', 'important')
+            el.style.setProperty('border-left-width', '3px', 'important')
+            el.style.setProperty('border-color', blue, 'important')
+            el.style.setProperty('color', 'rgba(255,255,255,1)', 'important')
+            el.style.setProperty('--sx-color-on-blue-container', 'rgba(255,255,255,1)', 'important')
+            el.style.setProperty('--sx-color-on-primary-container', 'rgba(255,255,255,1)', 'important')
+            el.style.setProperty('box-shadow', 'none', 'important')
+          }
         })
         // Also rebuild meal header UI after DOM changes, debounced per frame
         try {
@@ -1233,28 +1475,48 @@ export function CalendarView() {
         value.textContent = `${net}`
         netPill.appendChild(value)
 
-        const btn = document.createElement('button')
-        btn.type = 'button'
-        btn.className = 'inline-flex size-6 items-center justify-center rounded hover:bg-muted/40 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-        btn.title = 'Manage meals for this day'
-        btn.addEventListener('click', (e) => {
+        const mealBtn = document.createElement('button')
+        mealBtn.type = 'button'
+        mealBtn.className = 'inline-flex size-6 items-center justify-center rounded hover:bg-muted/40 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+        mealBtn.title = 'Manage meals for this day'
+        mealBtn.addEventListener('click', (e) => {
           e.stopPropagation()
           setNutritionDrawerDate(dayDate)
           setNutritionDrawerOpen(true)
         })
-        const iconMount = document.createElement('span')
-        iconMount.className = 'pointer-events-none'
-        btn.appendChild(iconMount)
+        const mealIcon = document.createElement('span')
+        mealIcon.className = 'pointer-events-none'
+        mealBtn.appendChild(mealIcon)
         try {
-          const mount = createRoot(iconMount)
+          const mount = createRoot(mealIcon)
           mount.render(<ChefHat className="w-4 h-4" />)
+        } catch {
+          // noop
+        }
+
+        const sleepBtn = document.createElement('button')
+        sleepBtn.type = 'button'
+        sleepBtn.className = 'inline-flex size-6 items-center justify-center rounded hover:bg-muted/40 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+        sleepBtn.title = 'Manage sleep for this day'
+        sleepBtn.addEventListener('click', (e) => {
+          e.stopPropagation()
+          setSleepDrawerDate(dayDate)
+          setSleepDrawerOpen(true)
+        })
+        const sleepIcon = document.createElement('span')
+        sleepIcon.className = 'pointer-events-none'
+        sleepBtn.appendChild(sleepIcon)
+        try {
+          const m2 = createRoot(sleepIcon)
+          m2.render(<Moon className="w-4 h-4" />)
         } catch {
           // noop
         }
 
         wrap.setAttribute('data-net', String(net))
         wrap.appendChild(netPill)
-        wrap.appendChild(btn)
+        wrap.appendChild(mealBtn)
+        wrap.appendChild(sleepBtn)
       }
     } catch {
       // noop
@@ -1356,7 +1618,8 @@ export function CalendarView() {
           description: platformEvent.description || '',
           // Workout space maps to Google location
           location: platformEvent.extendedProps?.location || '',
-          attendees: platformEvent.extendedProps?.participants?.map(p => ({ email: p.email, name: p.name })) || []
+          attendees: platformEvent.extendedProps?.participants?.map(p => ({ email: p.email, name: p.name })) || [],
+          kind: platformEvent.extendedProps?.kind
         }
         const gEvent = convertToGoogleEvent(scheduleXEvent)
         const selectedTargets = Array.isArray(platformEvent.targetAccountIds) && platformEvent.targetAccountIds.length > 0
@@ -1452,12 +1715,15 @@ export function CalendarView() {
       }
       const scheduleXEvent = {
         id: next.id,
-        title: next.title,
+        title: next.extendedProps?.kind === 'water'
+          ? (next.extendedProps?.status === 'complete' ? 'Drink water ✓' : next.title || 'Drink water')
+          : next.title,
         start: next.start,
         end: next.end,
         description: next.description || '',
         location: next.extendedProps?.location || '',
-        attendees: next.extendedProps?.participants?.map(p => ({ email: p.email, name: p.name })) || []
+        attendees: next.extendedProps?.participants?.map(p => ({ email: p.email, name: p.name })) || [],
+        kind: next.extendedProps?.kind
       }
       const gEvent = convertToGoogleEvent(scheduleXEvent)
       const selectedTargets = Array.isArray(next.targetAccountIds) && next.targetAccountIds.length > 0
@@ -1549,6 +1815,10 @@ export function CalendarView() {
         spaces={spacesForFilter}
         selectedSpaceIds={selectedSpaceIds}
         setSelectedSpaceIds={setSelectedSpaceIds}
+        showWater={showWater}
+        setShowWater={setShowWater}
+        showSleep={showSleep}
+        setShowSleep={setShowSleep}
       />
       {!sidebarCollapsed && (
         <div
@@ -1578,6 +1848,7 @@ export function CalendarView() {
                 Google Calendar Error
               </div>
             )}
+
             <Button 
               onClick={() => {
                 const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/')
@@ -1958,7 +2229,184 @@ export function CalendarView() {
                 No recipes added yet.
               </SheetDescription>
             </SheetHeader>
-            <div className="p-4">
+            <div className="p-4 space-y-6">
+              <div>
+                <div className="text-sm font-medium mb-2">Water</div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Button size="sm" variant="outline" onClick={async () => {
+                    // Mark nearest water event as complete and sync
+                    try {
+                      const day = nutritionDrawerDate
+                      if (!day) return
+                      const nearest = eventsRef.current
+                        .filter(ev => ev.extendedProps?.kind === 'water' && ev.start?.startsWith(day))
+                        .sort((a, b) => a.start.localeCompare(b.start))[0]
+                      if (nearest) {
+                        setEvents(prev => prev.map(e => e.id === nearest.id ? ({ ...e, extendedProps: { ...e.extendedProps, status: 'complete' } }) : e))
+                        // Persist per-day water status map
+                        try {
+                          const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:water_status_by_day') : null
+                          const store = raw ? JSON.parse(raw) as Record<string, Record<string, 'pending'|'complete'|'missed'>> : {}
+                          const dayMap = store[day] || {}
+                          dayMap[nearest.id] = 'complete'
+                          store[day] = dayMap
+                          localStorage.setItem('fitspo:water_status_by_day', JSON.stringify(store))
+                          // Append to water log
+                          const logRaw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:water_log_by_day') : null
+                          const logStore = logRaw ? JSON.parse(logRaw) as Record<string, Array<{ id: string; start: string; end: string; status: 'complete'|'missed'; at: string }>> : {}
+                          const list = logStore[day] || []
+                          list.push({ id: nearest.id, start: nearest.start, end: nearest.end, status: 'complete', at: new Date().toISOString() })
+                          logStore[day] = list
+                          localStorage.setItem('fitspo:water_log_by_day', JSON.stringify(logStore))
+                        } catch {/* ignore */}
+                        // Persist to Supabase (best-effort)
+                        try {
+                          const userId = typeof window !== 'undefined' ? (localStorage.getItem('fitspo:selected_user_id') || '') : ''
+                          if (userId) {
+                            await supabase.from('hydration_logs').insert({
+                              user_id: userId,
+                              day,
+                              event_id: nearest.id,
+                              start_at: toIsoFromLocal(nearest.start),
+                              end_at: toIsoFromLocal(nearest.end),
+                              status: 'complete',
+                              logged_at: new Date().toISOString()
+                            })
+                            setWaterLogsDbByDay(prev => ({
+                              ...prev,
+                              [day]: [
+                                ...((prev[day] as Array<{ id: string; start: string; end: string; status: 'complete'|'missed'; at: string }>) || []),
+                                { id: nearest.id, start: nearest.start, end: nearest.end, status: 'complete', at: new Date().toISOString() }
+                              ]
+                            }))
+                          }
+                        } catch { /* ignore */ }
+                        void handleUpdateEvent(nearest.id, { extendedProps: { ...nearest.extendedProps, status: 'complete' } })
+                        // Remove from view immediately
+                        setEvents(prev => prev.filter(e => !(e.id === nearest.id)))
+                      }
+                    } catch {/* ignore */}
+                  }}>Confirm</Button>
+                  <Button size="sm" variant="outline" onClick={async () => {
+                    try {
+                      const day = nutritionDrawerDate
+                      if (!day) return
+                      const nearest = eventsRef.current
+                        .filter(ev => ev.extendedProps?.kind === 'water' && ev.start?.startsWith(day))
+                        .sort((a, b) => a.start.localeCompare(b.start))[0]
+                      if (nearest) {
+                        setEvents(prev => prev.map(e => e.id === nearest.id ? ({ ...e, extendedProps: { ...e.extendedProps, status: 'missed' } }) : e))
+                        try {
+                          const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:water_status_by_day') : null
+                          const store = raw ? JSON.parse(raw) as Record<string, Record<string, 'pending'|'complete'|'missed'>> : {}
+                          const dayMap = store[day] || {}
+                          dayMap[nearest.id] = 'missed'
+                          store[day] = dayMap
+                          localStorage.setItem('fitspo:water_status_by_day', JSON.stringify(store))
+                          // Append to water log
+                          const logRaw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:water_log_by_day') : null
+                          const logStore = logRaw ? JSON.parse(logRaw) as Record<string, Array<{ id: string; start: string; end: string; status: 'complete'|'missed'; at: string }>> : {}
+                          const list = logStore[day] || []
+                          list.push({ id: nearest.id, start: nearest.start, end: nearest.end, status: 'missed', at: new Date().toISOString() })
+                          logStore[day] = list
+                          localStorage.setItem('fitspo:water_log_by_day', JSON.stringify(logStore))
+                        } catch {/* ignore */}
+                        // Persist to Supabase (best-effort)
+                        try {
+                          const userId = typeof window !== 'undefined' ? (localStorage.getItem('fitspo:selected_user_id') || '') : ''
+                          if (userId) {
+                            await supabase.from('hydration_logs').insert({
+                              user_id: userId,
+                              day,
+                              event_id: nearest.id,
+                              start_at: toIsoFromLocal(nearest.start),
+                              end_at: toIsoFromLocal(nearest.end),
+                              status: 'missed',
+                              logged_at: new Date().toISOString()
+                            })
+                            setWaterLogsDbByDay(prev => ({
+                              ...prev,
+                              [day]: [
+                                ...((prev[day] as Array<{ id: string; start: string; end: string; status: 'complete'|'missed'; at: string }>) || []),
+                                { id: nearest.id, start: nearest.start, end: nearest.end, status: 'missed', at: new Date().toISOString() }
+                              ]
+                            }))
+                          }
+                        } catch { /* ignore */ }
+                        void handleUpdateEvent(nearest.id, { extendedProps: { ...nearest.extendedProps, status: 'missed' } })
+                      }
+                    } catch {/* ignore */}
+                  }}>Skip</Button>
+                </div>
+                {/* Water log for the selected day (local + Supabase) */}
+                {nutritionDrawerDate && (
+                  <div className="mt-3 space-y-2 text-xs">
+                    <div className="text-xs font-medium">Water log</div>
+                    {(() => {
+                      try {
+                        const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:water_log_by_day') : null
+                        const store = raw ? JSON.parse(raw) as Record<string, Array<{ id: string; start: string; end: string; status: 'complete'|'missed'; at: string }>> : {}
+                        const localList = store[nutritionDrawerDate] || []
+                        const dbList = (waterLogsDbByDay[nutritionDrawerDate] || [])
+                        const merged = [...localList, ...dbList]
+                        if (merged.length === 0) return <div className="text-muted-foreground">No water activity yet.</div>
+                        return (
+                          <div className="space-y-1">
+                            {merged
+                              .slice()
+                              .sort((a, b) => a.start.localeCompare(b.start))
+                              .map((it) => (
+                                <div key={`${it.id}-${it.at}`} className="flex items-center justify-between border rounded px-2 py-1">
+                                  <span>{it.start.slice(11,16)} → {it.end.slice(11,16)}</span>
+                                  <span className={it.status === 'complete' ? 'text-emerald-400' : 'text-amber-400'}>{it.status}</span>
+                                </div>
+                              ))}
+                          </div>
+                        )
+                      } catch {
+                        return <div className="text-muted-foreground">No water activity yet.</div>
+                      }
+                    })()}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <div className="text-sm font-medium mb-2">Meals</div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Button size="sm" variant={(() => { try { const day = nutritionDrawerDate; if (!day) return 'outline'; const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:food_status_by_day') : null; const map = raw ? JSON.parse(raw) as Record<string,'pending'|'complete'|'missed'> : {}; const s = map[day] || 'pending'; return s==='complete' ? 'default' : 'outline'; } catch { return 'outline' }})()} onClick={() => {
+                    try {
+                      const day = nutritionDrawerDate
+                      if (!day) return
+                      const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:food_status_by_day') : null
+                      const map = raw ? JSON.parse(raw) as Record<string, 'pending' | 'complete' | 'missed'> : {}
+                      map[day] = 'complete'
+                      localStorage.setItem('fitspo:food_status_by_day', JSON.stringify(map))
+                    } catch {/* ignore */}
+                  }}>Complete</Button>
+                  <Button size="sm" variant={(() => { try { const day = nutritionDrawerDate; if (!day) return 'outline'; const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:food_status_by_day') : null; const map = raw ? JSON.parse(raw) as Record<string,'pending'|'complete'|'missed'> : {}; const s = map[day] || 'pending'; return s==='missed' ? 'default' : 'outline'; } catch { return 'outline' }})()} onClick={() => {
+                    try {
+                      const day = nutritionDrawerDate
+                      if (!day) return
+                      const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:food_status_by_day') : null
+                      const map = raw ? JSON.parse(raw) as Record<string, 'pending' | 'complete' | 'missed'> : {}
+                      map[day] = 'missed'
+                      localStorage.setItem('fitspo:food_status_by_day', JSON.stringify(map))
+                    } catch {/* ignore */}
+                  }}>Missed</Button>
+                  <Button size="sm" variant={(() => { try { const day = nutritionDrawerDate; if (!day) return 'outline'; const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:food_status_by_day') : null; const map = raw ? JSON.parse(raw) as Record<string,'pending'|'complete'|'missed'> : {}; const s = map[day] || 'pending'; return s==='pending' ? 'default' : 'outline'; } catch { return 'outline' }})()} onClick={() => {
+                    try {
+                      const day = nutritionDrawerDate
+                      if (!day) return
+                      const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:food_status_by_day') : null
+                      const map = raw ? JSON.parse(raw) as Record<string, 'pending' | 'complete' | 'missed'> : {}
+                      map[day] = 'pending'
+                      localStorage.setItem('fitspo:food_status_by_day', JSON.stringify(map))
+                    } catch {/* ignore */}
+                  }}>Pending</Button>
+                </div>
+              </div>
+
               <Button onClick={() => {
                 const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/')
                 if (typeof window !== 'undefined') {
@@ -1967,6 +2415,62 @@ export function CalendarView() {
               }} className="bg-primary hover:bg-primary/90">
                 Add recipes
               </Button>
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        <Sheet open={sleepDrawerOpen} onOpenChange={setSleepDrawerOpen}>
+          <SheetContent side="right">
+            <SheetHeader>
+              <SheetTitle>Sleep for {sleepDrawerDate || 'selected day'}</SheetTitle>
+              <SheetDescription>
+                Edit sleep hours for this day.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="p-4 space-y-3 text-sm">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">Start</div>
+                  <input type="time" value={sleepStartInput} onChange={(e) => setSleepStartInput(e.target.value)} className="h-9 w-full rounded border bg-background px-2" />
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">End</div>
+                  <input type="time" value={sleepEndInput} onChange={(e) => setSleepEndInput(e.target.value)} className="h-9 w-full rounded border bg-background px-2" />
+                </div>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button size="sm" onClick={async () => {
+                  // Update plan default sleep times in localStorage and Supabase, then refresh injected events
+                  let updatedPlanId: string | null = null
+                  try {
+                    const userId = typeof window !== 'undefined' ? (localStorage.getItem('fitspo:selected_user_id') || '') : ''
+                    const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:plans') : null
+                    if (userId && raw) {
+                      type AnyPlan = { id?: string; config?: { sleep?: { startTime?: string; endTime?: string } } }
+                      const all = JSON.parse(raw) as Record<string, Array<AnyPlan>>
+                      const list = all[userId] || []
+                      if (list.length > 0) {
+                        const first = { ...list[0] }
+                        updatedPlanId = (first.id as string) || null
+                        first.config = first.config || {}
+                        first.config.sleep = { ...(first.config.sleep || {}), startTime: sleepStartInput, endTime: sleepEndInput }
+                        all[userId] = [first, ...list.slice(1)]
+                        localStorage.setItem('fitspo:plans', JSON.stringify(all))
+                        window.dispatchEvent(new Event('fitspo:plans_changed'))
+                      }
+                    }
+                  } catch {/* ignore */}
+                  try {
+                    if (updatedPlanId) {
+                      await supabase.from('fitness_plans').update({
+                        config: { sleep: { startTime: sleepStartInput, endTime: sleepEndInput } }
+                      }).eq('id', updatedPlanId)
+                    }
+                  } catch {/* ignore */}
+                  setSleepDrawerOpen(false)
+                }}>Save</Button>
+                <Button size="sm" variant="outline" onClick={() => setSleepDrawerOpen(false)}>Cancel</Button>
+              </div>
             </div>
           </SheetContent>
         </Sheet>
