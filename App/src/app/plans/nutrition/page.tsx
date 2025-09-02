@@ -5,10 +5,7 @@ import { UserSwitcher } from '@/components/user-switcher'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { NutritionProvider } from '@/lib/nutrition/store'
-import { DashboardOverview } from '@/components/nutrition/DashboardOverview'
 import { MacroBuilder } from '@/components/nutrition/MacroBuilder'
-import { IngredientsTable } from '@/components/nutrition/IngredientsTable'
-import { InventoryTracker } from '@/components/nutrition/InventoryTracker'
 import { RecipeCards } from '@/components/nutrition/RecipeCards'
 import { WeeklyPlanner } from '@/components/nutrition/WeeklyPlanner'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
@@ -50,29 +47,17 @@ export default function PlansNutritionPage() {
           </div>
         </div>
 
-        <Tabs defaultValue="dashboard" className="w-full">
+        <Tabs defaultValue="macro-builder" className="w-full">
           <TabsList>
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="macro-builder">Macro Builder</TabsTrigger>
-            <TabsTrigger value="ingredients">Ingredients</TabsTrigger>
+            <TabsTrigger value="macro-builder">Ingredients</TabsTrigger>
             <TabsTrigger value="recipes">Recipes</TabsTrigger>
-            <TabsTrigger value="inventory">Inventory</TabsTrigger>
             <TabsTrigger value="planner">Weekly Planner</TabsTrigger>
           </TabsList>
-          <TabsContent value="dashboard" className="mt-3">
-            <DashboardOverview />
-          </TabsContent>
           <TabsContent value="macro-builder" className="mt-3">
             <MacroBuilder />
           </TabsContent>
-          <TabsContent value="ingredients" className="mt-3">
-            <IngredientsTable />
-          </TabsContent>
           <TabsContent value="recipes" className="mt-3">
             <RecipeCards />
-          </TabsContent>
-          <TabsContent value="inventory" className="mt-3">
-            <InventoryTracker />
           </TabsContent>
           <TabsContent value="planner" className="mt-3">
             <WeeklyPlanner />

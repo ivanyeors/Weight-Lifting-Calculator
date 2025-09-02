@@ -37,3 +37,12 @@ export async function fetchPlans(userId: string) {
     createdAt: r.created_at,
   })) as Plan[]
 }
+
+export async function deletePlan(userId: string, id: string) {
+  const { error } = await supabase
+    .from('fitness_plans')
+    .delete()
+    .eq('user_id', userId)
+    .eq('id', id)
+  if (error) throw error
+}

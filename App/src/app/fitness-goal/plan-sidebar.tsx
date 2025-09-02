@@ -7,6 +7,9 @@ import { UserSwitcher } from '@/components/user-switcher'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { Plan } from './plan-types'
 import { Label as UILabel } from '@/components/ui/label'
+import { X } from 'lucide-react'
+import { usePlans } from './plan-store'
+import { deletePlan } from './plan-api'
 
 export function PlanSidebar({
   selectedUserId,
@@ -26,6 +29,7 @@ export function PlanSidebar({
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<'all' | 'active' | 'paused' | 'completed' | 'draft'>('all')
   const [duration, setDuration] = useState<'all' | 'lt4' | '4to8' | 'gt8'>('all')
+  const { remove } = usePlans(selectedUserId || null)
 
   const filtered = useMemo(() => {
     let out = plans
@@ -85,12 +89,27 @@ export function PlanSidebar({
           filtered.map((p) => {
             const active = selectedPlanId === p.id
             return (
-              <button key={p.id} className={`w-full text-left rounded p-2 hover:bg-muted/50 ${active ? 'bg-muted/50' : ''}`} onClick={() => onSelectPlan?.(p.id)}>
-                <div className="text-sm font-medium">{p.title}</div>
-                <div className="mt-1">
-                  <UILabel className={`text-[10px] uppercase tracking-wide ${p.status === 'active' ? 'text-primary' : p.status === 'paused' ? 'text-muted-foreground' : p.status === 'completed' ? 'text-foreground' : 'text-muted-foreground'}`}>{p.status}</UILabel>
-                </div>
-              </button>
+              <div key={p.id} className={`group relative rounded p-2 hover:bg-muted/50 ${active ? 'bg-muted/50' : ''}`}>
+                <button className="w-full text-left" onClick={() => onSelectPlan?.(p.id)}>
+                  <div className="text-sm font-medium pr-6">{p.title}</div>
+                  <div className="mt-1">
+                    <UILabel className={`text-[10px] uppercase tracking-wide ${p.status === 'active' ? 'text-primary' : p.status === 'paused' ? 'text-muted-foreground' : p.status === 'completed' ? 'text-foreground' : 'text-muted-foreground'}`}>{p.status}</UILabel>
+                  </div>
+                </button>
+                <button
+                  className="absolute right-2 top-2 hidden h-6 w-6 items-center justify-center rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive group-hover:flex"
+                  aria-label="Delete plan"
+                  onClick={async (e) => {
+                    e.stopPropagation()
+                    try {
+                      remove(p.id)
+                      try { await deletePlan(selectedUserId, p.id) } catch {}
+                    } catch {}
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
             )
           })
         )}

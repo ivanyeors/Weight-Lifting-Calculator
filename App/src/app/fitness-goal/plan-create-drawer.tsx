@@ -114,8 +114,8 @@ export function CreatePlanDrawer({ open, onOpenChange, userId, plan, onSaved }: 
   const toggle = (k: PillarKey) => setPillars(s => ({ ...s, [k]: !s[k] }))
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-[480px] sm:w-[560px] md:w-[640px] p-4">
+    <Sheet open={open} onOpenChange={onOpenChange} modal={false}>
+      <SheetContent side="right" trapFocus={false} className="w-[480px] sm:w-[560px] md:w-[640px] p-4">
         <SheetHeader>
           <SheetTitle>Create Plan</SheetTitle>
           <SheetDescription>Select goals across pillars, then save</SheetDescription>

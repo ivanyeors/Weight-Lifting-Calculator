@@ -216,7 +216,7 @@ export function MacroBuilder() {
                 <TableRow>
                   <TableHead>Food</TableHead>
                   <TableHead>Carbs, Fats, Protein</TableHead>
-                  <TableHead className="min-w-48">Amount</TableHead>
+                  <TableHead className="min-w-48">Inventory</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -228,24 +228,18 @@ export function MacroBuilder() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <div className="h-2 w-32 md:w-48 bg-muted rounded-full overflow-hidden flex">
+                        <div className="h-2 w-32 md:w-48 bg-muted rounded-full flex gap-[1px]">
                           <div
-                            className="h-full bg-gradient-to-r from-amber-500 to-transparent"
-                            style={{
-                              width: `${(((f.carbs_per_100 || 0)) / Math.max(1, ((f.carbs_per_100 || 0) + (f.fats_per_100 || 0) + (f.protein_per_100 || 0)))) * 100}%`
-                            }}
+                            className="h-full rounded-full bg-amber-500"
+                            style={{ flexGrow: (f.carbs_per_100 || 0), flexBasis: 0 }}
                           />
                           <div
-                            className="h-full bg-gradient-to-r from-rose-500 to-transparent"
-                            style={{
-                              width: `${(((f.fats_per_100 || 0)) / Math.max(1, ((f.carbs_per_100 || 0) + (f.fats_per_100 || 0) + (f.protein_per_100 || 0)))) * 100}%`
-                            }}
+                            className="h-full rounded-full bg-rose-500"
+                            style={{ flexGrow: (f.fats_per_100 || 0), flexBasis: 0 }}
                           />
                           <div
-                            className="h-full bg-gradient-to-r from-blue-500 to-transparent"
-                            style={{
-                              width: `${(((f.protein_per_100 || 0)) / Math.max(1, ((f.carbs_per_100 || 0) + (f.fats_per_100 || 0) + (f.protein_per_100 || 0)))) * 100}%`
-                            }}
+                            className="h-full rounded-full bg-blue-500"
+                            style={{ flexGrow: (f.protein_per_100 || 0), flexBasis: 0 }}
                           />
                         </div>
                       </div>
@@ -253,8 +247,20 @@ export function MacroBuilder() {
                     <TableCell>
                       <div className="grid gap-2">
                         <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="h-8 w-8 p-0"
+                            onClick={() => handleAmountChange(
+                              f.id,
+                              Math.max(0, (selection[f.id] || 0) - (f.unit_kind === 'count' ? 1 : 10))
+                            )}
+                            aria-label="Decrease"
+                          >
+                            −
+                          </Button>
                           <Input
-                            className="h-8 w-24 text-xs"
+                            className="h-8 w-24 text-xs text-center"
                             type="number"
                             min={0}
                             step={f.unit_kind === 'count' ? 1 : 10}
@@ -263,6 +269,18 @@ export function MacroBuilder() {
                             placeholder={f.unit_kind === 'mass' ? 'grams' : f.unit_kind === 'volume' ? 'ml' : 'pieces'}
                             aria-label={`Amount in ${f.unit_kind === 'mass' ? 'grams' : f.unit_kind === 'volume' ? 'milliliters' : 'pieces'}`}
                           />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="h-8 w-8 p-0"
+                            onClick={() => handleAmountChange(
+                              f.id,
+                              (selection[f.id] || 0) + (f.unit_kind === 'count' ? 1 : 10)
+                            )}
+                            aria-label="Increase"
+                          >
+                            +
+                          </Button>
                           <span className="text-[10px] uppercase text-muted-foreground">
                             {f.unit_kind === 'mass' ? 'g' : f.unit_kind === 'volume' ? 'ml' : 'pcs'}
                           </span>

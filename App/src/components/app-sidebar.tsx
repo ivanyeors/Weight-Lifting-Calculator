@@ -43,6 +43,7 @@ export function AppSidebar() {
   const { theme, resolvedTheme } = useTheme()
   const { state } = useSidebar()
   const pathname = usePathname()
+  const [fitnessGoalLabel, setFitnessGoalLabel] = useState<{ text: string; className: string } | null>(null)
   const teams = [
     { name: 'Fitspo', logo: AppWindow, plan: currentPlan },
     { name: 'Gym Team', logo: Dumbbell, plan: 'Pro' },
@@ -93,6 +94,68 @@ export function AppSidebar() {
   }, [])
 
   useEffect(() => { if (user && isLoginOpen) setIsLoginOpen(false) }, [user, isLoginOpen])
+
+  // Compute Fitness Goal label from stored plans
+  useEffect(() => {
+    const STORAGE_KEY = 'fitspo:plans'
+    const SELECTED_USER_KEY = 'fitspo:selected_user_id'
+
+    const compute = () => {
+      try {
+        if (typeof window === 'undefined') return setFitnessGoalLabel(null)
+        const selectedUserId = (localStorage.getItem(SELECTED_USER_KEY) || user?.id || '').trim()
+        if (!selectedUserId) return setFitnessGoalLabel(null)
+        const raw = localStorage.getItem(STORAGE_KEY)
+        if (!raw) return setFitnessGoalLabel(null)
+        const all = JSON.parse(raw) as Record<string, Array<{ id: string; status: string; durationDays?: number; createdAt?: string }>>
+        const plans = all[selectedUserId] || []
+        if (!Array.isArray(plans) || plans.length === 0) return setFitnessGoalLabel(null)
+        // Prefer active, otherwise paused, otherwise completed
+        const plan = plans.find(p => p.status === 'active')
+          || plans.find(p => p.status === 'paused')
+          || plans.find(p => p.status === 'completed')
+        if (!plan) return setFitnessGoalLabel(null)
+
+        if (plan.status === 'paused') {
+          return setFitnessGoalLabel({ text: 'pause', className: 'text-muted-foreground border-muted-foreground/40' })
+        }
+        if (plan.status === 'completed') {
+          return setFitnessGoalLabel({ text: '100%', className: 'text-green-600 border-green-600/50' })
+        }
+        // Active: compute % based on elapsed days over duration
+        let percent = 0
+        if (plan.durationDays && plan.createdAt) {
+          const start = new Date(plan.createdAt).getTime()
+          const now = Date.now()
+          if (Number.isFinite(start) && plan.durationDays > 0) {
+            const elapsedDays = Math.max(0, Math.floor((now - start) / (1000 * 60 * 60 * 24)))
+            percent = Math.min(99, Math.max(0, Math.round((elapsedDays / plan.durationDays) * 100)))
+          }
+        }
+        setFitnessGoalLabel({ text: `${percent}%`, className: 'text-primary border-primary' })
+      } catch {
+        setFitnessGoalLabel(null)
+      }
+    }
+
+    const handleStorage = (e: StorageEvent) => {
+      if (!e.key || e.key === STORAGE_KEY || e.key === SELECTED_USER_KEY) compute()
+    }
+
+    compute()
+    if (typeof window !== 'undefined') {
+      window.addEventListener('fitspo:plans_changed', compute)
+      window.addEventListener('fitspo:selected_user_changed', compute)
+      window.addEventListener('storage', handleStorage)
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('fitspo:plans_changed', compute)
+        window.removeEventListener('fitspo:selected_user_changed', compute)
+        window.removeEventListener('storage', handleStorage)
+      }
+    }
+  }, [user?.id])
 
   return (
     <Sidebar collapsible="icon">
@@ -166,6 +229,11 @@ export function AppSidebar() {
                   <a href="/fitness-goal" className={`flex items-center gap-2 ${pathname === '/fitness-goal' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
                     <Flame />
                     <span className="group-data-[collapsible=icon]:hidden">Fitness Goal</span>
+                    {fitnessGoalLabel ? (
+                      <Badge variant="outline" className={`ml-auto group-data-[collapsible=icon]:hidden ${fitnessGoalLabel.className}`}>
+                        {fitnessGoalLabel.text}
+                      </Badge>
+                    ) : null}
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
