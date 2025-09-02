@@ -436,6 +436,12 @@ export function CalendarView() {
             ? active.config.water.reminders
             : ['09:00', '12:00', '15:00', '18:00']
           const waterTarget = (isGoogleCalendarConnected && googleCalendarAccounts[0]?.id) ? googleCalendarAccounts[0].id : null
+          // Load any locally persisted per-day water statuses to reflect in injected events
+          let statusStore: Record<string, Record<string, 'pending'|'complete'|'missed'>> = {}
+          try {
+            const rawStatus = typeof window !== 'undefined' ? localStorage.getItem('fitspo:water_status_by_day') : null
+            statusStore = rawStatus ? JSON.parse(rawStatus) as typeof statusStore : {}
+          } catch { /* ignore */ }
           for (let d = 0; d < days; d++) {
             const date = new Date(now)
             date.setDate(now.getDate() + d)
@@ -447,8 +453,12 @@ export function CalendarView() {
               const start = `${yyyy}-${mm}-${dd} ${hh}:${min}`
               const end = `${yyyy}-${mm}-${dd} ${hh}:${String(Number(min) + 30).padStart(2, '0')}`
               const tSafe = t.replace(/[^A-Za-z0-9_-]/g, '')
+              const dayKey = `${yyyy}-${mm}-${dd}`
+              const perDay = statusStore[dayKey] || {}
+              const evId = `water-${yyyy}${mm}${dd}-${tSafe}`
+              const persistedStatus = perDay[evId] as 'pending'|'complete'|'missed' | undefined
               next.push({
-                id: `water-${yyyy}${mm}${dd}-${tSafe}`,
+                id: evId,
                 title: 'Drink water',
                 start,
                 end,
@@ -467,7 +477,7 @@ export function CalendarView() {
                   medicalFlags: [],
                   attendance: {},
                   kind: 'water',
-                  status: 'pending'
+                  status: persistedStatus || 'pending'
                 }
               })
             }
@@ -477,6 +487,12 @@ export function CalendarView() {
         if (active.pillars?.sleep) {
           const startT = active.config?.sleep?.startTime || '23:00'
           const endT = active.config?.sleep?.endTime || '07:00'
+          // Load any locally persisted per-day sleep statuses to reflect in injected events
+          let sleepStatusStore: Record<string, 'pending'|'complete'|'missed'> = {}
+          try {
+            const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:sleep_status_by_day') : null
+            sleepStatusStore = raw ? JSON.parse(raw) as typeof sleepStatusStore : {}
+          } catch { /* ignore */ }
           for (let d = 0; d < days; d++) {
             const date = new Date(now)
             date.setDate(now.getDate() + d)
@@ -492,6 +508,8 @@ export function CalendarView() {
             const mm2 = String(endDate.getMonth() + 1).padStart(2, '0')
             const dd2 = String(endDate.getDate()).padStart(2, '0')
             const end = `${yyyy2}-${mm2}-${dd2} ${eh}:${em}`
+            const dayKey = `${yyyy}-${mm}-${dd}`
+            const persistedStatus = sleepStatusStore[dayKey]
             next.push({
               id: `sleep-${yyyy}${mm}${dd}`,
               title: 'Sleep',
@@ -510,7 +528,7 @@ export function CalendarView() {
                 medicalFlags: [],
                 attendance: {},
                 kind: 'sleep',
-                status: 'pending'
+                status: persistedStatus || 'pending'
               }
             })
           }
@@ -855,6 +873,8 @@ export function CalendarView() {
     // Hide completed water tasks
     out = out.filter(ev => !(ev.extendedProps?.kind === 'water' && ev.extendedProps?.status === 'complete'))
     if (!showSleep) out = out.filter(ev => ev.extendedProps?.kind !== 'sleep')
+    // Hide completed sleep blocks
+    out = out.filter(ev => !(ev.extendedProps?.kind === 'sleep' && ev.extendedProps?.status === 'complete'))
     return out
   }, [events, selectedUserIds, selectedSpaceIds, workoutSpaces, showWater, showSleep])
 
@@ -2232,113 +2252,131 @@ export function CalendarView() {
             <div className="p-4 space-y-6">
               <div>
                 <div className="text-sm font-medium mb-2">Water</div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Button size="sm" variant="outline" onClick={async () => {
-                    // Mark nearest water event as complete and sync
-                    try {
-                      const day = nutritionDrawerDate
-                      if (!day) return
-                      const nearest = eventsRef.current
-                        .filter(ev => ev.extendedProps?.kind === 'water' && ev.start?.startsWith(day))
-                        .sort((a, b) => a.start.localeCompare(b.start))[0]
-                      if (nearest) {
-                        setEvents(prev => prev.map(e => e.id === nearest.id ? ({ ...e, extendedProps: { ...e.extendedProps, status: 'complete' } }) : e))
-                        // Persist per-day water status map
+                {(() => {
+                  const day = nutritionDrawerDate
+                  const dayEvents = (events || []).filter(ev => ev.extendedProps?.kind === 'water' && (day ? ev.start?.startsWith(day) : false)).slice().sort((a, b) => a.start.localeCompare(b.start))
+                  const hasPending = dayEvents.length > 0
+                  return (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Button size="sm" variant={hasPending ? 'default' : 'outline'} disabled={!hasPending} onClick={async () => {
                         try {
-                          const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:water_status_by_day') : null
-                          const store = raw ? JSON.parse(raw) as Record<string, Record<string, 'pending'|'complete'|'missed'>> : {}
-                          const dayMap = store[day] || {}
-                          dayMap[nearest.id] = 'complete'
-                          store[day] = dayMap
-                          localStorage.setItem('fitspo:water_status_by_day', JSON.stringify(store))
-                          // Append to water log
-                          const logRaw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:water_log_by_day') : null
-                          const logStore = logRaw ? JSON.parse(logRaw) as Record<string, Array<{ id: string; start: string; end: string; status: 'complete'|'missed'; at: string }>> : {}
-                          const list = logStore[day] || []
-                          list.push({ id: nearest.id, start: nearest.start, end: nearest.end, status: 'complete', at: new Date().toISOString() })
-                          logStore[day] = list
-                          localStorage.setItem('fitspo:water_log_by_day', JSON.stringify(logStore))
+                          if (!day) return
+                          const nearest = dayEvents[0]
+                          if (!nearest) return
+                          setEvents(prev => prev.map(e => e.id === nearest.id ? ({ ...e, extendedProps: { ...e.extendedProps, status: 'complete' } }) : e))
+                          try {
+                            const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:water_status_by_day') : null
+                            const store = raw ? JSON.parse(raw) as Record<string, Record<string, 'pending'|'complete'|'missed'>> : {}
+                            const dayMap = store[day] || {}
+                            dayMap[nearest.id] = 'complete'
+                            store[day] = dayMap
+                            localStorage.setItem('fitspo:water_status_by_day', JSON.stringify(store))
+                            const logRaw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:water_log_by_day') : null
+                            const logStore = logRaw ? JSON.parse(logRaw) as Record<string, Array<{ id: string; start: string; end: string; status: 'complete'|'missed'; at: string }>> : {}
+                            const list = logStore[day] || []
+                            list.push({ id: nearest.id, start: nearest.start, end: nearest.end, status: 'complete', at: new Date().toISOString() })
+                            logStore[day] = list
+                            localStorage.setItem('fitspo:water_log_by_day', JSON.stringify(logStore))
+                          } catch {/* ignore */}
+                          try {
+                            const userId = typeof window !== 'undefined' ? (localStorage.getItem('fitspo:selected_user_id') || '') : ''
+                            if (userId) {
+                              await supabase.from('hydration_logs').insert({
+                                user_id: userId,
+                                day,
+                                event_id: nearest.id,
+                                start_at: toIsoFromLocal(nearest.start),
+                                end_at: toIsoFromLocal(nearest.end),
+                                status: 'complete',
+                                logged_at: new Date().toISOString()
+                              })
+                              setWaterLogsDbByDay(prev => ({
+                                ...prev,
+                                [day]: [
+                                  ...((prev[day] as Array<{ id: string; start: string; end: string; status: 'complete'|'missed'; at: string }>) || []),
+                                  { id: nearest.id, start: nearest.start, end: nearest.end, status: 'complete', at: new Date().toISOString() }
+                                ]
+                              }))
+                            }
+                          } catch { /* ignore */ }
+                          // Mirror water confirmation into daily totals and active plan logs
+                          try {
+                            const dayKey = day
+                            const inc = 0.5
+                            const rawLit = typeof window !== 'undefined' ? localStorage.getItem('fitspo:water_liters_by_day') : null
+                            const litersMap = rawLit ? JSON.parse(rawLit) as Record<string, number> : {}
+                            litersMap[dayKey] = Math.max(0, Number(litersMap[dayKey] || 0) + inc)
+                            localStorage.setItem('fitspo:water_liters_by_day', JSON.stringify(litersMap))
+                            const rawPlans = typeof window !== 'undefined' ? localStorage.getItem('fitspo:plans') : null
+                            if (rawPlans) {
+                              const all = JSON.parse(rawPlans) as Record<string, Array<{ id: string; status: string }>>
+                              const userId = typeof window !== 'undefined' ? (localStorage.getItem('fitspo:selected_user_id') || '') : ''
+                              const list = all[userId] || []
+                              const active = list.find(p => p.status === 'active')
+                              if (active) {
+                                const key = `fitspo:plan_logs:${active.id}`
+                                const rawLog = localStorage.getItem(key)
+                                const log = rawLog ? JSON.parse(rawLog) as Record<string, any> : {}
+                                const cur = log[dayKey] || { date: dayKey }
+                                const prev = Number(cur.water || 0)
+                                log[dayKey] = { ...cur, water: Math.max(0, prev + inc) }
+                                localStorage.setItem(key, JSON.stringify(log))
+                              }
+                            }
+                            window.dispatchEvent(new Event('fitspo:logs_changed'))
+                          } catch {/* ignore */}
+                          void handleUpdateEvent(nearest.id, { extendedProps: { ...nearest.extendedProps, status: 'complete' } })
+                          setEvents(prev => prev.filter(e => !(e.id === nearest.id)))
                         } catch {/* ignore */}
-                        // Persist to Supabase (best-effort)
+                      }}>Confirm next</Button>
+                      <Button size="sm" variant={hasPending ? 'outline' : 'outline'} disabled={!hasPending} onClick={async () => {
                         try {
-                          const userId = typeof window !== 'undefined' ? (localStorage.getItem('fitspo:selected_user_id') || '') : ''
-                          if (userId) {
-                            await supabase.from('hydration_logs').insert({
-                              user_id: userId,
-                              day,
-                              event_id: nearest.id,
-                              start_at: toIsoFromLocal(nearest.start),
-                              end_at: toIsoFromLocal(nearest.end),
-                              status: 'complete',
-                              logged_at: new Date().toISOString()
-                            })
-                            setWaterLogsDbByDay(prev => ({
-                              ...prev,
-                              [day]: [
-                                ...((prev[day] as Array<{ id: string; start: string; end: string; status: 'complete'|'missed'; at: string }>) || []),
-                                { id: nearest.id, start: nearest.start, end: nearest.end, status: 'complete', at: new Date().toISOString() }
-                              ]
-                            }))
-                          }
-                        } catch { /* ignore */ }
-                        void handleUpdateEvent(nearest.id, { extendedProps: { ...nearest.extendedProps, status: 'complete' } })
-                        // Remove from view immediately
-                        setEvents(prev => prev.filter(e => !(e.id === nearest.id)))
-                      }
-                    } catch {/* ignore */}
-                  }}>Confirm</Button>
-                  <Button size="sm" variant="outline" onClick={async () => {
-                    try {
-                      const day = nutritionDrawerDate
-                      if (!day) return
-                      const nearest = eventsRef.current
-                        .filter(ev => ev.extendedProps?.kind === 'water' && ev.start?.startsWith(day))
-                        .sort((a, b) => a.start.localeCompare(b.start))[0]
-                      if (nearest) {
-                        setEvents(prev => prev.map(e => e.id === nearest.id ? ({ ...e, extendedProps: { ...e.extendedProps, status: 'missed' } }) : e))
-                        try {
-                          const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:water_status_by_day') : null
-                          const store = raw ? JSON.parse(raw) as Record<string, Record<string, 'pending'|'complete'|'missed'>> : {}
-                          const dayMap = store[day] || {}
-                          dayMap[nearest.id] = 'missed'
-                          store[day] = dayMap
-                          localStorage.setItem('fitspo:water_status_by_day', JSON.stringify(store))
-                          // Append to water log
-                          const logRaw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:water_log_by_day') : null
-                          const logStore = logRaw ? JSON.parse(logRaw) as Record<string, Array<{ id: string; start: string; end: string; status: 'complete'|'missed'; at: string }>> : {}
-                          const list = logStore[day] || []
-                          list.push({ id: nearest.id, start: nearest.start, end: nearest.end, status: 'missed', at: new Date().toISOString() })
-                          logStore[day] = list
-                          localStorage.setItem('fitspo:water_log_by_day', JSON.stringify(logStore))
+                          if (!day) return
+                          const nearest = dayEvents[0]
+                          if (!nearest) return
+                          setEvents(prev => prev.map(e => e.id === nearest.id ? ({ ...e, extendedProps: { ...e.extendedProps, status: 'missed' } }) : e))
+                          try {
+                            const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:water_status_by_day') : null
+                            const store = raw ? JSON.parse(raw) as Record<string, Record<string, 'pending'|'complete'|'missed'>> : {}
+                            const dayMap = store[day] || {}
+                            dayMap[nearest.id] = 'missed'
+                            store[day] = dayMap
+                            localStorage.setItem('fitspo:water_status_by_day', JSON.stringify(store))
+                            const logRaw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:water_log_by_day') : null
+                            const logStore = logRaw ? JSON.parse(logRaw) as Record<string, Array<{ id: string; start: string; end: string; status: 'complete'|'missed'; at: string }>> : {}
+                            const list = logStore[day] || []
+                            list.push({ id: nearest.id, start: nearest.start, end: nearest.end, status: 'missed', at: new Date().toISOString() })
+                            logStore[day] = list
+                            localStorage.setItem('fitspo:water_log_by_day', JSON.stringify(logStore))
+                          } catch {/* ignore */}
+                          try {
+                            const userId = typeof window !== 'undefined' ? (localStorage.getItem('fitspo:selected_user_id') || '') : ''
+                            if (userId) {
+                              await supabase.from('hydration_logs').insert({
+                                user_id: userId,
+                                day,
+                                event_id: nearest.id,
+                                start_at: toIsoFromLocal(nearest.start),
+                                end_at: toIsoFromLocal(nearest.end),
+                                status: 'missed',
+                                logged_at: new Date().toISOString()
+                              })
+                              setWaterLogsDbByDay(prev => ({
+                                ...prev,
+                                [day]: [
+                                  ...((prev[day] as Array<{ id: string; start: string; end: string; status: 'complete'|'missed'; at: string }>) || []),
+                                  { id: nearest.id, start: nearest.start, end: nearest.end, status: 'missed', at: new Date().toISOString() }
+                                ]
+                              }))
+                            }
+                          } catch { /* ignore */ }
+                          void handleUpdateEvent(nearest.id, { extendedProps: { ...nearest.extendedProps, status: 'missed' } })
                         } catch {/* ignore */}
-                        // Persist to Supabase (best-effort)
-                        try {
-                          const userId = typeof window !== 'undefined' ? (localStorage.getItem('fitspo:selected_user_id') || '') : ''
-                          if (userId) {
-                            await supabase.from('hydration_logs').insert({
-                              user_id: userId,
-                              day,
-                              event_id: nearest.id,
-                              start_at: toIsoFromLocal(nearest.start),
-                              end_at: toIsoFromLocal(nearest.end),
-                              status: 'missed',
-                              logged_at: new Date().toISOString()
-                            })
-                            setWaterLogsDbByDay(prev => ({
-                              ...prev,
-                              [day]: [
-                                ...((prev[day] as Array<{ id: string; start: string; end: string; status: 'complete'|'missed'; at: string }>) || []),
-                                { id: nearest.id, start: nearest.start, end: nearest.end, status: 'missed', at: new Date().toISOString() }
-                              ]
-                            }))
-                          }
-                        } catch { /* ignore */ }
-                        void handleUpdateEvent(nearest.id, { extendedProps: { ...nearest.extendedProps, status: 'missed' } })
-                      }
-                    } catch {/* ignore */}
-                  }}>Skip</Button>
-                </div>
-                {/* Water log for the selected day (local + Supabase) */}
+                      }}>Skip next</Button>
+                    </div>
+                  )
+                })()}
+                {/* Water log for the selected day (local + Supabase, deduped) */}
                 {nutritionDrawerDate && (
                   <div className="mt-3 space-y-2 text-xs">
                     <div className="text-xs font-medium">Water log</div>
@@ -2348,7 +2386,10 @@ export function CalendarView() {
                         const store = raw ? JSON.parse(raw) as Record<string, Array<{ id: string; start: string; end: string; status: 'complete'|'missed'; at: string }>> : {}
                         const localList = store[nutritionDrawerDate] || []
                         const dbList = (waterLogsDbByDay[nutritionDrawerDate] || [])
-                        const merged = [...localList, ...dbList]
+                        const byId: Record<string, { id: string; start: string; end: string; status: 'complete'|'missed'; at: string }> = {}
+                        for (const it of dbList) { byId[it.id] = it }
+                        for (const it of localList) { if (!byId[it.id]) byId[it.id] = it }
+                        const merged = Object.values(byId)
                         if (merged.length === 0) return <div className="text-muted-foreground">No water activity yet.</div>
                         return (
                           <div className="space-y-1">
@@ -2356,7 +2397,7 @@ export function CalendarView() {
                               .slice()
                               .sort((a, b) => a.start.localeCompare(b.start))
                               .map((it) => (
-                                <div key={`${it.id}-${it.at}`} className="flex items-center justify-between border rounded px-2 py-1">
+                                <div key={`${it.id}`} className="flex items-center justify-between border rounded px-2 py-1">
                                   <span>{it.start.slice(11,16)} → {it.end.slice(11,16)}</span>
                                   <span className={it.status === 'complete' ? 'text-emerald-400' : 'text-amber-400'}>{it.status}</span>
                                 </div>
@@ -2438,6 +2479,59 @@ export function CalendarView() {
                   <input type="time" value={sleepEndInput} onChange={(e) => setSleepEndInput(e.target.value)} className="h-9 w-full rounded border bg-background px-2" />
                 </div>
               </div>
+              {/* Sleep status controls */}
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">Status</div>
+                <div className="flex items-center gap-2">
+                  <Button size="sm" variant={(() => { try { const day = sleepDrawerDate; if (!day) return 'outline'; const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:sleep_status_by_day') : null; const map = raw ? JSON.parse(raw) as Record<string,'pending'|'complete'|'missed'> : {}; const s = map[day] || 'pending'; return s==='complete' ? 'default' : 'outline'; } catch { return 'outline' }})()} onClick={async () => {
+                    try {
+                      const day = sleepDrawerDate
+                      if (!day) return
+                      // Update local storage
+                      const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:sleep_status_by_day') : null
+                      const map = raw ? JSON.parse(raw) as Record<string,'pending'|'complete'|'missed'> : {}
+                      map[day] = 'complete'
+                      if (typeof window !== 'undefined') localStorage.setItem('fitspo:sleep_status_by_day', JSON.stringify(map))
+                      // Update event in state
+                      const ev = eventsRef.current.find(ev => ev.extendedProps?.kind === 'sleep' && ev.start?.startsWith(day))
+                      if (ev) {
+                        setEvents(prev => prev.filter(e => e.id !== ev.id))
+                        void handleUpdateEvent(ev.id, { extendedProps: { ...ev.extendedProps, status: 'complete' } })
+                      }
+                    } catch { /* ignore */ }
+                  }}>Complete</Button>
+                  <Button size="sm" variant={(() => { try { const day = sleepDrawerDate; if (!day) return 'outline'; const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:sleep_status_by_day') : null; const map = raw ? JSON.parse(raw) as Record<string,'pending'|'complete'|'missed'> : {}; const s = map[day] || 'pending'; return s==='missed' ? 'default' : 'outline'; } catch { return 'outline' }})()} onClick={async () => {
+                    try {
+                      const day = sleepDrawerDate
+                      if (!day) return
+                      const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:sleep_status_by_day') : null
+                      const map = raw ? JSON.parse(raw) as Record<string,'pending'|'complete'|'missed'> : {}
+                      map[day] = 'missed'
+                      if (typeof window !== 'undefined') localStorage.setItem('fitspo:sleep_status_by_day', JSON.stringify(map))
+                      const ev = eventsRef.current.find(ev => ev.extendedProps?.kind === 'sleep' && ev.start?.startsWith(day))
+                      if (ev) {
+                        setEvents(prev => prev.map(e => e.id === ev.id ? ({ ...e, extendedProps: { ...e.extendedProps, status: 'missed' } }) : e))
+                        void handleUpdateEvent(ev.id, { extendedProps: { ...ev.extendedProps, status: 'missed' } })
+                      }
+                    } catch { /* ignore */ }
+                  }}>Missed</Button>
+                  <Button size="sm" variant={(() => { try { const day = sleepDrawerDate; if (!day) return 'default'; const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:sleep_status_by_day') : null; const map = raw ? JSON.parse(raw) as Record<string,'pending'|'complete'|'missed'> : {}; const s = map[day] || 'pending'; return s==='pending' ? 'default' : 'outline'; } catch { return 'default' }})()} onClick={async () => {
+                    try {
+                      const day = sleepDrawerDate
+                      if (!day) return
+                      const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:sleep_status_by_day') : null
+                      const map = raw ? JSON.parse(raw) as Record<string,'pending'|'complete'|'missed'> : {}
+                      map[day] = 'pending'
+                      if (typeof window !== 'undefined') localStorage.setItem('fitspo:sleep_status_by_day', JSON.stringify(map))
+                      const ev = eventsRef.current.find(ev => ev.extendedProps?.kind === 'sleep' && ev.start?.startsWith(day))
+                      if (ev) {
+                        setEvents(prev => prev.map(e => e.id === ev.id ? ({ ...e, extendedProps: { ...e.extendedProps, status: 'pending' } }) : e))
+                        void handleUpdateEvent(ev.id, { extendedProps: { ...ev.extendedProps, status: 'pending' } })
+                      }
+                    } catch { /* ignore */ }
+                  }}>Pending</Button>
+                </div>
+              </div>
               <div className="flex gap-2 pt-2">
                 <Button size="sm" onClick={async () => {
                   // Update plan default sleep times in localStorage and Supabase, then refresh injected events
@@ -2466,6 +2560,36 @@ export function CalendarView() {
                         config: { sleep: { startTime: sleepStartInput, endTime: sleepEndInput } }
                       }).eq('id', updatedPlanId)
                     }
+                  } catch {/* ignore */}
+                  try {
+                    // Mirror sleep hours into daily totals and active plan log
+                    const day = sleepDrawerDate || new Date().toISOString().slice(0,10)
+                    const s = sleepStartInput
+                    const e = sleepEndInput
+                    const [sh, sm] = s.split(':').map(Number)
+                    const [eh, em] = e.split(':').map(Number)
+                    let hrs = (eh + (eh < sh ? 24 : 0)) - sh + (em - sm)/60
+                    if (!Number.isFinite(hrs)) hrs = 0
+                    const rawM = typeof window !== 'undefined' ? localStorage.getItem('fitspo:sleep_hours_by_day') : null
+                    const mapM: Record<string, number> = rawM ? JSON.parse(rawM) : {}
+                    mapM[day] = Math.max(0, Math.round(hrs * 10)/10)
+                    localStorage.setItem('fitspo:sleep_hours_by_day', JSON.stringify(mapM))
+                    const rawPlans = typeof window !== 'undefined' ? localStorage.getItem('fitspo:plans') : null
+                    if (rawPlans) {
+                      const all = JSON.parse(rawPlans) as Record<string, Array<{ id: string; status: string }>>
+                      const userId = typeof window !== 'undefined' ? (localStorage.getItem('fitspo:selected_user_id') || '') : ''
+                      const list = all[userId] || []
+                      const active = list.find(p => p.status === 'active')
+                      if (active) {
+                        const key = `fitspo:plan_logs:${active.id}`
+                        const rawLog = localStorage.getItem(key)
+                        const log = rawLog ? JSON.parse(rawLog) as Record<string, any> : {}
+                        const cur = log[day] || { date: day }
+                        log[day] = { ...cur, sleep: Math.max(0, Math.round(hrs * 10)/10) }
+                        localStorage.setItem(key, JSON.stringify(log))
+                      }
+                    }
+                    window.dispatchEvent(new Event('fitspo:logs_changed'))
                   } catch {/* ignore */}
                   setSleepDrawerOpen(false)
                 }}>Save</Button>

@@ -7,6 +7,7 @@ attribute float aPillarId;
 
 varying float vDistance;
 varying vec3 vColor;
+varying float vWeight;
 
 mat3 rotation3dY(float angle) {
   float s = sin(angle);
@@ -21,7 +22,9 @@ mat3 rotation3dY(float angle) {
 void main() {
   float distanceFactor = pow(uRadius - distance(position, vec3(0.0)), 1.5);
   float w = uWeights[int(aPillarId)];
-  float size = distanceFactor * (6.0 + 10.0 * w) + 6.0;
+  vWeight = w;
+  float scale = mix(0.5, 5.0, w);
+  float size = (4.0 + distanceFactor * 4.0) * scale;
 
   vec3 particlePosition = position * rotation3dY(uTime * 0.3 * (0.4 + distanceFactor * (0.6 + 0.8 * w)));
 

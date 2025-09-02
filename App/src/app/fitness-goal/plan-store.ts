@@ -20,6 +20,28 @@ export function usePlans(userId: string | null) {
     }
   }, [userId])
 
+  // Sync this hook instance when plans are modified elsewhere
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const reload = () => {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY)
+        const all: StoredShape = raw ? JSON.parse(raw) : {}
+        setPlans(userId ? (all[userId] || []) : [])
+      } catch {
+        // keep current state on parse error
+      }
+    }
+    window.addEventListener('fitspo:plans_changed', reload)
+    // Also respond to cross-tab updates
+    window.addEventListener('storage', (e) => {
+      if (e.key === STORAGE_KEY) reload()
+    })
+    return () => {
+      window.removeEventListener('fitspo:plans_changed', reload)
+    }
+  }, [userId])
+
   const persist = useCallback((next: Plan[]) => {
     try {
       if (!userId) return

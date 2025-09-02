@@ -9,6 +9,7 @@ const nextConfig = {
   // Custom domain configuration - no basePath needed
   trailingSlash: true,
   output: isProd ? 'export' : undefined,
+  transpilePackages: ['three'],
   eslint: {
     ignoreDuringBuilds: true,
   },
