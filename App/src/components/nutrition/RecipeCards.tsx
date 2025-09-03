@@ -236,6 +236,19 @@ export function RecipeCards() {
       }
       if (typeof window !== 'undefined') localStorage.setItem('fitspo:food_kcals_by_day', JSON.stringify(map))
 
+      // Persist recipes by day for calendar drawer visibility
+      try {
+        const rawRecipes = typeof window !== 'undefined' ? localStorage.getItem('fitspo:recipes_by_day') : null
+        const byDay: Record<string, Array<{ id: string; name: string; pax: number; kcals: number; addedAt: string }>> = rawRecipes ? JSON.parse(rawRecipes) : {}
+        const entry = { id: r.id, name: r.name, pax, kcals: kcalPerDay, addedAt: new Date().toISOString() }
+        for (const day of selectedDays) {
+          const list = Array.isArray(byDay[day]) ? byDay[day] : []
+          list.push(entry)
+          byDay[day] = list
+        }
+        if (typeof window !== 'undefined') localStorage.setItem('fitspo:recipes_by_day', JSON.stringify(byDay))
+      } catch { /* ignore */ }
+
       // Mirror into active plan logs if any
       try {
         const userId = typeof window !== 'undefined' ? (localStorage.getItem('fitspo:selected_user_id') || '') : ''
@@ -259,6 +272,13 @@ export function RecipeCards() {
       } catch { /* ignore */ }
 
       try { if (typeof window !== 'undefined') window.dispatchEvent(new Event('fitspo:logs_changed')) } catch { /* ignore */ }
+
+      // Notify user
+      try {
+        const count = selectedDays.length
+        const label = count === 1 ? 'day' : 'days'
+        toast.success(`Added "${r.name}" to ${count} ${label}`)
+      } catch { /* ignore */ }
 
       // Deduct inventory immediately so IngredientList reflects counts
       try {
@@ -372,7 +392,7 @@ export function RecipeCards() {
               <div className="text-[10px] text-muted-foreground border rounded px-1.5 py-0.5">{r.baseServings}</div>
             </div>
             {/* Pax slider managed in sidebar */}
-            <ChartContainer config={{ value: { label: 'g' } }} className="h-40 px-0">
+            <ChartContainer config={{ value: { label: 'g' } }} className="w-full h-40 aspect-auto px-0">
               <BarChart data={data} layout="vertical" margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis type="number" tickLine={false} axisLine={false} tickMargin={0} domain={[0, 'dataMax']} />

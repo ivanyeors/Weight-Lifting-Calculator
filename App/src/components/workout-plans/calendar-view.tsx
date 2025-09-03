@@ -1033,6 +1033,21 @@ export function CalendarView({
       if (!root) return
       const selected = new Set((daySelection.selectedDays || []).map(d => d.slice(0, 10)))
 
+      const toKey = (d: Date): string => {
+        const yyyy = d.getFullYear()
+        const mm = String(d.getMonth() + 1).padStart(2, '0')
+        const dd = String(d.getDate()).padStart(2, '0')
+        return `${yyyy}-${mm}-${dd}`
+      }
+      const addDays = (key: string, offset: number): string => {
+        const [y, m, d] = key.split('-').map(Number)
+        const date = new Date()
+        date.setFullYear(y)
+        date.setMonth(m - 1)
+        date.setDate(d + offset)
+        return toKey(date)
+      }
+
       // Week/day headers
       const dateNumberEls = Array.from(root.querySelectorAll('.sx__week-grid__date-number')) as HTMLElement[]
       dateNumberEls.forEach((el) => {
@@ -1046,19 +1061,43 @@ export function CalendarView({
             el.style.color = 'rgba(0,0,0,0.95)'
             el.style.borderRadius = '6px'
             el.style.padding = '2px 6px'
+            el.style.cursor = 'pointer'
             // Highlight whole column background subtly
             const colEl = el.closest('[data-time-grid-date], [data-date]') as HTMLElement | null
             if (colEl) {
               ;(colEl as HTMLElement).style.backgroundColor = 'rgba(59, 130, 246, 0.08)'
+              ;(colEl as HTMLElement).style.cursor = 'pointer'
+              // Connected white border across contiguous selected columns
+              const prevSel = selected.has(addDays(key, -1))
+              const nextSel = selected.has(addDays(key, 1))
+              ;(colEl as HTMLElement).style.borderTop = '2px solid rgba(255,255,255,1)'
+              ;(colEl as HTMLElement).style.borderBottom = '2px solid rgba(255,255,255,1)'
+              ;(colEl as HTMLElement).style.borderLeft = prevSel ? '0' : '2px solid rgba(255,255,255,1)'
+              ;(colEl as HTMLElement).style.borderRight = nextSel ? '0' : '2px solid rgba(255,255,255,1)'
+              ;(colEl as HTMLElement).style.borderTopLeftRadius = prevSel ? '0' : '8px'
+              ;(colEl as HTMLElement).style.borderBottomLeftRadius = prevSel ? '0' : '8px'
+              ;(colEl as HTMLElement).style.borderTopRightRadius = nextSel ? '0' : '8px'
+              ;(colEl as HTMLElement).style.borderBottomRightRadius = nextSel ? '0' : '8px'
+              ;(colEl as HTMLElement).style.boxSizing = 'border-box'
             }
           } else {
             el.style.backgroundColor = ''
             el.style.color = ''
             el.style.borderRadius = ''
             el.style.padding = ''
+            el.style.cursor = 'pointer'
             const colEl = el.closest('[data-time-grid-date], [data-date]') as HTMLElement | null
             if (colEl) {
               ;(colEl as HTMLElement).style.backgroundColor = ''
+              ;(colEl as HTMLElement).style.cursor = 'pointer'
+              ;(colEl as HTMLElement).style.borderTop = ''
+              ;(colEl as HTMLElement).style.borderBottom = ''
+              ;(colEl as HTMLElement).style.borderLeft = ''
+              ;(colEl as HTMLElement).style.borderRight = ''
+              ;(colEl as HTMLElement).style.borderTopLeftRadius = ''
+              ;(colEl as HTMLElement).style.borderBottomLeftRadius = ''
+              ;(colEl as HTMLElement).style.borderTopRightRadius = ''
+              ;(colEl as HTMLElement).style.borderBottomRightRadius = ''
             }
           }
         } catch { /* noop */ }
@@ -1078,11 +1117,33 @@ export function CalendarView({
             el.style.outlineOffset = '2px'
             el.style.borderRadius = '6px'
             el.style.backgroundColor = 'rgba(255,255,255,0.85)'
+            el.style.cursor = 'pointer'
+            // Connected white border horizontally in month grid
+            const prevSel = selected.has(addDays(key, -1))
+            const nextSel = selected.has(addDays(key, 1))
+            el.style.borderTop = '2px solid rgba(255,255,255,1)'
+            el.style.borderBottom = '2px solid rgba(255,255,255,1)'
+            el.style.borderLeft = prevSel ? '0' : '2px solid rgba(255,255,255,1)'
+            el.style.borderRight = nextSel ? '0' : '2px solid rgba(255,255,255,1)'
+            el.style.borderTopLeftRadius = prevSel ? '0' : '8px'
+            el.style.borderBottomLeftRadius = prevSel ? '0' : '8px'
+            el.style.borderTopRightRadius = nextSel ? '0' : '8px'
+            el.style.borderBottomRightRadius = nextSel ? '0' : '8px'
+            el.style.boxSizing = 'border-box'
           } else {
             el.style.outline = ''
             el.style.outlineOffset = ''
             el.style.borderRadius = ''
             el.style.backgroundColor = ''
+            el.style.cursor = 'pointer'
+            el.style.borderTop = ''
+            el.style.borderBottom = ''
+            el.style.borderLeft = ''
+            el.style.borderRight = ''
+            el.style.borderTopLeftRadius = ''
+            el.style.borderBottomLeftRadius = ''
+            el.style.borderTopRightRadius = ''
+            el.style.borderBottomRightRadius = ''
           }
         } catch { /* noop */ }
       })
@@ -1091,7 +1152,7 @@ export function CalendarView({
 
   useEffect(() => {
     applyDaySelectionStyles()
-  }, [applyDaySelectionStyles, daySelection])
+  }, [applyDaySelectionStyles])
 
   // Helper to clear preview event block
   const clearPreviewBlock = useCallback(() => {
@@ -1265,7 +1326,7 @@ export function CalendarView({
 
     root.addEventListener('click', onClick, true)
     return () => { root.removeEventListener('click', onClick, true as unknown as EventListenerOptions) }
-  }, [daySelection?.enabled, daySelection?.onToggleDay])
+  }, [daySelection])
 
   // Event interactions: open on true click, allow drag-move and resize without opening
   useEffect(() => {
@@ -1397,7 +1458,7 @@ export function CalendarView({
       setTimeout(applyColors, 0)
     })
     return () => cancelAnimationFrame(raf)
-  }, [visibleEvents])
+  }, [visibleEvents, applyDaySelectionStyles])
 
   // Re-apply colors whenever Schedule-X re-renders DOM (view change, navigation)
   useEffect(() => {
@@ -1516,7 +1577,13 @@ export function CalendarView({
 
         const existing = headerRow.querySelector('.wl-meal-ui') as HTMLElement | null
         const out = computeOutKcalsForDate(dateStr)
-        const inn = 0
+        // Sum planned food kcals for the day
+        let inn = 0
+        try {
+          const rawFood = typeof window !== 'undefined' ? localStorage.getItem('fitspo:food_kcals_by_day') : null
+          const foodMap: Record<string, number> = rawFood ? JSON.parse(rawFood) : {}
+          inn = Math.max(0, Number(foodMap[dateStr || ''] || 0))
+        } catch { /* ignore */ }
         const net = computeNetKcals(out, inn)
         if (existing && existing.getAttribute('data-net') === String(net)) continue
         const positive = net > 0
@@ -1591,7 +1658,12 @@ export function CalendarView({
         const dayCol = root.querySelector('.sx__day-view [data-time-grid-date], .sx__day-view [data-date]') as HTMLElement | null
         const dayDate = dayCol?.getAttribute('data-time-grid-date') || dayCol?.getAttribute('data-date') || null
         const out = computeOutKcalsForDate(dayDate)
-        const inn = 0
+        let inn = 0
+        try {
+          const rawFood = typeof window !== 'undefined' ? localStorage.getItem('fitspo:food_kcals_by_day') : null
+          const foodMap: Record<string, number> = rawFood ? JSON.parse(rawFood) : {}
+          inn = Math.max(0, Number(foodMap[dayDate || ''] || 0))
+        } catch { /* ignore */ }
         const net = computeNetKcals(out, inn)
         if (existingSingle && existingSingle.getAttribute('data-net') === String(net)) return
         const positive = net > 0
@@ -1665,6 +1737,25 @@ export function CalendarView({
 
   useEffect(() => {
     rebuildMealHeaders()
+  }, [])
+
+  // Refresh meal headers when nutrition logs or recipes change
+  useEffect(() => {
+    const onChange = () => {
+      try { rebuildMealHeaders() } catch { /* noop */ }
+    }
+    try {
+      if (typeof window !== 'undefined') {
+        window.addEventListener('fitspo:logs_changed', onChange)
+      }
+    } catch { /* noop */ }
+    return () => {
+      try {
+        if (typeof window !== 'undefined') {
+          window.removeEventListener('fitspo:logs_changed', onChange)
+        }
+      } catch { /* noop */ }
+    }
   }, [])
 
 
@@ -2570,6 +2661,31 @@ export function CalendarView({
                     } catch {/* ignore */}
                   }}>Pending</Button>
                 </div>
+                {nutritionDrawerDate && (
+                  <div className="mt-3 space-y-2 text-xs">
+                    <div className="text-xs font-medium">Planned recipes</div>
+                    {(() => {
+                      try {
+                        const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:recipes_by_day') : null
+                        const map = raw ? JSON.parse(raw) as Record<string, Array<{ id: string; name: string; pax: number; kcals: number; addedAt: string }>> : {}
+                        const list = Array.isArray(map[nutritionDrawerDate]) ? map[nutritionDrawerDate] : []
+                        if (list.length === 0) return <div className="text-muted-foreground">No recipes scheduled.</div>
+                        return (
+                          <div className="space-y-1">
+                            {list.map((it, idx) => (
+                              <div key={`${it.id}-${idx}`} className="flex items-center justify-between border rounded px-2 py-1">
+                                <span className="truncate pr-2">{it.name}</span>
+                                <span className="text-muted-foreground whitespace-nowrap">{it.kcals} kcal</span>
+                              </div>
+                            ))}
+                          </div>
+                        )
+                      } catch {
+                        return <div className="text-muted-foreground">No recipes scheduled.</div>
+                      }
+                    })()}
+                  </div>
+                )}
               </div>
 
               <Button onClick={() => {
