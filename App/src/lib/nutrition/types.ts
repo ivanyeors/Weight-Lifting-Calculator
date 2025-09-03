@@ -51,12 +51,31 @@ export type RecipeIngredient = {
 
 export type RecipeCategory = 'Breakfast' | 'Lunch' | 'Dinner' | 'Desserts & Snacks'
 
+export type DietType =
+  | 'Balanced'
+  | 'High Protein'
+  | 'Low Carb'
+  | 'Keto'
+  | 'Vegan'
+  | 'Vegetarian'
+  | 'Paleo'
+  | 'Mediterranean'
+  | 'Gluten Free'
+  | 'Dairy Free'
+  | 'Pescatarian'
+  | 'Whole30'
+  | 'Low FODMAP'
+  | 'DASH'
+  | 'Low Sodium'
+  | 'Diabetic Friendly'
+
 export type Recipe = {
   id: string
   name: string
   category: RecipeCategory
   baseServings: number
   ingredients: RecipeIngredient[]
+  diets?: DietType[]
   // cached/calculated fields
   totalCostPerServing?: number
   totalNutrientsPerServing?: NutrientsPer100

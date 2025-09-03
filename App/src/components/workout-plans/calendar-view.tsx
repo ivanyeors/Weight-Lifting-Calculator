@@ -91,7 +91,15 @@ interface CalendarEvent {
   }
 }
 
-export function CalendarView() {
+export function CalendarView({
+  daySelection,
+  hideSidebar = false,
+  hideHeader = false
+}: {
+  daySelection?: { enabled?: boolean; selectedDays: string[]; onToggleDay: (day: string) => void }
+  hideSidebar?: boolean
+  hideHeader?: boolean
+} = {}) {
   // Google Calendar integration
   const {
     isAuthenticated: isGoogleCalendarConnected,
@@ -157,7 +165,7 @@ export function CalendarView() {
   const [workoutSpaces, setWorkoutSpaces] = useState<{ id: string; name: string }[]>([])
 
 
-  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(hideSidebar)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [drawerMode, setDrawerMode] = useState<'view' | 'create' | 'edit'>('view')
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
@@ -894,6 +902,7 @@ export function CalendarView() {
 
     callbacks: {
       onEventClick: (event) => {
+        if (daySelection?.enabled) return
         const foundEvent = events.find(e => e.id === event.id)
         if (foundEvent) {
           setSelectedEvent(foundEvent)
@@ -1016,6 +1025,74 @@ export function CalendarView() {
   useEffect(() => { eventsRef.current = visibleEvents }, [visibleEvents])
   useEffect(() => { accountsRef.current = googleCalendarAccounts }, [googleCalendarAccounts])
 
+  // Highlight selected days in headers/month cells when daySelection is enabled
+  const applyDaySelectionStyles = useCallback(() => {
+    try {
+      if (!daySelection?.enabled) return
+      const root = calendarRootRef.current
+      if (!root) return
+      const selected = new Set((daySelection.selectedDays || []).map(d => d.slice(0, 10)))
+
+      // Week/day headers
+      const dateNumberEls = Array.from(root.querySelectorAll('.sx__week-grid__date-number')) as HTMLElement[]
+      dateNumberEls.forEach((el) => {
+        try {
+          const col = el.closest('[data-time-grid-date], [data-date]') as HTMLElement | null
+          const dateStr = col?.getAttribute('data-time-grid-date') || col?.getAttribute('data-date') || null
+          const key = dateStr ? dateStr.slice(0, 10) : null
+          if (key && selected.has(key)) {
+            // White chip for the date label
+            el.style.backgroundColor = 'rgba(255,255,255,1)'
+            el.style.color = 'rgba(0,0,0,0.95)'
+            el.style.borderRadius = '6px'
+            el.style.padding = '2px 6px'
+            // Highlight whole column background subtly
+            const colEl = el.closest('[data-time-grid-date], [data-date]') as HTMLElement | null
+            if (colEl) {
+              ;(colEl as HTMLElement).style.backgroundColor = 'rgba(59, 130, 246, 0.08)'
+            }
+          } else {
+            el.style.backgroundColor = ''
+            el.style.color = ''
+            el.style.borderRadius = ''
+            el.style.padding = ''
+            const colEl = el.closest('[data-time-grid-date], [data-date]') as HTMLElement | null
+            if (colEl) {
+              ;(colEl as HTMLElement).style.backgroundColor = ''
+            }
+          }
+        } catch { /* noop */ }
+      })
+
+      // Month grid cells
+      const monthDayEls = Array.from(root.querySelectorAll('.sx__month-grid__day')) as HTMLElement[]
+      monthDayEls.forEach((el) => {
+        try {
+          const dateStr = el.getAttribute('data-date')
+            || (el.closest('[data-date]') as HTMLElement | null)?.getAttribute('data-date')
+            || (el.closest('[data-time-grid-date]') as HTMLElement | null)?.getAttribute('data-time-grid-date')
+            || null
+          const key = dateStr ? dateStr.slice(0, 10) : null
+          if (key && selected.has(key)) {
+            el.style.outline = '2px solid rgba(59, 130, 246, 0.9)'
+            el.style.outlineOffset = '2px'
+            el.style.borderRadius = '6px'
+            el.style.backgroundColor = 'rgba(255,255,255,0.85)'
+          } else {
+            el.style.outline = ''
+            el.style.outlineOffset = ''
+            el.style.borderRadius = ''
+            el.style.backgroundColor = ''
+          }
+        } catch { /* noop */ }
+      })
+    } catch { /* noop */ }
+  }, [daySelection?.enabled, daySelection?.selectedDays])
+
+  useEffect(() => {
+    applyDaySelectionStyles()
+  }, [applyDaySelectionStyles, daySelection])
+
   // Helper to clear preview event block
   const clearPreviewBlock = useCallback(() => {
     try {
@@ -1032,6 +1109,8 @@ export function CalendarView() {
 
   // Delegate click on time grid to open create drawer with prefill and show a 10% opacity placeholder
   useEffect(() => {
+    // Disable session creation interactions when in day selection mode
+    if (daySelection?.enabled) return
     const root = calendarRootRef.current
     if (!root) return
 
@@ -1147,7 +1226,46 @@ export function CalendarView() {
     return () => {
       root.removeEventListener('click', onClick)
     }
-  }, [eventsService, clearPreviewBlock])
+  }, [eventsService, clearPreviewBlock, daySelection?.enabled])
+
+  // Day selection interactions: click on header date numbers or month grid days to toggle
+  useEffect(() => {
+    if (!daySelection?.enabled) return
+    const root = calendarRootRef.current
+    if (!root || !daySelection?.onToggleDay) return
+
+    const getDateFromTarget = (target: HTMLElement | null): string | null => {
+      if (!target) return null
+      // Header date number → find closest column with date attrs
+      const headerNum = target.closest('.sx__week-grid__date-number') as HTMLElement | null
+      if (headerNum) {
+        const col = headerNum.closest('[data-time-grid-date], [data-date]') as HTMLElement | null
+        const dateStr = col?.getAttribute('data-time-grid-date') || col?.getAttribute('data-date') || null
+        return dateStr ? dateStr.slice(0, 10) : null
+      }
+      // Month grid cell
+      const monthCell = target.closest('.sx__month-grid__day') as HTMLElement | null
+      if (monthCell) {
+        const dateStr = monthCell.getAttribute('data-date')
+          || (monthCell.closest('[data-date]') as HTMLElement | null)?.getAttribute('data-date')
+          || null
+        return dateStr ? dateStr.slice(0, 10) : null
+      }
+      return null
+    }
+
+    const onClick = (e: MouseEvent) => {
+      const t = e.target as HTMLElement
+      const dateKey = getDateFromTarget(t)
+      if (!dateKey) return
+      e.stopPropagation()
+      e.preventDefault()
+      try { daySelection.onToggleDay(dateKey) } catch { /* noop */ }
+    }
+
+    root.addEventListener('click', onClick, true)
+    return () => { root.removeEventListener('click', onClick, true as unknown as EventListenerOptions) }
+  }, [daySelection?.enabled, daySelection?.onToggleDay])
 
   // Event interactions: open on true click, allow drag-move and resize without opening
   useEffect(() => {
@@ -1268,6 +1386,8 @@ export function CalendarView() {
             el.style.setProperty('box-shadow', 'none', 'important')
           }
         })
+        // Apply day selection overlays if enabled
+        try { applyDaySelectionStyles() } catch { /* noop */ }
       } catch {
         // noop
       }
@@ -1824,23 +1944,25 @@ export function CalendarView() {
 
   return (
     <div className="flex h-screen">
-      <CalendarSidebar
-        collapsed={sidebarCollapsed}
-        accounts={googleCalendarAccounts.map(a => ({ id: a.id, email: a.email, name: (a.customName || a.name || null), color: a.color || null }))}
-        visibleAccounts={visibleAccounts}
-        setVisibleAccounts={(next) => setVisibleAccounts(next)}
-        users={usersForFilter}
-        selectedUserIds={selectedUserIds}
-        setSelectedUserIds={setSelectedUserIds}
-        spaces={spacesForFilter}
-        selectedSpaceIds={selectedSpaceIds}
-        setSelectedSpaceIds={setSelectedSpaceIds}
-        showWater={showWater}
-        setShowWater={setShowWater}
-        showSleep={showSleep}
-        setShowSleep={setShowSleep}
-      />
-      {!sidebarCollapsed && (
+      {!hideSidebar && (
+        <CalendarSidebar
+          collapsed={sidebarCollapsed}
+          accounts={googleCalendarAccounts.map(a => ({ id: a.id, email: a.email, name: (a.customName || a.name || null), color: a.color || null }))}
+          visibleAccounts={visibleAccounts}
+          setVisibleAccounts={(next) => setVisibleAccounts(next)}
+          users={usersForFilter}
+          selectedUserIds={selectedUserIds}
+          setSelectedUserIds={setSelectedUserIds}
+          spaces={spacesForFilter}
+          selectedSpaceIds={selectedSpaceIds}
+          setSelectedSpaceIds={setSelectedSpaceIds}
+          showWater={showWater}
+          setShowWater={setShowWater}
+          showSleep={showSleep}
+          setShowSleep={setShowSleep}
+        />
+      )}
+      {!hideSidebar && !sidebarCollapsed && (
         <div
           className="fixed inset-0 z-40 bg-black/40 lg:hidden"
           onClick={() => setSidebarCollapsed(true)}
@@ -1849,6 +1971,7 @@ export function CalendarView() {
       )}
 
       <div className="flex-1 flex flex-col">
+        {!hideHeader && (
         <div className="flex items-center justify-between p-4 border-b bg-background">
           <div className="flex items-center gap-2">
             <Button
@@ -1892,6 +2015,7 @@ export function CalendarView() {
             </Button>
           </div>
         </div>
+        )}
 
         {/* Calendar */}
         <div 
@@ -2316,7 +2440,7 @@ export function CalendarView() {
                               if (active) {
                                 const key = `fitspo:plan_logs:${active.id}`
                                 const rawLog = localStorage.getItem(key)
-                                const log = rawLog ? JSON.parse(rawLog) as Record<string, any> : {}
+                                const log = rawLog ? JSON.parse(rawLog) as Record<string, { date: string; water?: number; sleep?: number; food?: number; exercise?: number }> : {}
                                 const cur = log[dayKey] || { date: dayKey }
                                 const prev = Number(cur.water || 0)
                                 log[dayKey] = { ...cur, water: Math.max(0, prev + inc) }
@@ -2583,7 +2707,7 @@ export function CalendarView() {
                       if (active) {
                         const key = `fitspo:plan_logs:${active.id}`
                         const rawLog = localStorage.getItem(key)
-                        const log = rawLog ? JSON.parse(rawLog) as Record<string, any> : {}
+                        const log = rawLog ? JSON.parse(rawLog) as Record<string, { date: string; water?: number; sleep?: number; food?: number; exercise?: number }> : {}
                         const cur = log[day] || { date: day }
                         log[day] = { ...cur, sleep: Math.max(0, Math.round(hrs * 10)/10) }
                         localStorage.setItem(key, JSON.stringify(log))

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { NutrientsPer100, Unit } from '@/lib/nutrition/types'
+import { upsertFoodAndInventory } from '@/lib/nutrition/db'
 
 type Props = {
   onSubmit: (v: {
@@ -76,14 +77,25 @@ export function IngredientForm({ onSubmit }: Props) {
         </div>
       </div>
       <div className="flex justify-end">
-        <Button onClick={() => onSubmit({
-          name,
-          amount: amount || 0,
-          unit,
-          pricePer100: pricePer100 || 0,
-          nutrients: { macros: { carbs: carbs || 0, fats: fats || 0, protein: protein || 0 }, micros: {} },
-          packageSizeBase: packageSize || undefined
-        })}>Add</Button>
+        <Button onClick={async () => {
+          await upsertFoodAndInventory({
+            name,
+            unit,
+            amount: amount || 0,
+            pricePer100Base: pricePer100 || 0,
+            nutrientsPer100: { macros: { carbs: carbs || 0, fats: fats || 0, protein: protein || 0 }, micros: {} },
+            packageSizeBase: packageSize || undefined,
+            category: undefined
+          }).catch(() => {})
+          onSubmit({
+            name,
+            amount: amount || 0,
+            unit,
+            pricePer100: pricePer100 || 0,
+            nutrients: { macros: { carbs: carbs || 0, fats: fats || 0, protein: protein || 0 }, micros: {} },
+            packageSizeBase: packageSize || undefined
+          })
+        }}>Add</Button>
       </div>
     </div>
   )

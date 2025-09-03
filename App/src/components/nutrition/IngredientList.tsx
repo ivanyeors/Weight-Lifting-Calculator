@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -11,10 +11,11 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import type { Food } from '@/lib/nutrition/foods'
 import { fetchFoods } from '@/lib/nutrition/foods'
+import { fetchUserInventory, upsertUserInventoryByFoodId } from '@/lib/nutrition/db'
 
 function round(n: number, d = 2) { return Math.round(n * Math.pow(10, d)) / Math.pow(10, d) }
 
-export function MacroBuilder() {
+export function IngredientList() {
   const [foods, setFoods] = useState<Food[]>([])
   const [filter, setFilter] = useState('')
   const [targets, setTargets] = useState({ carbs: 0, fats: 0, protein: 0 })
@@ -33,6 +34,16 @@ export function MacroBuilder() {
   const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({})
 
   useEffect(() => { fetchFoods().then(setFoods).catch(() => setFoods([])) }, [])
+  useEffect(() => {
+    ;(async () => {
+      try {
+        const inv = await fetchUserInventory()
+        setSelection(inv)
+      } catch (e) {
+        console.warn('Failed to load inventory', e)
+      }
+    })()
+  }, [])
 
   const categories = useMemo(() => {
     const set = new Set<string>()
@@ -81,9 +92,19 @@ export function MacroBuilder() {
     return okC && okF && okP && (targets.carbs + targets.fats + targets.protein > 0)
   }, [totals, targets])
 
+  const saveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
   const handleAmountChange = (id: string, value: number) => {
     setSelection((prev) => ({ ...prev, [id]: value }))
     setGenerated(null)
+    if (saveTimers.current[id]) clearTimeout(saveTimers.current[id])
+    saveTimers.current[id] = setTimeout(async () => {
+      try {
+        await upsertUserInventoryByFoodId(id, { std_remaining: value })
+        try { if (typeof window !== 'undefined') window.dispatchEvent(new Event('fitspo:inventory_changed')) } catch { /* ignore */ }
+      } catch (e) {
+        console.warn('Failed to save inventory', e)
+      }
+    }, 500)
   }
 
   const handleGenerate = () => {
@@ -132,6 +153,11 @@ export function MacroBuilder() {
               <Label className="text-xs text-muted-foreground">Search foods</Label>
               <Input placeholder="e.g., chicken, potato" value={filter} onChange={(e) => setFilter(e.target.value)} />
             </div>
+            <div className="flex items-center gap-2">
+              <Checkbox id="only-selected" variant="chip" checked={onlySelected} onCheckedChange={(v) => setOnlySelected(Boolean(v))}>
+                <span className="text-xs">Available stock</span>
+              </Checkbox>
+            </div>
             <Separator />
             <div className="grid gap-2">
               <div className="text-xs font-medium mb-1">Unit kind</div>
@@ -168,8 +194,8 @@ export function MacroBuilder() {
             )}
             <Separator />
             <div className="grid gap-2">
-              <div className="text-xs font-medium">Macros per 100</div>
-              <div className="grid grid-cols-2 gap-2 items-end">
+              <div className="text-xs font-medium">Macros</div>
+              <div className="grid grid-cols-1 gap-2 items-end">
                 <div className="grid gap-1">
                   <Label className="text-xs">Carbs min</Label>
                   <Input type="number" value={macroRange.carbs.min ?? ''} onChange={(e) => setMacroRange((m) => ({ ...m, carbs: { ...m.carbs, min: e.target.value === '' ? null : parseFloat(e.target.value) } }))} />
@@ -197,11 +223,6 @@ export function MacroBuilder() {
               </div>
             </div>
             <Separator />
-            <div className="flex items-center gap-2">
-              <Checkbox id="only-selected" variant="chip" checked={onlySelected} onCheckedChange={(v) => setOnlySelected(Boolean(v))}>
-                <span className="text-xs">Only show selected</span>
-              </Checkbox>
-            </div>
             <div className="flex justify-end">
               <Button variant="outline" size="sm" onClick={() => { setFilter(''); setUnitKinds({ mass: true, volume: true, count: true }); setSelectedCategories({}); setMacroRange({ carbs: { min: null, max: null }, fats: { min: null, max: null }, protein: { min: null, max: null } }); setOnlySelected(false) }}>Reset filters</Button>
             </div>
@@ -247,18 +268,6 @@ export function MacroBuilder() {
                     <TableCell>
                       <div className="grid gap-2">
                         <div className="flex items-center gap-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className="h-8 w-8 p-0"
-                            onClick={() => handleAmountChange(
-                              f.id,
-                              Math.max(0, (selection[f.id] || 0) - (f.unit_kind === 'count' ? 1 : 10))
-                            )}
-                            aria-label="Decrease"
-                          >
-                            −
-                          </Button>
                           <Input
                             className="h-8 w-24 text-xs text-center"
                             type="number"
@@ -269,18 +278,6 @@ export function MacroBuilder() {
                             placeholder={f.unit_kind === 'mass' ? 'grams' : f.unit_kind === 'volume' ? 'ml' : 'pieces'}
                             aria-label={`Amount in ${f.unit_kind === 'mass' ? 'grams' : f.unit_kind === 'volume' ? 'milliliters' : 'pieces'}`}
                           />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className="h-8 w-8 p-0"
-                            onClick={() => handleAmountChange(
-                              f.id,
-                              (selection[f.id] || 0) + (f.unit_kind === 'count' ? 1 : 10)
-                            )}
-                            aria-label="Increase"
-                          >
-                            +
-                          </Button>
                           <span className="text-[10px] uppercase text-muted-foreground">
                             {f.unit_kind === 'mass' ? 'g' : f.unit_kind === 'volume' ? 'ml' : 'pcs'}
                           </span>

@@ -5,7 +5,7 @@ import { UserSwitcher } from '@/components/user-switcher'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { NutritionProvider } from '@/lib/nutrition/store'
-import { MacroBuilder } from '@/components/nutrition/MacroBuilder'
+import { IngredientList } from '@/components/nutrition/IngredientList'
 import { RecipeCards } from '@/components/nutrition/RecipeCards'
 import { WeeklyPlanner } from '@/components/nutrition/WeeklyPlanner'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
@@ -54,7 +54,7 @@ export default function PlansNutritionPage() {
             <TabsTrigger value="planner">Weekly Planner</TabsTrigger>
           </TabsList>
           <TabsContent value="macro-builder" className="mt-3">
-            <MacroBuilder />
+            <IngredientList />
           </TabsContent>
           <TabsContent value="recipes" className="mt-3">
             <RecipeCards />
@@ -71,8 +71,7 @@ export default function PlansNutritionPage() {
 function AddIngredientInner({ onDone }: { onDone: () => void }) {
   const { state, dispatch } = useNutrition()
   return (
-    <IngredientForm onSubmit={(v) => {
-      // NOTE: No DB writes yet. Local-only.
+    <IngredientForm onSubmit={async (v) => {
       const { ingredient } = addIngredient(
         { ...state } as any,
         {
@@ -84,6 +83,20 @@ function AddIngredientInner({ onDone }: { onDone: () => void }) {
         }
       )
       dispatch({ type: 'INGREDIENT_ADD', payload: ingredient })
+      try {
+        const { upsertFoodAndInventory } = await import('@/lib/nutrition/db')
+        await upsertFoodAndInventory({
+          name: v.name,
+          unit: v.unit,
+          amount: v.amount,
+          pricePer100Base: v.pricePer100,
+          nutrientsPer100: v.nutrients,
+          packageSizeBase: v.packageSizeBase,
+          category: undefined
+        })
+      } catch (e) {
+        console.warn('Inventory sync failed; local state updated only', e)
+      }
       onDone()
     }} />
   )

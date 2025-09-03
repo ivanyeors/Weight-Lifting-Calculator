@@ -3,7 +3,7 @@ import path from 'path'
 import { promises as fs } from 'fs'
 
 export const runtime = 'nodejs'
-export const dynamic = 'error'
+export const dynamic = 'force-dynamic'
 
 interface ExerciseSearchQuery {
   id: string

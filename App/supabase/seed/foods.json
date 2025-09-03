@@ -7,9 +7,9 @@
     { "name": "Chicken breast, raw", "category": "Meat", "unit_kind": "mass", "carbs_per_100": 0, "fats_per_100": 3.6, "protein_per_100": 31.0 },
     { "name": "Minced beef 10% fat, raw", "category": "Meat", "unit_kind": "mass", "carbs_per_100": 0, "fats_per_100": 10.0, "protein_per_100": 26.0 },
     { "name": "Potato", "category": "Vegetables", "unit_kind": "mass", "carbs_per_100": 17.0, "fats_per_100": 0.1, "protein_per_100": 2.0 },
-    { "name": "Egg", "category": "Dairy & Eggs", "unit_kind": "mass", "carbs_per_100": 0.72, "fats_per_100": 9.51, "protein_per_100": 12.58 },
+    { "name": "Egg", "category": "Dairy & Eggs", "unit_kind": "count", "carbs_per_100": 36.0, "fats_per_100": 475.5, "protein_per_100": 629.0 }
     { "name": "Apricot", "category": "Fruits", "unit_kind": "mass", "carbs_per_100": 11.12, "fats_per_100": 0.39, "protein_per_100": 1.4 },
-    { "name": "Avocado", "category": "Fruits", "unit_kind": "mass", "carbs_per_100": 8.53, "fats_per_100": 14.66, "protein_per_100": 2.0 },
+    { "name": "Avocado", "category": "Fruits", "unit_kind": "count", "carbs_per_100": 1279.5, "fats_per_100": 2199.0, "protein_per_100": 300.0 }
     { "name": "Blackberry", "category": "Fruits", "unit_kind": "mass", "carbs_per_100": 9.61, "fats_per_100": 0.49, "protein_per_100": 1.39 },
     { "name": "Blueberry", "category": "Fruits", "unit_kind": "mass", "carbs_per_100": 14.49, "fats_per_100": 0.33, "protein_per_100": 0.74 },
     { "name": "Cherry", "category": "Fruits", "unit_kind": "mass", "carbs_per_100": 16.0, "fats_per_100": 0.2, "protein_per_100": 1.06 },
@@ -50,8 +50,8 @@
     { "name": "Asparagus", "category": "Vegetables", "unit_kind": "mass", "carbs_per_100": 3.88, "fats_per_100": 0.12, "protein_per_100": 2.2 },
     { "name": "Eggplant", "category": "Vegetables", "unit_kind": "mass", "carbs_per_100": 5.88, "fats_per_100": 0.18, "protein_per_100": 0.98 },
     { "name": "Beetroot", "category": "Vegetables", "unit_kind": "mass", "carbs_per_100": 9.56, "fats_per_100": 0.17, "protein_per_100": 1.61 },
-    { "name": "Bell pepper (red)", "category": "Vegetables", "unit_kind": "mass", "carbs_per_100": 6.03, "fats_per_100": 0.3, "protein_per_100": 0.99 },
-    { "name": "Bell pepper (green)", "category": "Vegetables", "unit_kind": "mass", "carbs_per_100": 4.64, "fats_per_100": 0.17, "protein_per_100": 0.86 },
+    { "name": "Bell pepper (red)", "category": "Vegetables", "unit_kind": "count", "carbs_per_100": 723.6, "fats_per_100": 36.0, "protein_per_100": 118.8 }
+    { "name": "Bell pepper (green)", "category": "Vegetables", "unit_kind": "count", "carbs_per_100": 556.8, "fats_per_100": 20.4, "protein_per_100": 103.2 }
     { "name": "Bok choy", "category": "Vegetables", "unit_kind": "mass", "carbs_per_100": 2.18, "fats_per_100": 0.2, "protein_per_100": 1.5 },
     { "name": "Broccoli", "category": "Vegetables", "unit_kind": "mass", "carbs_per_100": 6.64, "fats_per_100": 0.37, "protein_per_100": 2.82 },
     { "name": "Brussels sprouts", "category": "Vegetables", "unit_kind": "mass", "carbs_per_100": 8.95, "fats_per_100": 0.3, "protein_per_100": 3.38 },

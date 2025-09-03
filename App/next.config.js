@@ -8,7 +8,8 @@ const repoName = process.env.GITHUB_REPOSITORY
 const nextConfig = {
   // Custom domain configuration - no basePath needed
   trailingSlash: true,
-  output: isProd ? 'export' : undefined,
+  // Vercel: avoid static export because we have dynamic API routes
+  output: undefined,
   transpilePackages: ['three'],
   eslint: {
     ignoreDuringBuilds: true,
