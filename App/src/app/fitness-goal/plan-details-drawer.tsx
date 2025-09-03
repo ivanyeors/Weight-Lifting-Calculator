@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import type { Plan } from './plan-types'
@@ -44,7 +45,7 @@ export function PlanDetailsDrawer({
     return { foodTgt, waterTgt, sleepTgt }
   }, [plan])
 
-  const [todayFood, setTodayFood] = useState<string>('')
+  const [selectedRecipeKeys, setSelectedRecipeKeys] = useState<string[]>([])
   const [todayWater, setTodayWater] = useState<string>('')
   const [todaySleep, setTodaySleep] = useState<string>('')
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('')
@@ -66,6 +67,29 @@ export function PlanDetailsDrawer({
     }
     if (open && plan) void loadTemplates()
   }, [open, plan])
+
+  const todayStr = useMemo(() => new Date().toISOString().slice(0,10), [])
+  const plannedRecipes = useMemo(() => {
+    try {
+      const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:recipes_by_day') : null
+      const map = raw ? (JSON.parse(raw) as Record<string, Array<{ id: string; name: string; pax: number; kcals: number; addedAt: string; status?: 'pending'|'complete'|'missed' }>>) : {}
+      const list = Array.isArray(map[todayStr]) ? map[todayStr] : []
+      return list
+    } catch {
+      return [] as Array<{ id: string; name: string; pax: number; kcals: number; addedAt: string; status?: 'pending'|'complete'|'missed' }>
+    }
+  }, [todayStr, open])
+
+  useEffect(() => {
+    try {
+      // Auto-select any recipes already marked complete
+      const defaults = plannedRecipes
+        .map((it, idx) => ({ key: `${it.id}-${idx}`, status: it.status }))
+        .filter(r => r.status === 'complete')
+        .map(r => r.key)
+      setSelectedRecipeKeys(defaults)
+    } catch { /* ignore */ }
+  }, [plannedRecipes])
 
   const persistDayValue = (mapKey: string, day: string, value: number) => {
     try {
@@ -135,15 +159,58 @@ export function PlanDetailsDrawer({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
               {plan.pillars.food && (
                 <div className="space-y-1">
-                  <Label className="text-xs">Food (kcal)</Label>
-                  <Input placeholder={`${Math.round(targets.foodTgt)}`} inputMode="numeric" value={todayFood} onChange={(e) => setTodayFood(e.target.value)} />
+                  <Label className="text-xs">Food (select planned recipes)</Label>
+                  <div className="max-h-40 overflow-auto space-y-1 border rounded p-2">
+                    {plannedRecipes.length === 0 ? (
+                      <div className="text-xs text-muted-foreground">No recipes scheduled today.</div>
+                    ) : (
+                      plannedRecipes.map((it, idx) => {
+                        const key = `${it.id}-${idx}`
+                        const checked = selectedRecipeKeys.includes(key)
+                        return (
+                          <label key={key} className="flex items-center gap-2 text-xs">
+                            <Checkbox checked={checked} onCheckedChange={() => {
+                              setSelectedRecipeKeys((prev) => (
+                                prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+                              ))
+                            }} />
+                            <span className="flex-1 truncate">{it.name}</span>
+                            <span className="text-muted-foreground whitespace-nowrap">{Math.max(0, Number(it.kcals || 0))} kcal</span>
+                          </label>
+                        )
+                      })
+                    )}
+                  </div>
                   <Button size="sm" onClick={() => {
-                    const day = new Date().toISOString().slice(0,10)
-                    const val = todayFood === '' ? Math.round(targets.foodTgt) : Number(todayFood)
-                    persistDayValue('fitspo:food_kcals_by_day', day, Math.max(0, val))
-                    persistPlanLog(plan.id, day, { food: Math.max(0, val) })
-                    try { toast.success(`Food saved: ${Math.max(0, val)} kcal`) } catch {}
-                    setTodayFood('')
+                    const day = todayStr
+                    try {
+                      // Sum kcals for selected recipes
+                      const sum = plannedRecipes.reduce((acc, it, idx) => {
+                        const key = `${it.id}-${idx}`
+                        if (selectedRecipeKeys.includes(key)) {
+                          const kc = Math.max(0, Number(it.kcals || 0))
+                          return acc + (Number.isFinite(kc) ? kc : 0)
+                        }
+                        return acc
+                      }, 0)
+                      persistDayValue('fitspo:food_kcals_by_day', day, Math.max(0, Math.round(sum)))
+                      persistPlanLog(plan.id, day, { food: Math.max(0, Math.round(sum)) })
+                      // Mark selected recipes as complete in recipes_by_day
+                      try {
+                        const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:recipes_by_day') : null
+                        const byDay: Record<string, Array<{ id: string; name: string; pax: number; kcals: number; addedAt: string; status?: 'pending'|'complete'|'missed' }>> = raw ? JSON.parse(raw) : {}
+                        const arr = Array.isArray(byDay[day]) ? byDay[day] : []
+                        const next = arr.map((it, idx) => {
+                          const key = `${it.id}-${idx}`
+                          if (selectedRecipeKeys.includes(key)) return { ...it, status: 'complete' as const }
+                          return it
+                        })
+                        byDay[day] = next
+                        if (typeof window !== 'undefined') localStorage.setItem('fitspo:recipes_by_day', JSON.stringify(byDay))
+                      } catch { /* ignore */ }
+                      try { if (typeof window !== 'undefined') window.dispatchEvent(new Event('fitspo:logs_changed')) } catch {}
+                      try { toast.success(`Food saved: ${Math.max(0, Math.round(sum))} kcal`) } catch {}
+                    } catch { /* ignore */ }
                   }}>Save</Button>
                 </div>
               )}
