@@ -191,7 +191,11 @@ export function RecipeCards() {
       for (let i = 0; i < 3; i++) {
         const d = new Date(today)
         d.setDate(today.getDate() + i)
-        next.push(d.toISOString().slice(0, 10))
+        // Use local YYYY-MM-DD instead of UTC ISO to avoid timezone drift
+        const yyyy = d.getFullYear()
+        const mm = String(d.getMonth() + 1).padStart(2, '0')
+        const dd = String(d.getDate()).padStart(2, '0')
+        next.push(`${yyyy}-${mm}-${dd}`)
       }
       setSelectedDays(next)
     } catch { setSelectedDays([]) }
@@ -203,11 +207,19 @@ export function RecipeCards() {
   }
 
   const handleSaveAdd = async () => {
+    let success = false
     try {
       const r = filtered.find(x => x.id === selectedRecipeId) || recipes.find(x => x.id === selectedRecipeId)
-      if (!r || selectedDays.length === 0) { setDrawerOpen(false); return }
-      const res = calculateRecipeForPax(r, pax, invIndex)
-      const kcalPerDay = Math.max(0, Math.round(res.perPerson.calories * pax))
+      if (!r) { toast.error('No recipe selected'); return }
+      if (selectedDays.length === 0) { toast.error('Select at least one day'); return }
+      // Compute kcals defensively; proceed even if calculation fails
+      let kcalPerDay = 0
+      try {
+        const res = calculateRecipeForPax(r, pax, invIndex)
+        kcalPerDay = Math.max(0, Math.round(res.perPerson.calories * pax))
+      } catch {
+        kcalPerDay = 0
+      }
 
       // Ensure foods DB entries exist and are updated for ingredients used by this recipe
       try {
@@ -239,14 +251,17 @@ export function RecipeCards() {
       // Persist recipes by day for calendar drawer visibility
       try {
         const rawRecipes = typeof window !== 'undefined' ? localStorage.getItem('fitspo:recipes_by_day') : null
-        const byDay: Record<string, Array<{ id: string; name: string; pax: number; kcals: number; addedAt: string }>> = rawRecipes ? JSON.parse(rawRecipes) : {}
-        const entry = { id: r.id, name: r.name, pax, kcals: kcalPerDay, addedAt: new Date().toISOString() }
+        const byDay: Record<string, Array<{ id: string; name: string; pax: number; kcals: number; addedAt: string; status?: 'pending'|'complete'|'missed' }>> = rawRecipes ? JSON.parse(rawRecipes) : {}
+        const entry = { id: r.id, name: r.name, pax, kcals: kcalPerDay, addedAt: new Date().toISOString(), status: 'pending' as const }
         for (const day of selectedDays) {
           const list = Array.isArray(byDay[day]) ? byDay[day] : []
           list.push(entry)
           byDay[day] = list
         }
-        if (typeof window !== 'undefined') localStorage.setItem('fitspo:recipes_by_day', JSON.stringify(byDay))
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('fitspo:recipes_by_day', JSON.stringify(byDay))
+          try { console.log('[recipes_by_day] saved', { selectedDays, entry }) } catch { /* ignore */ }
+        }
       } catch { /* ignore */ }
 
       // Mirror into active plan logs if any
@@ -300,9 +315,12 @@ export function RecipeCards() {
         try { if (typeof window !== 'undefined') window.dispatchEvent(new Event('fitspo:inventory_changed')) } catch { /* ignore */ }
       } catch { /* ignore */ }
 
-      setDrawerOpen(false)
-    } catch {
-      setDrawerOpen(false)
+      success = true
+    } catch (e) {
+      try { console.error('Failed to save recipe days', e) } catch { /* ignore */ }
+      try { toast.error('Failed to save. Please try again.') } catch { /* ignore */ }
+    } finally {
+      if (success) setDrawerOpen(false)
     }
   }
 
@@ -519,7 +537,7 @@ export function RecipeCards() {
         <SheetContent side="right" className="w-full sm:max-w-[1000px] lg:max-w-[1180px]">
           <SheetHeader>
             <SheetTitle>Add recipe to days</SheetTitle>
-            <SheetDescription>Select the days to add this recipe. The calendar is shown for context.</SheetDescription>
+            <SheetDescription>Click on dates in Day or Week view to select days for this recipe. Use Month view for navigation only.</SheetDescription>
           </SheetHeader>
           <div className="p-4 space-y-4">
             <div className="h-[80vh] rounded border overflow-hidden">

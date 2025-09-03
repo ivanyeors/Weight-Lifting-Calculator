@@ -17,6 +17,7 @@ import { createDragAndDropPlugin } from '@schedule-x/drag-and-drop'
 import { createResizePlugin } from '@schedule-x/resize'
 
 import '@schedule-x/theme-shadcn/dist/index.css'
+import { Card } from '@/components/ui/card'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { createRoot } from 'react-dom/client'
 
@@ -24,6 +25,15 @@ import { CalendarEventDrawer } from './calendar-event-drawer'
 import { CalendarSidebar } from './calendar-sidebar'
 import { useGoogleCalendar } from '@/hooks/useGoogleCalendar'
 import { supabase } from '@/lib/supabaseClient'
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
+import { HEALTHY_RECIPES } from '@/lib/nutrition/recipes'
+import { calculateRecipeForPax, feasibilityForRecipe } from '@/lib/nutrition/calc'
+// import { convertToBase, formatQuantityBase } from '@/lib/nutrition/convert'
+import type { Food } from '@/lib/nutrition/foods'
+import type { Ingredient } from '@/lib/nutrition/types'
+import { fetchFoods } from '@/lib/nutrition/foods'
+import { fetchUserInventory } from '@/lib/nutrition/db'
 
 interface User {
   id: string
@@ -175,6 +185,23 @@ export function CalendarView({
   // Nutrition drawer state
   const [nutritionDrawerOpen, setNutritionDrawerOpen] = useState(false)
   const [nutritionDrawerDate, setNutritionDrawerDate] = useState<string | null>(null)
+  // Version bump to force re-render of Meals when logs change
+  const [nutritionVersion, setNutritionVersion] = useState(0)
+  // Foods + inventory for rendering recipe cards
+  const [foodsForMeals, setFoodsForMeals] = useState<Food[]>([])
+  const [remoteInvForMeals, setRemoteInvForMeals] = useState<Record<string, number>>({})
+
+  useEffect(() => {
+    let active = true
+    fetchFoods().then((f) => { if (active) setFoodsForMeals(f) }).catch(() => setFoodsForMeals([]))
+    const loadInv = async () => {
+      try { const inv = await fetchUserInventory(); if (active) setRemoteInvForMeals(inv) } catch { /* ignore */ }
+    }
+    void loadInv()
+    const onInv = () => { void loadInv() }
+    try { if (typeof window !== 'undefined') window.addEventListener('fitspo:inventory_changed', onInv) } catch { /* ignore */ }
+    return () => { active = false; try { if (typeof window !== 'undefined') window.removeEventListener('fitspo:inventory_changed', onInv) } catch { /* ignore */ } }
+  }, [])
   // Sleep drawer state
   const [sleepDrawerOpen, setSleepDrawerOpen] = useState(false)
   const [sleepDrawerDate, setSleepDrawerDate] = useState<string | null>(null)
@@ -1622,7 +1649,9 @@ export function CalendarView({
         btn.title = 'Manage meals for this day'
         btn.addEventListener('click', (e) => {
           e.stopPropagation()
-          setNutritionDrawerDate(dateStr)
+          // Normalize to YYYY-MM-DD for consistent localStorage keys
+          const dayKey = dateStr ? dateStr.slice(0, 10) : null
+          setNutritionDrawerDate(dayKey)
           setNutritionDrawerOpen(true)
         })
 
@@ -1656,7 +1685,9 @@ export function CalendarView({
         }
 
         const dayCol = root.querySelector('.sx__day-view [data-time-grid-date], .sx__day-view [data-date]') as HTMLElement | null
-        const dayDate = dayCol?.getAttribute('data-time-grid-date') || dayCol?.getAttribute('data-date') || null
+        const dayDateRaw = dayCol?.getAttribute('data-time-grid-date') || dayCol?.getAttribute('data-date') || null
+        // Normalize to YYYY-MM-DD for consistent comparisons and storage
+        const dayDate = dayDateRaw ? dayDateRaw.slice(0, 10) : null
         const out = computeOutKcalsForDate(dayDate)
         let inn = 0
         try {
@@ -1743,6 +1774,7 @@ export function CalendarView({
   useEffect(() => {
     const onChange = () => {
       try { rebuildMealHeaders() } catch { /* noop */ }
+      try { setNutritionVersion((v) => v + 1) } catch { /* noop */ }
     }
     try {
       if (typeof window !== 'undefined') {
@@ -2457,7 +2489,7 @@ export function CalendarView({
 
         {/* Nutrition Drawer (Right side) */}
         <Sheet open={nutritionDrawerOpen} onOpenChange={setNutritionDrawerOpen}>
-          <SheetContent side="right">
+          <SheetContent side="right" className="w-full sm:max-w-[1000px] lg:max-w-[1180px] overflow-y-auto">
             <SheetHeader>
               <SheetTitle>Meals for {nutritionDrawerDate || 'selected day'}</SheetTitle>
               <SheetDescription>
@@ -2592,7 +2624,7 @@ export function CalendarView({
                   )
                 })()}
                 {/* Water log for the selected day (local + Supabase, deduped) */}
-                {nutritionDrawerDate && (
+                {nutritionDrawerDate && nutritionVersion >= 0 && (
                   <div className="mt-3 space-y-2 text-xs">
                     <div className="text-xs font-medium">Water log</div>
                     {(() => {
@@ -2638,6 +2670,7 @@ export function CalendarView({
                       const map = raw ? JSON.parse(raw) as Record<string, 'pending' | 'complete' | 'missed'> : {}
                       map[day] = 'complete'
                       localStorage.setItem('fitspo:food_status_by_day', JSON.stringify(map))
+                      try { window.dispatchEvent(new Event('fitspo:logs_changed')) } catch { /* ignore */ }
                     } catch {/* ignore */}
                   }}>Complete</Button>
                   <Button size="sm" variant={(() => { try { const day = nutritionDrawerDate; if (!day) return 'outline'; const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:food_status_by_day') : null; const map = raw ? JSON.parse(raw) as Record<string,'pending'|'complete'|'missed'> : {}; const s = map[day] || 'pending'; return s==='missed' ? 'default' : 'outline'; } catch { return 'outline' }})()} onClick={() => {
@@ -2648,6 +2681,7 @@ export function CalendarView({
                       const map = raw ? JSON.parse(raw) as Record<string, 'pending' | 'complete' | 'missed'> : {}
                       map[day] = 'missed'
                       localStorage.setItem('fitspo:food_status_by_day', JSON.stringify(map))
+                      try { window.dispatchEvent(new Event('fitspo:logs_changed')) } catch { /* ignore */ }
                     } catch {/* ignore */}
                   }}>Missed</Button>
                   <Button size="sm" variant={(() => { try { const day = nutritionDrawerDate; if (!day) return 'outline'; const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:food_status_by_day') : null; const map = raw ? JSON.parse(raw) as Record<string,'pending'|'complete'|'missed'> : {}; const s = map[day] || 'pending'; return s==='pending' ? 'default' : 'outline'; } catch { return 'outline' }})()} onClick={() => {
@@ -2658,26 +2692,99 @@ export function CalendarView({
                       const map = raw ? JSON.parse(raw) as Record<string, 'pending' | 'complete' | 'missed'> : {}
                       map[day] = 'pending'
                       localStorage.setItem('fitspo:food_status_by_day', JSON.stringify(map))
+                      try { window.dispatchEvent(new Event('fitspo:logs_changed')) } catch { /* ignore */ }
                     } catch {/* ignore */}
                   }}>Pending</Button>
                 </div>
-                {nutritionDrawerDate && (
+                {nutritionDrawerDate && nutritionVersion >= 0 && (
                   <div className="mt-3 space-y-2 text-xs">
                     <div className="text-xs font-medium">Planned recipes</div>
                     {(() => {
                       try {
                         const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:recipes_by_day') : null
-                        const map = raw ? JSON.parse(raw) as Record<string, Array<{ id: string; name: string; pax: number; kcals: number; addedAt: string }>> : {}
-                        const list = Array.isArray(map[nutritionDrawerDate]) ? map[nutritionDrawerDate] : []
+                        const map = raw ? JSON.parse(raw) as Record<string, Array<{ id: string; name: string; pax: number; kcals: number; addedAt: string; status?: 'pending'|'complete'|'missed' }>> : {}
+                        const listRaw = Array.isArray(map[nutritionDrawerDate]) ? map[nutritionDrawerDate] : []
+                        const list = listRaw.filter(it => it.status !== 'complete')
                         if (list.length === 0) return <div className="text-muted-foreground">No recipes scheduled.</div>
+
+                        // Build inventory by food name from foods + remote inventory
+                        const idToName = new Map<string, string>()
+                        for (const f of foodsForMeals) idToName.set(f.id, f.name)
+                        const invByName = new Map<string, Ingredient>()
+                        for (const f of foodsForMeals) {
+                          const amt = remoteInvForMeals[f.id] || 0
+                          const ing: Ingredient = {
+                            id: `food:${f.id}`,
+                            name: f.name,
+                            available: { amount: 0, unit: 'g' },
+                            stdGramsOrMl: Number(amt) || 0,
+                            pricePerBase: 0,
+                            nutrientsPer100: {
+                              macros: {
+                                carbs: f.carbs_per_100 || 0,
+                                fats: f.fats_per_100 || 0,
+                                protein: f.protein_per_100 || 0
+                              },
+                              micros: f.micros || {}
+                            },
+                            category: f.category || undefined
+                          }
+                          invByName.set(f.name, ing)
+                        }
+
+                        const setStatus = (idx: number, status: 'pending'|'complete'|'missed') => {
+                          try {
+                            const raw2 = typeof window !== 'undefined' ? localStorage.getItem('fitspo:recipes_by_day') : null
+                            const byDay2: Record<string, Array<{ id: string; name: string; pax: number; kcals: number; addedAt: string; status?: 'pending'|'complete'|'missed' }>> = raw2 ? JSON.parse(raw2) : {}
+                            const full = Array.isArray(byDay2[nutritionDrawerDate]) ? byDay2[nutritionDrawerDate] : []
+                            const origIndex = full.findIndex((x, i) => i === idx && x.id === list[idx]?.id)
+                            if (origIndex >= 0) full[origIndex].status = status
+                            byDay2[nutritionDrawerDate] = full
+                            if (typeof window !== 'undefined') localStorage.setItem('fitspo:recipes_by_day', JSON.stringify(byDay2))
+                            try { window.dispatchEvent(new Event('fitspo:logs_changed')) } catch { /* ignore */ }
+                          } catch { /* ignore */ }
+                        }
+
                         return (
-                          <div className="space-y-1">
-                            {list.map((it, idx) => (
-                              <div key={`${it.id}-${idx}`} className="flex items-center justify-between border rounded px-2 py-1">
-                                <span className="truncate pr-2">{it.name}</span>
-                                <span className="text-muted-foreground whitespace-nowrap">{it.kcals} kcal</span>
-                              </div>
-                            ))}
+                          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                            {list.map((it, idx) => {
+                              const recipe = HEALTHY_RECIPES.find(r => r.id === it.id) || { id: it.id, name: it.name, baseServings: it.pax || 1, category: 'Dinner' as const, diets: [], ingredients: [] }
+                              let res: { perPerson?: { macros?: { carbs: number; protein: number; fats: number } } } | null = null
+                              try { res = calculateRecipeForPax(recipe, it.pax || 1, invByName) } catch { res = null }
+                              const macros = res?.perPerson?.macros
+                              const data = macros ? [
+                                { name: 'Carbs', value: Math.round(macros.carbs) },
+                                { name: 'Protein', value: Math.round(macros.protein) },
+                                { name: 'Fats', value: Math.round(macros.fats) }
+                              ] : []
+                              let feas: { canMake: boolean } = { canMake: true }
+                              try { feas = feasibilityForRecipe(recipe, it.pax || 1, invByName) } catch { /* ignore */ }
+                              return (
+                                <Card key={`${it.id}-${idx}`} className={`p-3 flex flex-col gap-3 ${!feas.canMake ? 'opacity-60' : ''}`}>
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <div className="font-medium">{it.name}</div>
+                                      <div className="text-xs text-muted-foreground">{recipe.category || 'Meal'}</div>
+                                    </div>
+                                    <div className="text-[10px] text-muted-foreground border rounded px-1.5 py-0.5">{it.pax}</div>
+                                  </div>
+                                  <ChartContainer config={{ value: { label: 'g' } }} className="w-full h-40 aspect-auto px-0">
+                                    <BarChart data={data} layout="vertical" margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                                      <CartesianGrid strokeDasharray="3 3" />
+                                      <XAxis type="number" tickLine={false} axisLine={false} tickMargin={0} domain={[0, 'dataMax']} />
+                                      <YAxis type="category" dataKey="name" mirror tickLine={false} axisLine={false} tickMargin={0} width={0} />
+                                      <Bar dataKey="value" fill="hsl(var(--primary))" radius={4} />
+                                      <ChartTooltip content={<ChartTooltipContent />} />
+                                    </BarChart>
+                                  </ChartContainer>
+                                  <div className="flex items-center gap-1 mt-auto">
+                                    <Button size="sm" variant={it.status==='complete' ? 'default' : 'outline'} onClick={() => setStatus(idx, 'complete')}>Complete</Button>
+                                    <Button size="sm" variant={it.status==='missed' ? 'default' : 'outline'} onClick={() => setStatus(idx, 'missed')}>Missed</Button>
+                                    <Button size="sm" variant={(!it.status || it.status==='pending') ? 'default' : 'outline'} onClick={() => setStatus(idx, 'pending')}>Pending</Button>
+                                  </div>
+                                </Card>
+                              )
+                            })}
                           </div>
                         )
                       } catch {
