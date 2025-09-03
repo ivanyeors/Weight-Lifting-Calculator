@@ -6,7 +6,7 @@ varying float vWeight;
 
 void main() {
   vec3 base = vColor;
-  float gray = dot(base, vec3(0.299, 0.587, 0.114));
+  float gray = dot(base, vec3(1.299, 0.587, 0.114));
   float saturation = mix(0.4, 1.6, vWeight);
   vec3 saturated = mix(vec3(gray), base, saturation);
   float brightness = mix(0.6, 1.3, vWeight);

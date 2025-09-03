@@ -13,9 +13,10 @@ type RGB = [number, number, number]
 
 type CustomParticlesProps = {
   count: number
+  seed: number
 }
 
-const CustomGeometryParticles = ({ count }: CustomParticlesProps) => {
+const CustomGeometryParticles = ({ count, seed }: CustomParticlesProps) => {
   const radius = 2
   const points = useRef<THREE.Points>(null!)
   const { gl, scene, camera } = useThree()
@@ -23,23 +24,31 @@ const CustomGeometryParticles = ({ count }: CustomParticlesProps) => {
   // Expose material globally to allow parent to update uniforms without re-rendering Canvas
   const materialRef = useRef<THREE.ShaderMaterial | null>(null)
 
-  // Position and pillar assignment
+  // Position and pillar assignment (seeded deterministic)
   const { particlesPosition, pillarIds } = useMemo(() => {
+    function mulberry32(a: number) {
+      return function() {
+        let t = (a += 0x6D2B79F5)
+        t = Math.imul(t ^ (t >>> 15), t | 1)
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+      }
+    }
+    const rng = mulberry32(seed || 1)
     const positions = new Float32Array(count * 3)
     const ids = new Float32Array(count)
     for (let i = 0; i < count; i++) {
-      const distance = Math.sqrt(Math.random()) * radius
-      const theta = THREE.MathUtils.randFloatSpread(360) * (Math.PI / 180)
-      const phi = THREE.MathUtils.randFloatSpread(360) * (Math.PI / 180)
-      const x = distance * Math.sin(theta) * Math.cos(phi)
-      const y = distance * Math.sin(theta) * Math.sin(phi)
-      const z = distance * Math.cos(theta)
+      const r = Math.sqrt(rng()) * radius
+      const theta = (rng() * 2.0 - 1.0) * Math.PI
+      const phi = rng() * 2.0 * Math.PI
+      const x = r * Math.sin(theta) * Math.cos(phi)
+      const y = r * Math.sin(theta) * Math.sin(phi)
+      const z = r * Math.cos(theta)
       positions.set([x, y, z], i * 3)
-      // Evenly distribute pillars 0..3
       ids[i] = i % 4
     }
     return { particlesPosition: positions, pillarIds: ids }
-  }, [count])
+  }, [count, seed])
 
   const uniforms = useMemo(() => ({
     uTime: { value: 0.0 },
@@ -99,7 +108,7 @@ const CustomGeometryParticles = ({ count }: CustomParticlesProps) => {
   )
 }
 
-export function ParticlesScene({ colors, weights, count = 6000 }: { colors: [RGB, RGB, RGB, RGB]; weights: [number, number, number, number]; count?: number }) {
+export function ParticlesScene({ colors, weights, count = 6000, seed = 1 }: { colors: [RGB, RGB, RGB, RGB]; weights: [number, number, number, number]; count?: number; seed?: number }) {
   const hostRef = useRef<HTMLDivElement | null>(null)
   const portalRef = useRef<HTMLDivElement | null>(null)
   // Update shader uniforms when props change without re-rendering Canvas
@@ -163,7 +172,7 @@ export function ParticlesScene({ colors, weights, count = 6000 }: { colors: [RGB
         }}
       >
         <ambientLight intensity={0.5} />
-        <CustomGeometryParticles count={count} />
+        <CustomGeometryParticles count={count} seed={seed} />
       </Canvas>
   )
 
