@@ -14,21 +14,25 @@ import type { Food } from '@/lib/nutrition/foods'
 import { fetchFoods } from '@/lib/nutrition/foods'
 import { fetchUserInventory, upsertUserInventoryByFoodId } from '@/lib/nutrition/db'
 import { HEALTHY_RECIPES } from '@/lib/nutrition/recipes'
+import { feasibilityForRecipe } from '@/lib/nutrition/calc'
+import type { Ingredient, NutrientsPer100 } from '@/lib/nutrition/types'
 
 function round(n: number, d = 2) { return Math.round(n * Math.pow(10, d)) / Math.pow(10, d) }
 
 export function IngredientList() {
   const [foods, setFoods] = useState<Food[]>([])
   const [filter, setFilter] = useState('')
-  const [targets, setTargets] = useState({ carbs: 0, fats: 0, protein: 0 })
   const [selection, setSelection] = useState<Record<string, number>>({}) // foodId -> base amount (g/ml or pieces)
-  const [pax, setPax] = useState<number | null>(null)
   const [generated, setGenerated] = useState<null | Array<{ food: Food; total: number; perPerson: number }>>(null)
   const [showResetDialog, setShowResetDialog] = useState(false)
 
   // Sidebar filter state
   const [onlySelected, setOnlySelected] = useState(false)
   const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({})
+
+  // Recipe feasibility state
+  const [recipePax] = useState<number>(1)
+  const [remoteInv, setRemoteInv] = useState<Record<string, number>>({})
 
   useEffect(() => { fetchFoods().then(setFoods).catch(() => setFoods([])) }, [])
   useEffect(() => {
@@ -42,11 +46,116 @@ export function IngredientList() {
     })()
   }, [])
 
+  // Load remote inventory for recipe feasibility
+  useEffect(() => {
+    let active = true
+    const load = async () => {
+      try {
+        const inv = await fetchUserInventory()
+        if (active) setRemoteInv(inv)
+      } catch { /* ignore */ }
+    }
+    load()
+    const onChange = () => { void load() }
+    try { if (typeof window !== 'undefined') window.addEventListener('fitspo:inventory_changed', onChange) } catch { /* ignore */ }
+    return () => {
+      active = false
+      try { if (typeof window !== 'undefined') window.removeEventListener('fitspo:inventory_changed', onChange) } catch { /* ignore */ }
+    }
+  }, [])
+
   const categories = useMemo(() => {
     const set = new Set<string>()
     foods.forEach(f => { if (f.category) set.add(f.category) })
     return Array.from(set).sort()
   }, [foods])
+
+  // Name normalization and inventory index for recipe feasibility
+  const normalize = (s: string) => {
+    const cleaned = s
+      .toLowerCase()
+      .replace(/\(.*?\)/g, '')
+      .replace(/\b(raw|cooked|uncooked)\b/g, '')
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim()
+    // singularize
+    const singular = cleaned.split(' ').map(w => {
+      if (/(ss)$/.test(w)) return w
+      if (/(ies)$/.test(w)) return w.replace(/ies$/i, 'y')
+      if (/(ches|shes|xes|zes|ses)$/.test(w)) return w.replace(/es$/i, '')
+      if (/(s)$/.test(w)) return w.replace(/s$/i, '')
+      return w
+    }).join(' ')
+    return singular.replace(/\s+/g, ' ').trim()
+  }
+
+  const canonicalNameMap = useMemo(() => {
+    const map = new Map<string, string>()
+    // Prioritize foods database (including aliases)
+    for (const f of foods) {
+      const key = normalize(f.name)
+      if (!map.has(key)) map.set(key, f.name)
+
+      // Also map aliases to the canonical name
+      for (const alias of f.aliases || []) {
+        const aliasKey = normalize(alias)
+        if (!map.has(aliasKey)) map.set(aliasKey, f.name)
+      }
+    }
+    return map
+  }, [foods])
+
+  // Build inventory index by name (compatible with feasibilityForRecipe)
+  const invIndex = useMemo(() => {
+    const byName = new Map<string, Ingredient>()
+
+    // Map food_id -> name
+    const foodIdToName = new Map<string, string>()
+    for (const f of foods) foodIdToName.set(f.id, f.name)
+
+    // Remote amounts keyed by food name
+    const remoteByName = new Map<string, number>()
+    for (const [foodId, amt] of Object.entries(remoteInv || {})) {
+      const nm = foodIdToName.get(foodId)
+      if (nm) remoteByName.set(nm, Number(amt) || 0)
+    }
+
+    // Add foods from inventory
+    for (const f of foods) {
+      const name = f.name
+      const amount = remoteByName.get(name) || 0
+
+      const nutrients: NutrientsPer100 = {
+        macros: {
+          carbs: f.carbs_per_100 || 0,
+          fats: f.fats_per_100 || 0,
+          protein: f.protein_per_100 || 0
+        },
+        micros: f.micros || {}
+      }
+
+      const ingredient: Ingredient = {
+        id: `food:${f.id}`,
+        name,
+        available: { amount: 0, unit: 'g' },
+        stdGramsOrMl: amount,
+        pricePerBase: 0,
+        nutrientsPer100: nutrients,
+        category: f.category || undefined
+      }
+
+      byName.set(name, ingredient)
+
+      // Also create mappings for all aliases
+      for (const alias of f.aliases || []) {
+        if (!byName.has(alias)) {
+          byName.set(alias, { ...ingredient, name: alias })
+        }
+      }
+    }
+
+    return byName
+  }, [foods, remoteInv])
 
   const filteredFoods = useMemo(() => {
     const q = filter.trim().toLowerCase()
@@ -61,26 +170,7 @@ export function IngredientList() {
     })
   }, [foods, filter, selectedCategories, onlySelected, selection])
 
-  const totals = useMemo(() => {
-    let carbs = 0, fats = 0, protein = 0
-    for (const f of foods) {
-      const amt = selection[f.id] || 0
-      if (amt <= 0) continue
-      const factor = amt / 100
-      carbs += (f.carbs_per_100 || 0) * factor
-      fats += (f.fats_per_100 || 0) * factor
-      protein += (f.protein_per_100 || 0) * factor
-    }
-    return { carbs, fats, protein }
-  }, [foods, selection])
 
-  const macrosSatisfied = useMemo(() => {
-    const tol = 3 // grams tolerance
-    const okC = targets.carbs > 0 ? totals.carbs >= targets.carbs - tol : true
-    const okF = targets.fats > 0 ? totals.fats >= targets.fats - tol : true
-    const okP = targets.protein > 0 ? totals.protein >= targets.protein - tol : true
-    return okC && okF && okP && (targets.carbs + targets.fats + targets.protein > 0)
-  }, [totals, targets])
 
   // Calculate inventory and available recipes counts
   const inventoryCount = useMemo(() => {
@@ -89,51 +179,53 @@ export function IngredientList() {
 
   const availableRecipesCount = useMemo(() => {
     return HEALTHY_RECIPES.filter(recipe => {
-      return recipe.ingredients.every(ingredient => {
-        // Find matching food by name (case insensitive)
-        const food = foods.find(f => f.name.toLowerCase() === ingredient.name.toLowerCase())
-        if (!food) return false
+      try {
+        // Use the same feasibility check as RecipeCards
+        const feas = feasibilityForRecipe(recipe, recipePax, invIndex)
+        return feas.canMake
+      } catch {
+        // Fallback to simple check if feasibility fails
+        return recipe.ingredients.every(ingredient => {
+          const canonicalName = canonicalNameMap.get(normalize(ingredient.name)) || ingredient.name
+          const invItem = invIndex.get(canonicalName)
+          if (!invItem || invItem.stdGramsOrMl <= 0) return false
 
-        const availableAmount = selection[food.id] || 0
-        if (availableAmount <= 0) return false
+          // Simple unit conversion for fallback
+          let ingredientAmount = ingredient.quantity.amount
+          switch (ingredient.quantity.unit) {
+            case 'g':
+            case 'ml':
+              break
+            case 'kg':
+              ingredientAmount *= 1000
+              break
+            case 'mg':
+              ingredientAmount /= 1000
+              break
+            case 'l':
+              ingredientAmount *= 1000
+              break
+            case 'cup':
+              ingredientAmount *= 240
+              break
+            case 'tbsp':
+              ingredientAmount *= 15
+              break
+            case 'tsp':
+              ingredientAmount *= 5
+              break
+            case 'piece':
+              ingredientAmount = 1
+              break
+            default:
+              return false
+          }
 
-        // Convert ingredient quantity to base unit (g/ml)
-        let ingredientAmount = ingredient.quantity.amount
-        switch (ingredient.quantity.unit) {
-          case 'g':
-          case 'ml':
-            // Already in base unit
-            break
-          case 'kg':
-            ingredientAmount *= 1000
-            break
-          case 'mg':
-            ingredientAmount /= 1000
-            break
-          case 'l':
-            ingredientAmount *= 1000
-            break
-          case 'cup':
-            ingredientAmount *= 240 // Approximate conversion
-            break
-          case 'tbsp':
-            ingredientAmount *= 15
-            break
-          case 'tsp':
-            ingredientAmount *= 5
-            break
-          case 'piece':
-            // For pieces, assume we need at least 1 piece
-            ingredientAmount = 1
-            break
-          default:
-            return false // Unknown unit
-        }
-
-        return availableAmount >= ingredientAmount
-      })
+          return invItem.stdGramsOrMl >= ingredientAmount
+        })
+      }
     }).length
-  }, [selection, foods])
+  }, [recipePax, invIndex, canonicalNameMap])
 
   const saveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
   const handleAmountChange = (id: string, value: number) => {
@@ -150,21 +242,10 @@ export function IngredientList() {
     }, 500)
   }
 
-  const handleGenerate = () => {
-    if (!macrosSatisfied || !pax || pax <= 0) return
-    const rows: Array<{ food: Food; total: number; perPerson: number }> = []
-    for (const f of foods) {
-      const total = selection[f.id] || 0
-      if (total <= 0) continue
-      rows.push({ food: f, total, perPerson: total / pax })
-    }
-    setGenerated(rows)
-  }
 
   const handleResetInventory = async () => {
     setSelection({})
     setGenerated(null)
-    setPax(null)
     setShowResetDialog(false)
 
     // Clear all inventory in database

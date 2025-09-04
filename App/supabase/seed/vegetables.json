@@ -362,7 +362,7 @@
     },
     {
       "name": "Sweet potato",
-      "aliases": ["Orange sweet potato", "Ipomoea batatas", "Yam"],
+      "aliases": ["Orange sweet potato", "Ipomoea batatas", "Yam", "Sweet potato"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 20.12,
@@ -1520,15 +1520,6 @@
       "carbs": 6.8,
       "fats": 0.5,
       "protein": 2.2
-    },
-    {
-      "name": "Sweet potato",
-      "aliases": ["Sweet potato", "Yam", "Ipomoea batatas"],
-      "category": "Vegetables",
-      "unit_kind": "mass",
-      "carbs": 20.1,
-      "fats": 0.1,
-      "protein": 1.6
     },
     {
       "name": "Cauliflower",
