@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import type { Food } from '@/lib/nutrition/foods'
 import { fetchFoods } from '@/lib/nutrition/foods'
 import { fetchUserInventory, upsertUserInventoryByFoodId } from '@/lib/nutrition/db'
+import { HEALTHY_RECIPES } from '@/lib/nutrition/recipes'
 
 function round(n: number, d = 2) { return Math.round(n * Math.pow(10, d)) / Math.pow(10, d) }
 
@@ -26,13 +27,7 @@ export function IngredientList() {
   const [showResetDialog, setShowResetDialog] = useState(false)
 
   // Sidebar filter state
-  const [unitKinds, setUnitKinds] = useState<{ mass: boolean; volume: boolean; count: boolean }>({ mass: true, volume: true, count: true })
   const [onlySelected, setOnlySelected] = useState(false)
-  const [macroRange, setMacroRange] = useState<{ carbs: { min: number | null; max: number | null }; fats: { min: number | null; max: number | null }; protein: { min: number | null; max: number | null } }>({
-    carbs: { min: null, max: null },
-    fats: { min: null, max: null },
-    protein: { min: null, max: null }
-  })
   const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({})
 
   useEffect(() => { fetchFoods().then(setFoods).catch(() => setFoods([])) }, [])
@@ -58,20 +53,13 @@ export function IngredientList() {
     const hasCategoryFilters = Object.values(selectedCategories).some(Boolean)
     return foods.filter((f) => {
       if (q && !(f.name.toLowerCase().includes(q) || (f.category?.toLowerCase().includes(q) ?? false))) return false
-      if (!unitKinds[f.unit_kind]) return false
       if (hasCategoryFilters) {
         if (!f.category || !selectedCategories[f.category]) return false
       }
-      if (macroRange.carbs.min != null && f.carbs_per_100 < macroRange.carbs.min) return false
-      if (macroRange.carbs.max != null && f.carbs_per_100 > macroRange.carbs.max) return false
-      if (macroRange.fats.min != null && f.fats_per_100 < macroRange.fats.min) return false
-      if (macroRange.fats.max != null && f.fats_per_100 > macroRange.fats.max) return false
-      if (macroRange.protein.min != null && f.protein_per_100 < macroRange.protein.min) return false
-      if (macroRange.protein.max != null && f.protein_per_100 > macroRange.protein.max) return false
       if (onlySelected && !(selection[f.id] > 0)) return false
       return true
     })
-  }, [foods, filter, unitKinds, selectedCategories, macroRange, onlySelected, selection])
+  }, [foods, filter, selectedCategories, onlySelected, selection])
 
   const totals = useMemo(() => {
     let carbs = 0, fats = 0, protein = 0
@@ -93,6 +81,59 @@ export function IngredientList() {
     const okP = targets.protein > 0 ? totals.protein >= targets.protein - tol : true
     return okC && okF && okP && (targets.carbs + targets.fats + targets.protein > 0)
   }, [totals, targets])
+
+  // Calculate inventory and available recipes counts
+  const inventoryCount = useMemo(() => {
+    return Object.values(selection).filter(amount => amount > 0).length
+  }, [selection])
+
+  const availableRecipesCount = useMemo(() => {
+    return HEALTHY_RECIPES.filter(recipe => {
+      return recipe.ingredients.every(ingredient => {
+        // Find matching food by name (case insensitive)
+        const food = foods.find(f => f.name.toLowerCase() === ingredient.name.toLowerCase())
+        if (!food) return false
+
+        const availableAmount = selection[food.id] || 0
+        if (availableAmount <= 0) return false
+
+        // Convert ingredient quantity to base unit (g/ml)
+        let ingredientAmount = ingredient.quantity.amount
+        switch (ingredient.quantity.unit) {
+          case 'g':
+          case 'ml':
+            // Already in base unit
+            break
+          case 'kg':
+            ingredientAmount *= 1000
+            break
+          case 'mg':
+            ingredientAmount /= 1000
+            break
+          case 'l':
+            ingredientAmount *= 1000
+            break
+          case 'cup':
+            ingredientAmount *= 240 // Approximate conversion
+            break
+          case 'tbsp':
+            ingredientAmount *= 15
+            break
+          case 'tsp':
+            ingredientAmount *= 5
+            break
+          case 'piece':
+            // For pieces, assume we need at least 1 piece
+            ingredientAmount = 1
+            break
+          default:
+            return false // Unknown unit
+        }
+
+        return availableAmount >= ingredientAmount
+      })
+    }).length
+  }, [selection, foods])
 
   const saveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
   const handleAmountChange = (id: string, value: number) => {
@@ -139,29 +180,20 @@ export function IngredientList() {
 
   return (
     <div className="grid gap-3">
-      <Card className="p-3 grid gap-3">
-        <div className="grid md:grid-cols-3 gap-2">
-          <div className="grid gap-1">
-            <div className="text-xs text-muted-foreground">Target Carbs (g)</div>
-            <Input type="number" value={targets.carbs || ''} onChange={(e) => setTargets({ ...targets, carbs: parseFloat(e.target.value) || 0 })} />
+      <div className="grid md:grid-cols-2 gap-3">
+        <Card className="p-4">
+          <div className="text-center">
+            <div className="text-3xl font-bold text-primary">{inventoryCount}</div>
+            <div className="text-sm text-muted-foreground">Ingredients in Inventory</div>
           </div>
-          <div className="grid gap-1">
-            <div className="text-xs text-muted-foreground">Target Fats (g)</div>
-            <Input type="number" value={targets.fats || ''} onChange={(e) => setTargets({ ...targets, fats: parseFloat(e.target.value) || 0 })} />
+        </Card>
+        <Card className="p-4">
+          <div className="text-center">
+            <div className="text-3xl font-bold text-green-600">{availableRecipesCount}</div>
+            <div className="text-sm text-muted-foreground">Available Recipes</div>
           </div>
-          <div className="grid gap-1">
-            <div className="text-xs text-muted-foreground">Target Protein (g)</div>
-            <Input type="number" value={targets.protein || ''} onChange={(e) => setTargets({ ...targets, protein: parseFloat(e.target.value) || 0 })} />
-          </div>
-        </div>
-        <div className="text-xs">Totals: C {round(totals.carbs)}g • F {round(totals.fats)}g • P {round(totals.protein)}g</div>
-        <div className="grid md:grid-cols-3 gap-2 items-end">
-          <div className="grid gap-1 md:col-span-2">
-            <div className="text-xs text-muted-foreground">Pax</div>
-            <Input type="number" value={pax ?? ''} onChange={(e) => setPax(parseInt(e.target.value) || null)} disabled={!macrosSatisfied} />
-          </div>
-        </div>
-      </Card>
+        </Card>
+      </div>
 
       <div className="grid gap-3 md:grid-cols-[260px_1fr]">
         {/* Sidebar Filters */}
@@ -176,21 +208,6 @@ export function IngredientList() {
               <Checkbox id="only-selected" variant="chip" checked={onlySelected} onCheckedChange={(v) => setOnlySelected(Boolean(v))}>
                 <span className="text-xs">Available stock</span>
               </Checkbox>
-            </div>
-            <Separator />
-            <div className="grid gap-2">
-              <div className="text-xs font-medium mb-1">Unit kind</div>
-              <div className="grid gap-1">
-                <Checkbox id="uk-mass" variant="chip" checked={unitKinds.mass} onCheckedChange={(v) => setUnitKinds((s) => ({ ...s, mass: Boolean(v) }))}>
-                  <span className="text-xs">Mass (g)</span>
-                </Checkbox>
-                <Checkbox id="uk-volume" variant="chip" checked={unitKinds.volume} onCheckedChange={(v) => setUnitKinds((s) => ({ ...s, volume: Boolean(v) }))}>
-                  <span className="text-xs">Volume (ml)</span>
-                </Checkbox>
-                <Checkbox id="uk-count" variant="chip" checked={unitKinds.count} onCheckedChange={(v) => setUnitKinds((s) => ({ ...s, count: Boolean(v) }))}>
-                  <span className="text-xs">Count (pcs)</span>
-                </Checkbox>
-              </div>
             </div>
             {!!categories.length && (
               <div className="grid gap-2">
@@ -212,38 +229,8 @@ export function IngredientList() {
               </div>
             )}
             <Separator />
-            <div className="grid gap-2">
-              <div className="text-xs font-medium">Macros</div>
-              <div className="grid grid-cols-1 gap-2 items-end">
-                <div className="grid gap-1">
-                  <Label className="text-xs">Carbs min</Label>
-                  <Input type="number" value={macroRange.carbs.min ?? ''} onChange={(e) => setMacroRange((m) => ({ ...m, carbs: { ...m.carbs, min: e.target.value === '' ? null : parseFloat(e.target.value) } }))} />
-                </div>
-                <div className="grid gap-1">
-                  <Label className="text-xs">Carbs max</Label>
-                  <Input type="number" value={macroRange.carbs.max ?? ''} onChange={(e) => setMacroRange((m) => ({ ...m, carbs: { ...m.carbs, max: e.target.value === '' ? null : parseFloat(e.target.value) } }))} />
-                </div>
-                <div className="grid gap-1">
-                  <Label className="text-xs">Fats min</Label>
-                  <Input type="number" value={macroRange.fats.min ?? ''} onChange={(e) => setMacroRange((m) => ({ ...m, fats: { ...m.fats, min: e.target.value === '' ? null : parseFloat(e.target.value) } }))} />
-                </div>
-                <div className="grid gap-1">
-                  <Label className="text-xs">Fats max</Label>
-                  <Input type="number" value={macroRange.fats.max ?? ''} onChange={(e) => setMacroRange((m) => ({ ...m, fats: { ...m.fats, max: e.target.value === '' ? null : parseFloat(e.target.value) } }))} />
-                </div>
-                <div className="grid gap-1">
-                  <Label className="text-xs">Protein min</Label>
-                  <Input type="number" value={macroRange.protein.min ?? ''} onChange={(e) => setMacroRange((m) => ({ ...m, protein: { ...m.protein, min: e.target.value === '' ? null : parseFloat(e.target.value) } }))} />
-                </div>
-                <div className="grid gap-1">
-                  <Label className="text-xs">Protein max</Label>
-                  <Input type="number" value={macroRange.protein.max ?? ''} onChange={(e) => setMacroRange((m) => ({ ...m, protein: { ...m.protein, max: e.target.value === '' ? null : parseFloat(e.target.value) } }))} />
-                </div>
-              </div>
-            </div>
-            <Separator />
             <div className="flex justify-end">
-              <Button variant="outline" size="sm" onClick={() => { setFilter(''); setUnitKinds({ mass: true, volume: true, count: true }); setSelectedCategories({}); setMacroRange({ carbs: { min: null, max: null }, fats: { min: null, max: null }, protein: { min: null, max: null } }); setOnlySelected(false) }}>Reset filters</Button>
+              <Button variant="outline" size="sm" onClick={() => { setFilter(''); setSelectedCategories({}); setOnlySelected(false) }}>Reset filters</Button>
             </div>
           </div>
         </Card>
