@@ -50,6 +50,9 @@ export default function FitnessGoalPage() {
     void load()
   }, [selectedUserId])
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
+  const [detailsOpen, setDetailsOpen] = useState(false)
+  const activePlan = useMemo(() => plans.find(p => p.id === selectedPlanId) || null, [plans, selectedPlanId])
+
   // Auto-select first active plan (or first plan) when none selected
   useEffect(() => {
     try {
@@ -69,8 +72,6 @@ export default function FitnessGoalPage() {
       syncService.createFitnessRemindersInCalendar(activePlan, selectedUserId).catch(console.error)
     }
   }, [activePlan, selectedUserId])
-  const [detailsOpen, setDetailsOpen] = useState(false)
-  const activePlan = useMemo(() => plans.find(p => p.id === selectedPlanId) || null, [plans, selectedPlanId])
 
   // Sync active plans to database on page load
   useEffect(() => {
