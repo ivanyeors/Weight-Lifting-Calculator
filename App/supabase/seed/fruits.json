@@ -2,7 +2,7 @@
   "foods": [
     {
       "name": "Apple",
-      "aliases": ["Red apple", "Granny Smith", "Fuji apple", "Gala apple"],
+      "aliases": ["Red apple", "Granny Smith", "Fuji apple", "Gala apple", "Apples"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 13.81,
@@ -20,7 +20,7 @@
     },
     {
       "name": "Banana",
-      "aliases": ["Yellow banana", "Plantain", "Cavendish banana"],
+      "aliases": ["Yellow banana", "Plantain", "Cavendish banana", "Bananas"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 22.84,
@@ -29,7 +29,7 @@
     },
     {
       "name": "Apricot",
-      "aliases": ["Fresh apricot", "Dried apricot", "Turkish apricot"],
+      "aliases": ["Fresh apricot", "Dried apricot", "Turkish apricot", "Apricots"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 11.12,
@@ -38,7 +38,7 @@
     },
     {
       "name": "Avocado",
-      "aliases": ["Hass avocado", "Alligator pear", "Butter fruit"],
+      "aliases": ["Hass avocado", "Alligator pear", "Butter fruit", "Avocados"],
       "category": "Fruits",
       "unit_kind": "count",
       "carbs": 12.795,
@@ -47,7 +47,7 @@
     },
     {
       "name": "Blackberry",
-      "aliases": ["Wild blackberry", "Cultivated blackberry", "Bramble"],
+      "aliases": ["Wild blackberry", "Cultivated blackberry", "Bramble", "Blackberries"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 9.61,
@@ -56,7 +56,7 @@
     },
     {
       "name": "Blueberry",
-      "aliases": ["Wild blueberry", "Cultivated blueberry", "Bilberry"],
+      "aliases": ["Wild blueberry", "Cultivated blueberry", "Bilberry", "Blueberries"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 14.49,
@@ -65,7 +65,7 @@
     },
     {
       "name": "Cherry",
-      "aliases": ["Sweet cherry", "Bing cherry", "Rainier cherry"],
+      "aliases": ["Sweet cherry", "Bing cherry", "Rainier cherry", "Cherries"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 16,
@@ -74,7 +74,7 @@
     },
     {
       "name": "Cranberry",
-      "aliases": ["American cranberry", "Bog cranberry", "Cranberry sauce"],
+      "aliases": ["American cranberry", "Bog cranberry", "Cranberry sauce", "Cranberries"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 12.2,
@@ -83,7 +83,7 @@
     },
     {
       "name": "Date",
-      "aliases": ["Medjool date", "Deglet Noor", "Fresh date"],
+      "aliases": ["Medjool date", "Deglet Noor", "Fresh date", "Dates"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 75.03,
@@ -92,7 +92,7 @@
     },
     {
       "name": "Fig",
-      "aliases": ["Fresh fig", "Dried fig", "Mission fig"],
+      "aliases": ["Fresh fig", "Dried fig", "Mission fig", "Figs"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 19.18,
@@ -101,7 +101,7 @@
     },
     {
       "name": "Grape (red)",
-      "aliases": ["Red grape", "Concord grape", "Wine grape"],
+      "aliases": ["Red grape", "Concord grape", "Wine grape", "Grapes"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 18.1,
@@ -110,7 +110,7 @@
     },
     {
       "name": "Grape (green)",
-      "aliases": ["Green grape", "Thompson seedless", "White grape"],
+      "aliases": ["Green grape", "Thompson seedless", "White grape", "Grapes"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 18.1,
@@ -119,7 +119,7 @@
     },
     {
       "name": "Grapefruit",
-      "aliases": ["Pink grapefruit", "White grapefruit", "Ruby red grapefruit"],
+      "aliases": ["Pink grapefruit", "White grapefruit", "Ruby red grapefruit", "Grapefruits"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 8.08,
@@ -128,7 +128,7 @@
     },
     {
       "name": "Guava",
-      "aliases": ["Pink guava", "White guava", "Tropical guava"],
+      "aliases": ["Pink guava", "White guava", "Tropical guava", "Guavas"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 14.32,
@@ -137,7 +137,7 @@
     },
     {
       "name": "Kiwi",
-      "aliases": ["Kiwi fruit", "Chinese gooseberry", "Kiwifruit"],
+      "aliases": ["Kiwi fruit", "Chinese gooseberry", "Kiwifruit", "Kiwis"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 14.66,
@@ -146,7 +146,7 @@
     },
     {
       "name": "Lemon",
-      "aliases": ["Yellow lemon", "Eureka lemon", "Meyer lemon"],
+      "aliases": ["Yellow lemon", "Eureka lemon", "Meyer lemon", "Lemons"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 9.32,
@@ -155,7 +155,7 @@
     },
     {
       "name": "Lime",
-      "aliases": ["Key lime", "Persian lime", "Mexican lime"],
+      "aliases": ["Key lime", "Persian lime", "Mexican lime", "Limes"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 10.54,
@@ -164,7 +164,7 @@
     },
     {
       "name": "Mango",
-      "aliases": ["Indian mango", "Ataulfo mango", "Tommy Atkins mango"],
+      "aliases": ["Indian mango", "Ataulfo mango", "Tommy Atkins mango", "Mangoes"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 14.98,
@@ -173,7 +173,7 @@
     },
     {
       "name": "Cantaloupe",
-      "aliases": ["Rock melon", "Sweet melon", "Muskmelon"],
+      "aliases": ["Rock melon", "Sweet melon", "Muskmelon", "Cantaloupes"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 8.16,
@@ -182,7 +182,7 @@
     },
     {
       "name": "Honeydew",
-      "aliases": ["Honey melon", "Honey dew melon", "Green melon"],
+      "aliases": ["Honey melon", "Honey dew melon", "Green melon", "Honeydews"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 9.09,
@@ -191,7 +191,7 @@
     },
     {
       "name": "Watermelon",
-      "aliases": ["Seedless watermelon", "Yellow watermelon", "Red watermelon"],
+      "aliases": ["Seedless watermelon", "Yellow watermelon", "Red watermelon", "Watermelons"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 7.55,
@@ -200,7 +200,7 @@
     },
     {
       "name": "Nectarine",
-      "aliases": ["Smooth peach", "Stone fruit", "Yellow nectarine"],
+      "aliases": ["Smooth peach", "Stone fruit", "Yellow nectarine", "Nectarines"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 10.55,
@@ -209,7 +209,7 @@
     },
     {
       "name": "Orange",
-      "aliases": ["Navel orange", "Valencia orange", "Blood orange"],
+      "aliases": ["Navel orange", "Valencia orange", "Blood orange", "Oranges"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 11.75,
@@ -218,7 +218,7 @@
     },
     {
       "name": "Papaya",
-      "aliases": ["Pawpaw", "Tree melon", "Mexican papaya"],
+      "aliases": ["Pawpaw", "Tree melon", "Mexican papaya", "Papayas"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 10.82,
@@ -227,7 +227,7 @@
     },
     {
       "name": "Passion fruit",
-      "aliases": ["Passionfruit", "Granadilla", "Purple passionfruit"],
+      "aliases": ["Passionfruit", "Granadilla", "Purple passionfruit", "Passion fruits"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 23.38,
@@ -236,7 +236,7 @@
     },
     {
       "name": "Peach",
-      "aliases": ["Yellow peach", "White peach", "Donut peach"],
+      "aliases": ["Yellow peach", "White peach", "Donut peach", "Peaches"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 9.54,
@@ -245,7 +245,7 @@
     },
     {
       "name": "Pear",
-      "aliases": ["Bartlett pear", "Anjou pear", "Bosc pear"],
+      "aliases": ["Bartlett pear", "Anjou pear", "Bosc pear", "Pears"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 15.23,
@@ -254,7 +254,7 @@
     },
     {
       "name": "Pineapple",
-      "aliases": ["Fresh pineapple", "Hawaiian pineapple", "Golden pineapple"],
+      "aliases": ["Fresh pineapple", "Hawaiian pineapple", "Golden pineapple", "Pineapples"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 13.12,
@@ -263,7 +263,7 @@
     },
     {
       "name": "Plum",
-      "aliases": ["European plum", "Damson plum", "Italian plum"],
+      "aliases": ["European plum", "Damson plum", "Italian plum", "Plums"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 11.42,
@@ -272,7 +272,7 @@
     },
     {
       "name": "Pomegranate",
-      "aliases": ["Punica granatum", "Wonderful pomegranate", "Red pomegranate"],
+      "aliases": ["Punica granatum", "Wonderful pomegranate", "Red pomegranate", "Pomegranates"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 18.7,
@@ -281,7 +281,7 @@
     },
     {
       "name": "Raspberry",
-      "aliases": ["Red raspberry", "Black raspberry", "Summer raspberry"],
+      "aliases": ["Red raspberry", "Black raspberry", "Summer raspberry", "Raspberries"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 11.94,
@@ -290,7 +290,7 @@
     },
     {
       "name": "Strawberry",
-      "aliases": ["Garden strawberry", "Wild strawberry", "Alpine strawberry"],
+      "aliases": ["Garden strawberry", "Wild strawberry", "Alpine strawberry", "Strawberries"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 7.68,
@@ -299,7 +299,7 @@
     },
     {
       "name": "Tangerine",
-      "aliases": ["Mandarin orange", "Satsuma", "Honey tangerine"],
+      "aliases": ["Mandarin orange", "Satsuma", "Honey tangerine", "Tangerines"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 13.34,
@@ -308,7 +308,7 @@
     },
     {
       "name": "Clementine",
-      "aliases": ["Seedless tangerine", "Easy peeler", "Algerian clementine"],
+      "aliases": ["Seedless tangerine", "Easy peeler", "Algerian clementine", "Clementines"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 12.02,
@@ -317,7 +317,7 @@
     },
     {
       "name": "Persimmon",
-      "aliases": ["Kaki fruit", "Sharon fruit", "Fuyu persimmon"],
+      "aliases": ["Kaki fruit", "Sharon fruit", "Fuyu persimmon", "Persimmons"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 18.59,
@@ -326,7 +326,7 @@
     },
     {
       "name": "Dragon fruit",
-      "aliases": ["Pitaya", "Strawberry pear", "Red dragon fruit"],
+      "aliases": ["Pitaya", "Strawberry pear", "Red dragon fruit", "Dragon fruits"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 11,
@@ -335,7 +335,7 @@
     },
     {
       "name": "Lychee",
-      "aliases": ["Litchi", "Chinese cherry", "Fresh lychee"],
+      "aliases": ["Litchi", "Chinese cherry", "Fresh lychee", "Lychees"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 16.53,
@@ -344,7 +344,7 @@
     },
     {
       "name": "Starfruit",
-      "aliases": ["Carambola", "Five corner fruit", "Star fruit"],
+      "aliases": ["Carambola", "Five corner fruit", "Star fruit", "Starfruits"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 7.64,
@@ -353,7 +353,7 @@
     },
     {
       "name": "Coconut meat",
-      "aliases": ["Fresh coconut", "Coconut flesh", "Coconut kernel"],
+      "aliases": ["Fresh coconut", "Coconut flesh", "Coconut kernel", "Coconut meats"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 15.23,
@@ -362,7 +362,7 @@
     },
     {
       "name": "Plantain",
-      "aliases": ["Cooking banana", "Green plantain", "Ripe plantain"],
+      "aliases": ["Cooking banana", "Green plantain", "Ripe plantain", "Plantains"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 31.89,
@@ -371,7 +371,7 @@
     },
     {
       "name": "Boysenberry",
-      "aliases": ["Hybrid berry", "Loganberry cross", "Marionberry"],
+      "aliases": ["Hybrid berry", "Loganberry cross", "Marionberry", "Boysenberries"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 12.5,
@@ -380,7 +380,7 @@
     },
     {
       "name": "Gooseberry",
-      "aliases": ["European gooseberry", "Cape gooseberry", "Golden berry"],
+      "aliases": ["European gooseberry", "Cape gooseberry", "Golden berry", "Gooseberries"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 10.18,
@@ -389,7 +389,7 @@
     },
     {
       "name": "Currant",
-      "aliases": ["Red currant", "Black currant", "White currant"],
+      "aliases": ["Red currant", "Black currant", "White currant", "Currants"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 13.8,
@@ -398,7 +398,7 @@
     },
     {
       "name": "Kumquat",
-      "aliases": ["Mini orange", "Fortunella", "Nagami kumquat"],
+      "aliases": ["Mini orange", "Fortunella", "Nagami kumquat", "Kumquats"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 15.9,
@@ -407,7 +407,7 @@
     },
     {
       "name": "Pomelo",
-      "aliases": ["Pummelo", "Shaddock", "Chinese grapefruit"],
+      "aliases": ["Pummelo", "Shaddock", "Chinese grapefruit", "Pomelos"],
       "category": "Fruits",
       "unit_kind": "mass",
       "carbs": 9.62,
