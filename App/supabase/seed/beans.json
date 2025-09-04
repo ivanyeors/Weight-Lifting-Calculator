@@ -2,7 +2,7 @@
   "foods": [
     {
       "name": "Chickpeas (dry)",
-      "aliases": ["Garbanzo beans", "Chana", "Bengal gram"],
+      "aliases": ["Garbanzo beans", "Chana", "Bengal gram", "Chickpea"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 61,
@@ -116,15 +116,6 @@
       "carbs": 20,
       "fats": 12,
       "protein": 8
-    },
-    {
-      "name": "Garbanzo beans (dry)",
-      "aliases": ["Chickpeas", "Chana", "Bengal gram"],
-      "category": "Beans",
-      "unit_kind": "mass",
-      "carbs": 61,
-      "fats": 6,
-      "protein": 19
     },
     {
       "name": "Lima beans (dry)",

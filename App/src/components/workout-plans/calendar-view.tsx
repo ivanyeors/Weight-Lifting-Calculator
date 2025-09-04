@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { Plus, Calendar as CalendarIcon, PanelLeft, PanelRight, ChefHat, Minus, Moon } from 'lucide-react'
+import { Plus, Calendar as CalendarIcon, PanelLeft, PanelRight, ChefHat, Minus, Moon, Trash2 } from 'lucide-react'
 
 // Schedule-X imports
 import { useCalendarApp, ScheduleXCalendar } from '@schedule-x/react'
@@ -2503,9 +2503,50 @@ export function CalendarView({
                   const day = nutritionDrawerDate
                   const dayEvents = (events || []).filter(ev => ev.extendedProps?.kind === 'water' && (day ? ev.start?.startsWith(day) : false)).slice().sort((a, b) => a.start.localeCompare(b.start))
                   const hasPending = dayEvents.length > 0
+
+                  const resetWaterEvents = async () => {
+                    try {
+                      if (!day) return
+                      // Reset all water events for the day back to pending
+                      const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:water_status_by_day') : null
+                      const store = raw ? JSON.parse(raw) as Record<string, Record<string, 'pending'|'complete'|'missed'>> : {}
+                      const dayMap = store[day] || {}
+                      for (const eventId in dayMap) {
+                        if (dayMap[eventId] === 'complete' || dayMap[eventId] === 'missed') {
+                          dayMap[eventId] = 'pending'
+                        }
+                      }
+                      store[day] = dayMap
+                      localStorage.setItem('fitspo:water_status_by_day', JSON.stringify(store))
+
+                      // Update events state to reset statuses
+                      setEvents(prev => prev.map(e => {
+                        if (e.extendedProps?.kind === 'water' && e.start?.startsWith(day)) {
+                          return { ...e, extendedProps: { ...e.extendedProps, status: 'pending' } }
+                        }
+                        return e
+                      }))
+
+                      // Trigger refresh
+                      window.dispatchEvent(new Event('fitspo:logs_changed'))
+                    } catch {/* ignore */}
+                  }
+
+                  if (!hasPending) {
+                    // All water events completed - show completed status with reset button
+                    return (
+                      <div className="flex items-center gap-2 text-sm">
+                        <div className="text-green-600 font-medium">✓ All water goals completed</div>
+                        <Button size="sm" variant="outline" onClick={resetWaterEvents}>
+                          Reset
+                        </Button>
+                      </div>
+                    )
+                  }
+
                   return (
                     <div className="flex items-center gap-2 text-sm">
-                      <Button size="sm" variant={hasPending ? 'default' : 'outline'} disabled={!hasPending} onClick={async () => {
+                      <Button size="sm" variant="default" onClick={async () => {
                         try {
                           if (!day) return
                           const nearest = dayEvents[0]
@@ -2576,7 +2617,7 @@ export function CalendarView({
                           setEvents(prev => prev.filter(e => !(e.id === nearest.id)))
                         } catch {/* ignore */}
                       }}>Confirm next</Button>
-                      <Button size="sm" variant={hasPending ? 'outline' : 'outline'} disabled={!hasPending} onClick={async () => {
+                      <Button size="sm" variant="outline" onClick={async () => {
                         try {
                           if (!day) return
                           const nearest = dayEvents[0]
@@ -2659,9 +2700,12 @@ export function CalendarView({
                 )}
               </div>
 
+              {/* Meals Section with RecipeCards styling */}
               <div>
-                <div className="text-sm font-medium mb-2">Meals</div>
-                <div className="flex items-center gap-2 text-sm">
+                <div className="text-sm font-medium mb-3">Meals</div>
+
+                {/* Complete All / Missed All / Pending buttons */}
+                <div className="flex items-center gap-2 text-sm mb-4">
                   <Button size="sm" variant={(() => { try { const day = nutritionDrawerDate; if (!day) return 'outline'; const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:food_status_by_day') : null; const map = raw ? JSON.parse(raw) as Record<string,'pending'|'complete'|'missed'> : {}; const s = map[day] || 'pending'; return s==='complete' ? 'default' : 'outline'; } catch { return 'outline' }})()} onClick={() => {
                     try {
                       const day = nutritionDrawerDate
@@ -2672,7 +2716,7 @@ export function CalendarView({
                       localStorage.setItem('fitspo:food_status_by_day', JSON.stringify(map))
                       try { window.dispatchEvent(new Event('fitspo:logs_changed')) } catch { /* ignore */ }
                     } catch {/* ignore */}
-                  }}>Complete</Button>
+                  }}>Complete All</Button>
                   <Button size="sm" variant={(() => { try { const day = nutritionDrawerDate; if (!day) return 'outline'; const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:food_status_by_day') : null; const map = raw ? JSON.parse(raw) as Record<string,'pending'|'complete'|'missed'> : {}; const s = map[day] || 'pending'; return s==='missed' ? 'default' : 'outline'; } catch { return 'outline' }})()} onClick={() => {
                     try {
                       const day = nutritionDrawerDate
@@ -2683,7 +2727,7 @@ export function CalendarView({
                       localStorage.setItem('fitspo:food_status_by_day', JSON.stringify(map))
                       try { window.dispatchEvent(new Event('fitspo:logs_changed')) } catch { /* ignore */ }
                     } catch {/* ignore */}
-                  }}>Missed</Button>
+                  }}>Missed All</Button>
                   <Button size="sm" variant={(() => { try { const day = nutritionDrawerDate; if (!day) return 'outline'; const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:food_status_by_day') : null; const map = raw ? JSON.parse(raw) as Record<string,'pending'|'complete'|'missed'> : {}; const s = map[day] || 'pending'; return s==='pending' ? 'default' : 'outline'; } catch { return 'outline' }})()} onClick={() => {
                     try {
                       const day = nutritionDrawerDate
@@ -2696,16 +2740,26 @@ export function CalendarView({
                     } catch {/* ignore */}
                   }}>Pending</Button>
                 </div>
+
+                {/* Planned Recipes Grid */}
                 {nutritionDrawerDate && nutritionVersion >= 0 && (
-                  <div className="mt-3 space-y-2 text-xs">
-                    <div className="text-xs font-medium">Planned recipes</div>
+                  <div className="space-y-3">
+                    <div className="text-sm font-medium text-muted-foreground">Planned recipes</div>
                     {(() => {
                       try {
                         const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:recipes_by_day') : null
                         const map = raw ? JSON.parse(raw) as Record<string, Array<{ id: string; name: string; pax: number; kcals: number; addedAt: string; status?: 'pending'|'complete'|'missed' }>> : {}
                         const listRaw = Array.isArray(map[nutritionDrawerDate]) ? map[nutritionDrawerDate] : []
                         const list = listRaw.filter(it => it.status !== 'complete')
-                        if (list.length === 0) return <div className="text-muted-foreground">No recipes scheduled.</div>
+
+                        if (list.length === 0) {
+                          return (
+                            <div className="text-center py-8 text-muted-foreground">
+                              <div className="text-sm">No recipes scheduled for today.</div>
+                              <div className="text-xs mt-1">Add recipes using the button below.</div>
+                            </div>
+                          )
+                        }
 
                         // Build inventory by food name from foods + remote inventory
                         const idToName = new Map<string, string>()
@@ -2732,21 +2786,60 @@ export function CalendarView({
                           invByName.set(f.name, ing)
                         }
 
-                        const setStatus = (idx: number, status: 'pending'|'complete'|'missed') => {
+                        const handleRecipeStatusChange = (idx: number, status: 'pending'|'complete'|'missed') => {
                           try {
                             const raw2 = typeof window !== 'undefined' ? localStorage.getItem('fitspo:recipes_by_day') : null
                             const byDay2: Record<string, Array<{ id: string; name: string; pax: number; kcals: number; addedAt: string; status?: 'pending'|'complete'|'missed' }>> = raw2 ? JSON.parse(raw2) : {}
                             const full = Array.isArray(byDay2[nutritionDrawerDate]) ? byDay2[nutritionDrawerDate] : []
-                            const origIndex = full.findIndex((x, i) => i === idx && x.id === list[idx]?.id)
-                            if (origIndex >= 0) full[origIndex].status = status
-                            byDay2[nutritionDrawerDate] = full
-                            if (typeof window !== 'undefined') localStorage.setItem('fitspo:recipes_by_day', JSON.stringify(byDay2))
-                            try { window.dispatchEvent(new Event('fitspo:logs_changed')) } catch { /* ignore */ }
-                          } catch { /* ignore */ }
+
+                            // Find the recipe in the full list (not just the filtered list)
+                            const targetRecipe = list[idx]
+                            if (!targetRecipe) return
+
+                            const origIndex = full.findIndex(item => item.id === targetRecipe.id && item.addedAt === targetRecipe.addedAt)
+                            if (origIndex >= 0) {
+                              full[origIndex].status = status
+                              byDay2[nutritionDrawerDate] = full
+                              if (typeof window !== 'undefined') {
+                                localStorage.setItem('fitspo:recipes_by_day', JSON.stringify(byDay2))
+                                // Trigger re-render by updating nutrition version
+                                setNutritionVersion(prev => prev + 1)
+                                window.dispatchEvent(new Event('fitspo:logs_changed'))
+                              }
+                            }
+                          } catch (error) {
+                            console.error('Error updating recipe status:', error)
+                          }
+                        }
+
+                        const handleRemoveRecipe = (idx: number) => {
+                          try {
+                            const raw2 = typeof window !== 'undefined' ? localStorage.getItem('fitspo:recipes_by_day') : null
+                            const byDay2: Record<string, Array<{ id: string; name: string; pax: number; kcals: number; addedAt: string; status?: 'pending'|'complete'|'missed' }>> = raw2 ? JSON.parse(raw2) : {}
+                            const full = Array.isArray(byDay2[nutritionDrawerDate]) ? byDay2[nutritionDrawerDate] : []
+
+                            // Find the recipe in the full list (not just the filtered list)
+                            const targetRecipe = list[idx]
+                            if (!targetRecipe) return
+
+                            const origIndex = full.findIndex(item => item.id === targetRecipe.id && item.addedAt === targetRecipe.addedAt)
+                            if (origIndex >= 0) {
+                              full.splice(origIndex, 1)
+                              byDay2[nutritionDrawerDate] = full
+                              if (typeof window !== 'undefined') {
+                                localStorage.setItem('fitspo:recipes_by_day', JSON.stringify(byDay2))
+                                // Trigger re-render by updating nutrition version
+                                setNutritionVersion(prev => prev + 1)
+                                window.dispatchEvent(new Event('fitspo:logs_changed'))
+                              }
+                            }
+                          } catch (error) {
+                            console.error('Error removing recipe:', error)
+                          }
                         }
 
                         return (
-                          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                             {list.map((it, idx) => {
                               const recipe = HEALTHY_RECIPES.find(r => r.id === it.id) || { id: it.id, name: it.name, baseServings: it.pax || 1, category: 'Dinner' as const, diets: [], ingredients: [] }
                               let res: { perPerson?: { macros?: { carbs: number; protein: number; fats: number } } } | null = null
@@ -2757,38 +2850,117 @@ export function CalendarView({
                                 { name: 'Protein', value: Math.round(macros.protein) },
                                 { name: 'Fats', value: Math.round(macros.fats) }
                               ] : []
+
                               let feas: { canMake: boolean } = { canMake: true }
                               try { feas = feasibilityForRecipe(recipe, it.pax || 1, invByName) } catch { /* ignore */ }
+
+                              // Create gradient for macro chart
+                              const gradId = `macroGradient-${it.id}-${idx}`
+
                               return (
-                                <Card key={`${it.id}-${idx}`} className={`p-3 flex flex-col gap-3 ${!feas.canMake ? 'opacity-60' : ''}`}>
-                                  <div className="flex items-center justify-between">
-                                    <div>
-                                      <div className="font-medium">{it.name}</div>
-                                      <div className="text-xs text-muted-foreground">{recipe.category || 'Meal'}</div>
+                                <Card key={`${it.id}-${idx}-${it.addedAt}`} className={`p-4 flex flex-col gap-4 border transition-all hover:shadow-md ${!feas.canMake ? 'opacity-60 border-amber-200' : 'border-border'}`}>
+                                  {/* Header with name and pax */}
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex-1 min-w-0">
+                                      <div className="font-semibold text-sm truncate">{it.name}</div>
+                                      <div className="text-xs text-muted-foreground mt-0.5">
+                                        {recipe.category || 'Meal'}
+                                        {Array.isArray(recipe.diets) && recipe.diets.length > 0 && (
+                                          <> • {recipe.diets.slice(0, 2).join(', ')}</>
+                                        )}
+                                      </div>
                                     </div>
-                                    <div className="text-[10px] text-muted-foreground border rounded px-1.5 py-0.5">{it.pax}</div>
+                                    <div className="flex items-center gap-2 ml-2">
+                                      <div className="text-xs bg-muted px-2 py-1 rounded-md font-medium">
+                                        {it.pax} pax
+                                      </div>
+                                    </div>
                                   </div>
-                                  <ChartContainer config={{ value: { label: 'g' } }} className="w-full h-40 aspect-auto px-0">
-                                    <BarChart data={data} layout="vertical" margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
-                                      <CartesianGrid strokeDasharray="3 3" />
-                                      <XAxis type="number" tickLine={false} axisLine={false} tickMargin={0} domain={[0, 'dataMax']} />
-                                      <YAxis type="category" dataKey="name" mirror tickLine={false} axisLine={false} tickMargin={0} width={0} />
-                                      <Bar dataKey="value" fill="hsl(var(--primary))" radius={4} />
-                                      <ChartTooltip content={<ChartTooltipContent />} />
-                                    </BarChart>
-                                  </ChartContainer>
-                                  <div className="flex items-center gap-1 mt-auto">
-                                    <Button size="sm" variant={it.status==='complete' ? 'default' : 'outline'} onClick={() => setStatus(idx, 'complete')}>Complete</Button>
-                                    <Button size="sm" variant={it.status==='missed' ? 'default' : 'outline'} onClick={() => setStatus(idx, 'missed')}>Missed</Button>
-                                    <Button size="sm" variant={(!it.status || it.status==='pending') ? 'default' : 'outline'} onClick={() => setStatus(idx, 'pending')}>Pending</Button>
+
+                                  {/* Nutrition info */}
+                                  {res && res.perPerson && res.perPerson.macros && (
+                                    <div className="space-y-3">
+                                      {/* Per person stats */}
+                                      <div className="flex flex-wrap gap-2 items-center text-xs">
+                                        <span className="text-muted-foreground">Per person:</span>
+                                        <span className="px-2 py-1 rounded border bg-muted/50 font-medium">
+                                          {Math.round((res.perPerson as any).calories || 0)} kcal
+                                        </span>
+                                        <span className="px-2 py-1 rounded border bg-muted/50 font-medium">
+                                          C {Math.round(res.perPerson.macros.carbs)}g
+                                        </span>
+                                        <span className="px-2 py-1 rounded border bg-muted/50 font-medium">
+                                          P {Math.round(res.perPerson.macros.protein)}g
+                                        </span>
+                                        <span className="px-2 py-1 rounded border bg-muted/50 font-medium">
+                                          F {Math.round(res.perPerson.macros.fats)}g
+                                        </span>
+                                      </div>
+
+                                      {/* Macro chart */}
+                                      <div className="w-full">
+                                        <ChartContainer config={{ value: { label: 'g' } }} className="w-full h-20">
+                                          <BarChart data={data} layout="vertical" margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                                            <defs>
+                                              <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="0">
+                                                <stop offset="0%" stopColor="#3b82f6" />
+                                                <stop offset="33%" stopColor="#ef4444" />
+                                                <stop offset="66%" stopColor="#8b5cf6" />
+                                                <stop offset="100%" stopColor="#10b981" />
+                                              </linearGradient>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="3 3" />
+                                            <XAxis type="number" tickLine={false} axisLine={false} tickMargin={0} domain={[0, 'dataMax']} />
+                                            <YAxis type="category" dataKey="name" mirror tickLine={false} axisLine={false} tickMargin={0} width={0} />
+                                            <Bar dataKey="value" fill={`url(#${gradId})`} radius={2} />
+                                            <ChartTooltip content={<ChartTooltipContent />} />
+                                          </BarChart>
+                                        </ChartContainer>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Status and action buttons */}
+                                  <div className="flex items-center justify-between gap-2 mt-auto pt-2 border-t">
+                                    <div className="flex items-center gap-1">
+                                      <Button
+                                        size="sm"
+                                        variant={it.status === 'complete' ? 'default' : 'outline'}
+                                        onClick={() => handleRecipeStatusChange(idx, 'complete')}
+                                        className="text-xs h-7 px-2"
+                                      >
+                                        ✓ Complete
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant={it.status === 'missed' ? 'default' : 'outline'}
+                                        onClick={() => handleRecipeStatusChange(idx, 'missed')}
+                                        className="text-xs h-7 px-2"
+                                      >
+                                        ✗ Missed
+                                      </Button>
+                                    </div>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleRemoveRecipe(idx)}
+                                      className="text-red-600 hover:text-red-700 hover:bg-red-50 h-7 w-7 p-0"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </Button>
                                   </div>
                                 </Card>
                               )
                             })}
                           </div>
                         )
-                      } catch {
-                        return <div className="text-muted-foreground">No recipes scheduled.</div>
+                      } catch (error) {
+                        console.error('Error rendering recipes:', error)
+                        return (
+                          <div className="text-center py-8 text-muted-foreground">
+                            <div className="text-sm">Unable to load recipes.</div>
+                          </div>
+                        )
                       }
                     })()}
                   </div>
