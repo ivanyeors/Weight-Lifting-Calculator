@@ -1,0 +1,64 @@
+{
+  "recipes": [
+    {
+      "recipe_key": "beef-zucchini-noodles",
+      "name": "Beef Zucchini Noodles",
+      "category": "Low Carb",
+      "base_servings": 2,
+      "diets": [
+        "Low Carb",
+        "High Protein",
+        "Gluten Free",
+        "Keto"
+      ],
+      "calories_per_serving": 420,
+      "macros_per_serving": {
+        "carbs": 12,
+        "protein": 45,
+        "fats": 22
+      },
+      "micros_per_serving": {
+        "sodium": 680,
+        "potassium": 890,
+        "fiber": 6,
+        "sugar": 8,
+        "vitaminA_IU": 3200,
+        "vitaminC_mg": 45,
+        "calcium_mg": 140,
+        "iron_mg": 6.8
+      },
+      "ingredients": [
+        {
+          "name": "Ground beef",
+          "quantity_amount": 300,
+          "quantity_unit": "g"
+        },
+        {
+          "name": "Zucchini",
+          "quantity_amount": 4,
+          "quantity_unit": "piece"
+        },
+        {
+          "name": "Tomato sauce",
+          "quantity_amount": 1,
+          "quantity_unit": "cup"
+        },
+        {
+          "name": "Garlic",
+          "quantity_amount": 3,
+          "quantity_unit": "clove"
+        },
+        {
+          "name": "Basil",
+          "quantity_amount": 1,
+          "quantity_unit": "tbsp"
+        },
+        {
+          "name": "Parmesan cheese",
+          "quantity_amount": 50,
+          "quantity_unit": "g"
+        }
+      ]
+    }
+  ]
+}

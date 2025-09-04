@@ -1,0 +1,164 @@
+{
+  "foods": [
+    {
+      "name": "Turmeric powder",
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 67,
+      "fats": 3.3,
+      "protein": 9.7
+    },
+    {
+      "name": "Cumin seeds",
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 44,
+      "fats": 22.3,
+      "protein": 17.8
+    },
+    {
+      "name": "Coriander seeds",
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 55,
+      "fats": 21.9,
+      "protein": 12.4
+    },
+    {
+      "name": "Chili powder",
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 56,
+      "fats": 17,
+      "protein": 12
+    },
+    {
+      "name": "Paprika (ground)",
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 54,
+      "fats": 13,
+      "protein": 14
+    },
+    {
+      "name": "Black pepper (ground)",
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 64,
+      "fats": 3.3,
+      "protein": 10.9
+    },
+    {
+      "name": "White pepper (ground)",
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 68,
+      "fats": 2.1,
+      "protein": 10.4
+    },
+    {
+      "name": "Cinnamon (ground)",
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 81,
+      "fats": 1.2,
+      "protein": 4
+    },
+    {
+      "name": "Cloves (ground)",
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 61,
+      "fats": 13,
+      "protein": 6
+    },
+    {
+      "name": "Nutmeg (ground)",
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 49,
+      "fats": 36.3,
+      "protein": 5.8
+    },
+    {
+      "name": "Cardamom pods",
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 68,
+      "fats": 6.7,
+      "protein": 10.8
+    },
+    {
+      "name": "Star anise",
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 72,
+      "fats": 15.9,
+      "protein": 18
+    },
+    {
+      "name": "Fennel seeds",
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 52,
+      "fats": 14.9,
+      "protein": 15.8
+    },
+    {
+      "name": "Fenugreek seeds",
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 58,
+      "fats": 6.4,
+      "protein": 23
+    },
+    {
+      "name": "Mustard seeds",
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 28,
+      "fats": 36,
+      "protein": 26
+    },
+    {
+      "name": "Curry powder",
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 58,
+      "fats": 14,
+      "protein": 12.6
+    },
+    {
+      "name": "Garam masala",
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 50,
+      "fats": 14,
+      "protein": 14
+    },
+    {
+      "name": "Black pepper (ground)",
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 64,
+      "fats": 3.3,
+      "protein": 10.9
+    },
+    {
+      "name": "Cinnamon (ground)",
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 81,
+      "fats": 1.2,
+      "protein": 4
+    },
+    {
+      "name": "Vanilla extract",
+      "category": "Spices",
+      "unit_kind": "volume",
+      "carbs": 12.7,
+      "fats": 0.1,
+      "protein": 0.1
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "recipes": [
+    {
+      "recipe_key": "keto-egg-avocado-bowl",
+      "name": "Keto Egg & Avocado Bowl",
+      "category": "Keto",
+      "base_servings": 2,
+      "diets": [
+        "Keto",
+        "Low Carb",
+        "High Protein",
+        "Gluten Free",
+        "Paleo"
+      ],
+      "calories_per_serving": 360,
+      "macros_per_serving": {
+        "carbs": 9,
+        "protein": 14,
+        "fats": 28
+      },
+      "micros_per_serving": {
+        "sodium": 140,
+        "potassium": 650,
+        "fiber": 7,
+        "sugar": 1,
+        "vitaminA_IU": 320,
+        "vitaminC_mg": 8,
+        "calcium_mg": 65,
+        "iron_mg": 2.2
+      },
+      "ingredients": [
+        {
+          "name": "Egg",
+          "quantity_amount": 4,
+          "quantity_unit": "piece"
+        },
+        {
+          "name": "Avocado",
+          "quantity_amount": 1,
+          "quantity_unit": "piece"
+        },
+        {
+          "name": "Olive oil",
+          "quantity_amount": 1,
+          "quantity_unit": "tbsp"
+        }
+      ]
+    }
+  ]
+}

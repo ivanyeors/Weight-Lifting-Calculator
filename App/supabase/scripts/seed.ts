@@ -248,20 +248,76 @@ async function main() {
 	const equipmentNameToId = await fetchEquipment()
 	await upsertExerciseEquipment(equipmentSeed.exercise_equipment, equipmentNameToId)
 
-	// Foods
+	// Foods - Load from category-specific files for better scalability
 	try {
-		const foodsSeed = await readJson<{ foods: Array<{ name: string; category?: string; unit_kind: 'mass'|'volume'|'count'; carbs_per_100: number; fats_per_100: number; protein_per_100: number; micros?: Record<string, number> }> }>('foods.json')
-		await upsertFoods(foodsSeed.foods)
+		const categoryFiles = [
+			'vegetables.json',
+			'fruits.json',
+			'meat.json',
+			'dairy_eggs.json',
+			'seafood.json',
+			'condiments.json',
+			'grains.json',
+			'beans.json',
+			'spices.json',
+			'nuts_seeds.json',
+			'beverages.json'
+		]
+
+		const allFoods: Array<{ name: string; category?: string; unit_kind: 'mass'|'volume'|'count'; carbs_per_100: number; fats_per_100: number; protein_per_100: number; micros?: Record<string, number> }> = []
+
+		for (const file of categoryFiles) {
+			try {
+				const categorySeed = await readJson<{ foods: Array<{ name: string; category?: string; unit_kind: 'mass'|'volume'|'count'; carbs_per_100: number; fats_per_100: number; protein_per_100: number; micros?: Record<string, number> }> }>(file)
+				allFoods.push(...categorySeed.foods)
+				console.log(`Loaded ${categorySeed.foods.length} foods from ${file}`)
+			} catch (fileErr) {
+				console.warn(`Failed to load ${file}:`, fileErr)
+			}
+		}
+
+		if (allFoods.length > 0) {
+			await upsertFoods(allFoods)
+			console.log(`Successfully seeded ${allFoods.length} foods from ${categoryFiles.length} category files`)
+		} else {
+			console.warn('No foods loaded from category files; skipping foods seed')
+		}
 	} catch (e) {
-		console.warn('foods.json not found or failed to load; skipping foods seed')
+		console.warn('Failed to load foods from category files; skipping foods seed:', e)
 	}
 
-	// Recipes
+	// Recipes - Load from diet-specific files for better scalability
 	try {
-		const recipesSeed = await readJson<RecipesJson>('recipes.json')
-		await upsertRecipesWithIngredients(recipesSeed.recipes)
+		const dietCategoryFiles = [
+			'balanced_diet_recipes.json',
+			'high_protein_diet_recipes.json',
+			'keto_diet_recipes.json',
+			'low_carb_diet_recipes.json',
+			'mediterranean_diet_recipes.json',
+			'vegan_diet_recipes.json',
+			'vegetarian_diet_recipes.json'
+		]
+
+		const allRecipes: RecipesJson['recipes'] = []
+
+		for (const file of dietCategoryFiles) {
+			try {
+				const categorySeed = await readJson<RecipesJson>(file)
+				allRecipes.push(...categorySeed.recipes)
+				console.log(`Loaded ${categorySeed.recipes.length} recipes from ${file}`)
+			} catch (fileErr) {
+				console.warn(`Failed to load ${file}:`, fileErr)
+			}
+		}
+
+		if (allRecipes.length > 0) {
+			await upsertRecipesWithIngredients(allRecipes)
+			console.log(`Successfully seeded ${allRecipes.length} recipes from ${dietCategoryFiles.length} diet category files`)
+		} else {
+			console.warn('No recipes loaded from diet category files; skipping recipes seed')
+		}
 	} catch (e) {
-		console.warn('recipes.json not found or failed to load; skipping recipes seed')
+		console.warn('Failed to load recipes from diet category files; skipping recipes seed:', e)
 	}
 
 	console.log('Seed completed')

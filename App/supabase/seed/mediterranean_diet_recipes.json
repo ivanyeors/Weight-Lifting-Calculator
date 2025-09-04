@@ -1,0 +1,50 @@
+{
+  "recipes": [
+    {
+      "recipe_key": "mediterranean-chicken-salad",
+      "name": "Mediterranean Chicken Salad",
+      "category": "Mediterranean",
+      "base_servings": 2,
+      "diets": [
+        "Mediterranean",
+        "High Protein",
+        "Gluten Free",
+        "Paleo",
+        "DASH"
+      ],
+      "calories_per_serving": 290,
+      "macros_per_serving": {
+        "carbs": 6,
+        "protein": 32,
+        "fats": 12
+      },
+      "micros_per_serving": {
+        "sodium": 320,
+        "potassium": 780,
+        "fiber": 4,
+        "sugar": 1,
+        "vitaminA_IU": 5800,
+        "vitaminC_mg": 24,
+        "calcium_mg": 85,
+        "iron_mg": 3.2
+      },
+      "ingredients": [
+        {
+          "name": "Chicken breast",
+          "quantity_amount": 250,
+          "quantity_unit": "g"
+        },
+        {
+          "name": "Olive oil",
+          "quantity_amount": 1,
+          "quantity_unit": "tbsp"
+        },
+        {
+          "name": "Spinach",
+          "quantity_amount": 200,
+          "quantity_unit": "g"
+        }
+      ]
+    }
+  ]
+}

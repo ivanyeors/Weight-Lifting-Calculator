@@ -1,0 +1,636 @@
+{
+  "foods": [
+    {
+      "name": "Chicken breast (lean)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 3.6,
+      "protein": 31
+    },
+    {
+      "name": "Chicken breast",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 1.2,
+      "protein": 31
+    },
+    {
+      "name": "Ground beef (lean)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 10,
+      "protein": 26
+    },
+    {
+      "name": "Ground beef (regular)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 20,
+      "protein": 25
+    },
+    {
+      "name": "Ground beef (extra lean)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 5,
+      "protein": 27
+    },
+    {
+      "name": "Chicken thigh (skinless)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 10,
+      "protein": 16.4
+    },
+    {
+      "name": "Chicken thigh (skin-on)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 15,
+      "protein": 16
+    },
+    {
+      "name": "Chicken drumstick (skinless)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 8.2,
+      "protein": 18.3
+    },
+    {
+      "name": "Chicken drumstick (skin-on)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 12,
+      "protein": 18
+    },
+    {
+      "name": "Chicken wing (skin-on)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 13.6,
+      "protein": 17.5
+    },
+    {
+      "name": "Chicken wing (skinless)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 8,
+      "protein": 20
+    },
+    {
+      "name": "Chicken liver",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0.7,
+      "fats": 4.8,
+      "protein": 16.9
+    },
+    {
+      "name": "Chicken heart",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0.7,
+      "fats": 9.3,
+      "protein": 15.6
+    },
+    {
+      "name": "Chicken gizzard",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 2.7,
+      "protein": 30.4
+    },
+    {
+      "name": "Turkey breast (lean)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 1.2,
+      "protein": 30.1
+    },
+    {
+      "name": "Turkey thigh",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 8.5,
+      "protein": 19.7
+    },
+    {
+      "name": "Turkey drumstick",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 7.8,
+      "protein": 20.9
+    },
+    {
+      "name": "Turkey ground",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 8.5,
+      "protein": 27.4
+    },
+    {
+      "name": "Duck breast (skin-on)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 28,
+      "protein": 19
+    },
+    {
+      "name": "Duck breast (skinless)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 4.6,
+      "protein": 23.5
+    },
+    {
+      "name": "Duck leg (skin-on)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 25,
+      "protein": 18
+    },
+    {
+      "name": "Duck leg (skinless)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 8.5,
+      "protein": 23.5
+    },
+    {
+      "name": "Beef sirloin (lean)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 8.6,
+      "protein": 21.5
+    },
+    {
+      "name": "Beef sirloin (fatty)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 15,
+      "protein": 20
+    },
+    {
+      "name": "Beef ribeye",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 20,
+      "protein": 19.5
+    },
+    {
+      "name": "Beef tenderloin",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 7,
+      "protein": 20.5
+    },
+    {
+      "name": "Beef brisket",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 21,
+      "protein": 18
+    },
+    {
+      "name": "Beef chuck",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 17,
+      "protein": 19
+    },
+    {
+      "name": "Beef short rib",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 28,
+      "protein": 16
+    },
+    {
+      "name": "Beef shank",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 7.7,
+      "protein": 21.4
+    },
+    {
+      "name": "Beef round (top)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 6.5,
+      "protein": 23.6
+    },
+    {
+      "name": "Beef round (bottom)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 8.9,
+      "protein": 22.2
+    },
+    {
+      "name": "Beef flank steak",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 6.3,
+      "protein": 22.4
+    },
+    {
+      "name": "Beef skirt steak",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 12.6,
+      "protein": 18.4
+    },
+    {
+      "name": "Beef hanger steak",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 8.7,
+      "protein": 21.9
+    },
+    {
+      "name": "Beef tri-tip",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 7.1,
+      "protein": 22.4
+    },
+    {
+      "name": "Oxtail",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 26,
+      "protein": 17.2
+    },
+    {
+      "name": "Beef liver",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 5.1,
+      "fats": 3.6,
+      "protein": 20.4
+    },
+    {
+      "name": "Beef kidney",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0.3,
+      "fats": 3.1,
+      "protein": 17.4
+    },
+    {
+      "name": "Beef heart",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0.1,
+      "fats": 3.9,
+      "protein": 17.7
+    },
+    {
+      "name": "Beef tongue",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 3.7,
+      "fats": 16.1,
+      "protein": 14.9
+    },
+    {
+      "name": "Pork loin chop (lean)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 9.3,
+      "protein": 21.2
+    },
+    {
+      "name": "Pork loin chop (fatty)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 18,
+      "protein": 19
+    },
+    {
+      "name": "Pork shoulder (butt)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 20,
+      "protein": 17.4
+    },
+    {
+      "name": "Pork shoulder (lean)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 12,
+      "protein": 20
+    },
+    {
+      "name": "Pork belly",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 53,
+      "protein": 9.3
+    },
+    {
+      "name": "Pork tenderloin",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 4.3,
+      "protein": 21.8
+    },
+    {
+      "name": "Pork spare ribs",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 21.5,
+      "protein": 16.4
+    },
+    {
+      "name": "Pork baby back ribs",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 18.2,
+      "protein": 18.5
+    },
+    {
+      "name": "Pork neck",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 25,
+      "protein": 15
+    },
+    {
+      "name": "Ground pork (lean)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 15,
+      "protein": 17
+    },
+    {
+      "name": "Ground pork (regular)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 25,
+      "protein": 16
+    },
+    {
+      "name": "Lamb leg (lean)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 9,
+      "protein": 20
+    },
+    {
+      "name": "Lamb leg (fatty)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 18,
+      "protein": 18
+    },
+    {
+      "name": "Lamb shoulder",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 23,
+      "protein": 17
+    },
+    {
+      "name": "Lamb loin chop",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 20,
+      "protein": 18
+    },
+    {
+      "name": "Lamb rack",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 25,
+      "protein": 18
+    },
+    {
+      "name": "Lamb shank",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 13,
+      "protein": 19
+    },
+    {
+      "name": "Lamb neck",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 28,
+      "protein": 16
+    },
+    {
+      "name": "Lamb liver",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 1.8,
+      "fats": 5.3,
+      "protein": 20.4
+    },
+    {
+      "name": "Goat leg",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 3,
+      "protein": 20.6
+    },
+    {
+      "name": "Goat shoulder",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 5,
+      "protein": 20
+    },
+    {
+      "name": "Goat loin",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 4.2,
+      "protein": 21.1
+    },
+    {
+      "name": "Goat rib",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 8.9,
+      "protein": 19.2
+    },
+    {
+      "name": "Venison loin (lean)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 3.2,
+      "protein": 30.2
+    },
+    {
+      "name": "Venison shoulder",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 4.5,
+      "protein": 28.5
+    },
+    {
+      "name": "Venison tenderloin",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 2.8,
+      "protein": 30.9
+    },
+    {
+      "name": "Rabbit loin",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 3.5,
+      "protein": 29.1
+    },
+    {
+      "name": "Rabbit leg",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 5.6,
+      "protein": 26.8
+    },
+    {
+      "name": "Bison loin (lean)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 2.4,
+      "protein": 28.4
+    },
+    {
+      "name": "Bison ribeye",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 8.6,
+      "protein": 24.5
+    },
+    {
+      "name": "Quail breast",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 4.5,
+      "protein": 24.8
+    },
+    {
+      "name": "Quail leg",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 8.1,
+      "protein": 21.9
+    },
+    {
+      "name": "Pheasant breast",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 3.2,
+      "protein": 30.6
+    },
+    {
+      "name": "Pheasant leg",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 7.4,
+      "protein": 25.8
+    },
+    {
+      "name": "Tofu (firm)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 1.9,
+      "fats": 4.8,
+      "protein": 8.1
+    },
+    {
+      "name": "Tofu (soft)",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 2.9,
+      "fats": 2.7,
+      "protein": 7.8
+    },
+    {
+      "name": "Tempeh",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 9.4,
+      "fats": 10.8,
+      "protein": 19
+    },
+    {
+      "name": "Seitan",
+      "category": "Meat",
+      "unit_kind": "mass",
+      "carbs": 14.1,
+      "fats": 0.6,
+      "protein": 25.1
+    }
+  ]
+}
