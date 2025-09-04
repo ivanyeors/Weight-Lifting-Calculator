@@ -216,11 +216,16 @@ export function LoginForm({
               </div>
             </div>
           </form>
-          <div className="bg-muted relative hidden md:block">
+          <div
+            className="relative hidden md:flex items-center justify-center p-8"
+            style={{
+              background: 'radial-gradient(circle at center, #283DFF 0%, #060612 100%)'
+            }}
+          >
             <img
-              src="/placeholder.svg"
-              alt="Image"
-              className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+              src="/logo-dark.svg"
+              alt="Logo"
+              className="w-32 h-32 object-contain"
             />
           </div>
         </CardContent>
