@@ -79,6 +79,20 @@ export type Recipe = {
   // cached/calculated fields
   totalCostPerServing?: number
   totalNutrientsPerServing?: NutrientsPer100
+  // Optional explicit per-serving nutrition (preferred if present)
+  caloriesPerServing?: number
+  macrosPerServing?: {
+    carbs?: number
+    fats?: number
+    protein?: number
+    // Optional extended macro details for future expansion
+    saturatedFat?: number
+    polyunsaturatedFat?: number
+    monounsaturatedFat?: number
+    fiber?: number
+    sugar?: number
+  }
+  microsPerServing?: Record<string, number>
 }
 
 export type PaxProfile = {

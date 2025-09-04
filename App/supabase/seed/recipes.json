@@ -1,0 +1,1226 @@
+{
+  "recipes": [
+    {
+      "recipe_key": "grilled-chicken-bowl",
+      "name": "Grilled Chicken Bowl",
+      "category": "Lunch",
+      "base_servings": 2,
+      "diets": ["High Protein", "Balanced", "Gluten Free", "Paleo", "DASH", "Low Sodium"],
+      "calories_per_serving": 535,
+      "macros_per_serving": { "carbs": 52, "protein": 38, "fats": 18 },
+      "micros_per_serving": {
+        "sodium": 380,
+        "potassium": 1250,
+        "fiber": 7,
+        "sugar": 5,
+        "vitaminA_IU": 890,
+        "vitaminC_mg": 68,
+        "calcium_mg": 85,
+        "iron_mg": 3.2
+      },
+      "ingredients": [
+        { "name": "Chicken breast", "quantity_amount": 200, "quantity_unit": "g" },
+        { "name": "Brown rice", "quantity_amount": 2, "quantity_unit": "cup" },
+        { "name": "Broccoli", "quantity_amount": 200, "quantity_unit": "g" },
+        { "name": "Olive oil", "quantity_amount": 1, "quantity_unit": "tbsp" }
+      ]
+    },
+    {
+      "recipe_key": "salmon-quinoa-salad",
+      "name": "Salmon Quinoa Salad",
+      "category": "Dinner",
+      "base_servings": 2,
+      "diets": ["Mediterranean", "Pescatarian", "Balanced", "High Protein", "Gluten Free", "DASH", "Low Sodium"],
+      "calories_per_serving": 585,
+      "macros_per_serving": { "carbs": 42, "protein": 31, "fats": 24 },
+      "micros_per_serving": {
+        "sodium": 280,
+        "potassium": 1420,
+        "fiber": 8,
+        "sugar": 3,
+        "vitaminA_IU": 6500,
+        "vitaminC_mg": 25,
+        "calcium_mg": 120,
+        "iron_mg": 4.8
+      },
+      "ingredients": [
+        { "name": "Salmon", "quantity_amount": 250, "quantity_unit": "g" },
+        { "name": "Quinoa", "quantity_amount": 2, "quantity_unit": "cup" },
+        { "name": "Spinach", "quantity_amount": 150, "quantity_unit": "g" },
+        { "name": "Olive oil", "quantity_amount": 1, "quantity_unit": "tbsp" }
+      ]
+    },
+    {
+      "recipe_key": "tofu-stir-fry",
+      "name": "Tofu Veggie Stir-Fry",
+      "category": "Dinner",
+      "base_servings": 2,
+      "diets": ["Vegan", "Vegetarian", "Dairy Free", "Low FODMAP"],
+      "calories_per_serving": 245,
+      "macros_per_serving": { "carbs": 18, "protein": 16, "fats": 12 },
+      "micros_per_serving": {
+        "sodium": 920,
+        "potassium": 450,
+        "fiber": 5,
+        "sugar": 8,
+        "vitaminA_IU": 1800,
+        "vitaminC_mg": 48,
+        "calcium_mg": 185,
+        "iron_mg": 3.8
+      },
+      "ingredients": [
+        { "name": "Tofu", "quantity_amount": 200, "quantity_unit": "g" },
+        { "name": "Bell pepper", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Mushrooms", "quantity_amount": 150, "quantity_unit": "g" },
+        { "name": "Soy sauce", "quantity_amount": 2, "quantity_unit": "tbsp" }
+      ]
+    },
+    {
+      "recipe_key": "greek-yogurt-parfait",
+      "name": "Greek Yogurt Parfait",
+      "category": "Breakfast",
+      "base_servings": 2,
+      "diets": ["Balanced", "Vegetarian", "DASH", "Low Sodium"],
+      "calories_per_serving": 225,
+      "macros_per_serving": { "carbs": 32, "protein": 22, "fats": 2 },
+      "micros_per_serving": {
+        "sodium": 85,
+        "potassium": 285,
+        "fiber": 4,
+        "sugar": 26,
+        "vitaminA_IU": 120,
+        "vitaminC_mg": 12,
+        "calcium_mg": 280,
+        "iron_mg": 0.8
+      },
+      "ingredients": [
+        { "name": "Greek yogurt", "quantity_amount": 300, "quantity_unit": "g" },
+        { "name": "Blueberry", "quantity_amount": 1, "quantity_unit": "cup" },
+        { "name": "Honey", "quantity_amount": 1, "quantity_unit": "tbsp" }
+      ]
+    },
+    {
+      "recipe_key": "keto-egg-avocado-bowl",
+      "name": "Keto Egg & Avocado Bowl",
+      "category": "Breakfast",
+      "base_servings": 2,
+      "diets": ["Keto", "Low Carb", "High Protein", "Gluten Free", "Paleo"],
+      "calories_per_serving": 360,
+      "macros_per_serving": { "carbs": 9, "protein": 14, "fats": 28 },
+      "micros_per_serving": {
+        "sodium": 140,
+        "potassium": 650,
+        "fiber": 7,
+        "sugar": 1,
+        "vitaminA_IU": 320,
+        "vitaminC_mg": 8,
+        "calcium_mg": 65,
+        "iron_mg": 2.2
+      },
+      "ingredients": [
+        { "name": "Egg", "quantity_amount": 4, "quantity_unit": "piece" },
+        { "name": "Avocado", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Olive oil", "quantity_amount": 1, "quantity_unit": "tbsp" }
+      ]
+    },
+    {
+      "recipe_key": "vegan-chickpea-bowl",
+      "name": "Vegan Chickpea Power Bowl",
+      "category": "Lunch",
+      "base_servings": 2,
+      "diets": ["Vegan", "Vegetarian", "Dairy Free", "Mediterranean", "Balanced"],
+      "calories_per_serving": 460,
+      "macros_per_serving": { "carbs": 68, "protein": 20, "fats": 10 },
+      "micros_per_serving": {
+        "sodium": 240,
+        "potassium": 920,
+        "fiber": 16,
+        "sugar": 6,
+        "vitaminA_IU": 4800,
+        "vitaminC_mg": 18,
+        "calcium_mg": 120,
+        "iron_mg": 6.2
+      },
+      "ingredients": [
+        { "name": "Chickpea", "quantity_amount": 2, "quantity_unit": "cup" },
+        { "name": "Quinoa", "quantity_amount": 1, "quantity_unit": "cup" },
+        { "name": "Spinach", "quantity_amount": 150, "quantity_unit": "g" },
+        { "name": "Olive oil", "quantity_amount": 1, "quantity_unit": "tbsp" }
+      ]
+    },
+    {
+      "recipe_key": "mediterranean-chicken-salad",
+      "name": "Mediterranean Chicken Salad",
+      "category": "Dinner",
+      "base_servings": 2,
+      "diets": ["Mediterranean", "High Protein", "Gluten Free", "Paleo", "DASH"],
+      "calories_per_serving": 290,
+      "macros_per_serving": { "carbs": 6, "protein": 32, "fats": 12 },
+      "micros_per_serving": {
+        "sodium": 320,
+        "potassium": 780,
+        "fiber": 4,
+        "sugar": 1,
+        "vitaminA_IU": 5800,
+        "vitaminC_mg": 24,
+        "calcium_mg": 85,
+        "iron_mg": 3.2
+      },
+      "ingredients": [
+        { "name": "Chicken breast", "quantity_amount": 250, "quantity_unit": "g" },
+        { "name": "Olive oil", "quantity_amount": 1, "quantity_unit": "tbsp" },
+        { "name": "Spinach", "quantity_amount": 200, "quantity_unit": "g" }
+      ]
+    },
+    {
+      "recipe_key": "one-pot-marry-me-tofu",
+      "name": "One Pot Marry Me Tofu",
+      "category": "Dinner",
+      "base_servings": 2,
+      "diets": ["Vegan", "Dairy Free"],
+      "calories_per_serving": 395,
+      "macros_per_serving": { "carbs": 18, "protein": 18, "fats": 26 },
+      "micros_per_serving": {
+        "sodium": 680,
+        "potassium": 520,
+        "fiber": 5,
+        "sugar": 6,
+        "vitaminA_IU": 2800,
+        "vitaminC_mg": 12,
+        "calcium_mg": 240,
+        "iron_mg": 4.8
+      },
+      "ingredients": [
+        { "name": "Tofu", "quantity_amount": 300, "quantity_unit": "g" },
+        { "name": "Vegan butter", "quantity_amount": 1, "quantity_unit": "tbsp" },
+        { "name": "Garlic clove", "quantity_amount": 3, "quantity_unit": "piece" },
+        { "name": "Vegetable broth", "quantity_amount": 1, "quantity_unit": "cup" },
+        { "name": "Coconut milk", "quantity_amount": 1, "quantity_unit": "cup" },
+        { "name": "Sun-dried tomatoes", "quantity_amount": 0.5, "quantity_unit": "cup" },
+        { "name": "Italian seasoning", "quantity_amount": 1, "quantity_unit": "tsp" },
+        { "name": "Red pepper flakes", "quantity_amount": 0.5, "quantity_unit": "tsp" },
+        { "name": "Vegan parmesan cheese", "quantity_amount": 0.5, "quantity_unit": "cup" },
+        { "name": "Fresh basil", "quantity_amount": 0.25, "quantity_unit": "cup" },
+        { "name": "Salt", "quantity_amount": 0.5, "quantity_unit": "tsp" },
+        { "name": "Black pepper", "quantity_amount": 0.25, "quantity_unit": "tsp" }
+      ]
+    },
+    {
+      "recipe_key": "vegan-one-pot-creamy-garlic-parmesan-pasta",
+      "name": "Vegan One Pot Creamy Garlic Parmesan Pasta",
+      "category": "Dinner",
+      "base_servings": 2,
+      "diets": ["Vegan", "Dairy Free"],
+      "calories_per_serving": 395,
+      "macros_per_serving": { "carbs": 41, "protein": 15, "fats": 16 },
+      "micros_per_serving": {
+        "sodium": 620,
+        "potassium": 380,
+        "fiber": 4,
+        "sugar": 2,
+        "vitaminA_IU": 800,
+        "vitaminC_mg": 10,
+        "calcium_mg": 180,
+        "iron_mg": 3.8
+      },
+      "ingredients": [
+        { "name": "Pasta", "quantity_amount": 200, "quantity_unit": "g" },
+        { "name": "Vegan butter", "quantity_amount": 1, "quantity_unit": "tbsp" },
+        { "name": "Garlic clove", "quantity_amount": 3, "quantity_unit": "piece" },
+        { "name": "Vegetable broth", "quantity_amount": 2, "quantity_unit": "cup" },
+        { "name": "Coconut milk", "quantity_amount": 1, "quantity_unit": "cup" },
+        { "name": "Vegan parmesan cheese", "quantity_amount": 0.5, "quantity_unit": "cup" },
+        { "name": "Fresh parsley", "quantity_amount": 0.25, "quantity_unit": "cup" },
+        { "name": "Salt", "quantity_amount": 0.5, "quantity_unit": "tsp" },
+        { "name": "Black pepper", "quantity_amount": 0.25, "quantity_unit": "tsp" }
+      ]
+    },
+    {
+      "recipe_key": "easy-vegan-bread",
+      "name": "Easy Vegan White Bread",
+      "category": "Breakfast",
+      "base_servings": 2,
+      "diets": ["Vegan", "Dairy Free"],
+      "calories_per_serving": 540,
+      "macros_per_serving": { "carbs": 96, "protein": 12, "fats": 9 },
+      "micros_per_serving": {
+        "sodium": 520,
+        "potassium": 240,
+        "fiber": 6,
+        "sugar": 14,
+        "vitaminA_IU": 200,
+        "vitaminC_mg": 2,
+        "calcium_mg": 140,
+        "iron_mg": 4.8
+      },
+      "ingredients": [
+        { "name": "Bread flour", "quantity_amount": 420, "quantity_unit": "g" },
+        { "name": "Vegan cane sugar", "quantity_amount": 50, "quantity_unit": "g" },
+        { "name": "Instant yeast", "quantity_amount": 2.25, "quantity_unit": "tsp" },
+        { "name": "Salt", "quantity_amount": 1, "quantity_unit": "tsp" },
+        { "name": "Non-dairy milk", "quantity_amount": 340, "quantity_unit": "ml" },
+        { "name": "Vegan butter", "quantity_amount": 3, "quantity_unit": "tbsp" }
+      ]
+    },
+    {
+      "recipe_key": "vegan-everything-dough",
+      "name": "Vegan Everything Dough",
+      "category": "Desserts & Snacks",
+      "base_servings": 2,
+      "diets": ["Vegan", "Dairy Free"],
+      "calories_per_serving": 460,
+      "macros_per_serving": { "carbs": 90, "protein": 12, "fats": 4 },
+      "micros_per_serving": {
+        "sodium": 580,
+        "potassium": 200,
+        "fiber": 4,
+        "sugar": 18,
+        "vitaminA_IU": 0,
+        "vitaminC_mg": 0,
+        "calcium_mg": 100,
+        "iron_mg": 5.2
+      },
+      "ingredients": [
+        { "name": "Flour", "quantity_amount": 420, "quantity_unit": "g" },
+        { "name": "Instant yeast", "quantity_amount": 2.25, "quantity_unit": "tsp" },
+        { "name": "Salt", "quantity_amount": 1, "quantity_unit": "tsp" },
+        { "name": "Dairy-free milk", "quantity_amount": 340, "quantity_unit": "ml" },
+        { "name": "Maple syrup", "quantity_amount": 4, "quantity_unit": "tbsp" }
+      ]
+    },
+    {
+      "recipe_key": "10-minute-easy-vegan-cheese-sauce",
+      "name": "10 Minute Easy Vegan Cheese Sauce",
+      "category": "Dinner",
+      "base_servings": 2,
+      "diets": ["Vegan", "Dairy Free", "Gluten Free"],
+      "calories_per_serving": 435,
+      "macros_per_serving": { "carbs": 31, "protein": 22, "fats": 22 },
+      "micros_per_serving": {
+        "sodium": 880,
+        "potassium": 620,
+        "fiber": 10,
+        "sugar": 3,
+        "vitaminA_IU": 2200,
+        "vitaminC_mg": 8,
+        "calcium_mg": 380,
+        "iron_mg": 4.2
+      },
+      "ingredients": [
+        { "name": "Butter beans", "quantity_amount": 425, "quantity_unit": "g" },
+        { "name": "Vegetable stock", "quantity_amount": 120, "quantity_unit": "ml" },
+        { "name": "Dairy-free milk", "quantity_amount": 240, "quantity_unit": "ml" },
+        { "name": "Nutritional yeast", "quantity_amount": 0.33, "quantity_unit": "cup" },
+        { "name": "Vegan butter", "quantity_amount": 4, "quantity_unit": "tbsp" },
+        { "name": "Lemon juice", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Salt", "quantity_amount": 1, "quantity_unit": "tsp" },
+        { "name": "Black pepper", "quantity_amount": 0.5, "quantity_unit": "tsp" },
+        { "name": "Paprika", "quantity_amount": 0.25, "quantity_unit": "tsp" },
+        { "name": "Vegan parmesan cheese", "quantity_amount": 0.5, "quantity_unit": "cup" },
+        { "name": "Vegan shredded cheddar cheese", "quantity_amount": 1, "quantity_unit": "cup" }
+      ]
+    },
+    {
+      "recipe_key": "baked-vegan-mac-and-cheese",
+      "name": "Baked Vegan Mac and Cheese",
+      "category": "Dinner",
+      "base_servings": 2,
+      "diets": ["Vegan", "Dairy Free"],
+      "calories_per_serving": 690,
+      "macros_per_serving": { "carbs": 71, "protein": 25, "fats": 19 },
+      "micros_per_serving": {
+        "sodium": 820,
+        "potassium": 680,
+        "fiber": 12,
+        "sugar": 4,
+        "vitaminA_IU": 2600,
+        "vitaminC_mg": 6,
+        "calcium_mg": 360,
+        "iron_mg": 5.2
+      },
+      "ingredients": [
+        { "name": "Macaroni noodles", "quantity_amount": 200, "quantity_unit": "g" },
+        { "name": "Butter beans", "quantity_amount": 425, "quantity_unit": "g" },
+        { "name": "Dairy-free milk", "quantity_amount": 480, "quantity_unit": "ml" },
+        { "name": "Vegetable stock", "quantity_amount": 120, "quantity_unit": "ml" },
+        { "name": "Vegan butter", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Nutritional yeast", "quantity_amount": 0.33, "quantity_unit": "cup" },
+        { "name": "Lemon juice", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Salt", "quantity_amount": 1, "quantity_unit": "tsp" },
+        { "name": "Black pepper", "quantity_amount": 0.5, "quantity_unit": "tsp" },
+        { "name": "Paprika", "quantity_amount": 0.25, "quantity_unit": "tsp" },
+        { "name": "Vegan shredded cheddar cheese", "quantity_amount": 1, "quantity_unit": "cup" },
+        { "name": "Vegan parmesan cheese", "quantity_amount": 0.5, "quantity_unit": "cup" },
+        { "name": "Panko breadcrumbs", "quantity_amount": 0.33, "quantity_unit": "cup" },
+        { "name": "Olive oil", "quantity_amount": 2, "quantity_unit": "tsp" }
+      ]
+    },
+    {
+      "recipe_key": "dairy-free-mac-and-cheese",
+      "name": "Dairy Free Mac and Cheese (Vegan)",
+      "category": "Dinner",
+      "base_servings": 2,
+      "diets": ["Vegan", "Dairy Free"],
+      "calories_per_serving": 680,
+      "macros_per_serving": { "carbs": 85, "protein": 22, "fats": 28 },
+      "micros_per_serving": {
+        "sodium": 650,
+        "potassium": 580,
+        "fiber": 8,
+        "sugar": 6,
+        "vitaminA_IU": 4200,
+        "vitaminC_mg": 8,
+        "calcium_mg": 120,
+        "iron_mg": 4.8
+      },
+      "ingredients": [
+        { "name": "Pasta", "quantity_amount": 200, "quantity_unit": "g" },
+        { "name": "Cashews", "quantity_amount": 150, "quantity_unit": "g" },
+        { "name": "Carrot", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Nutritional yeast", "quantity_amount": 0.25, "quantity_unit": "cup" },
+        { "name": "Lemon juice", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Water", "quantity_amount": 1, "quantity_unit": "cup" },
+        { "name": "Vegan butter", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Pink salt", "quantity_amount": 1, "quantity_unit": "tsp" },
+        { "name": "Nutmeg", "quantity_amount": 0.25, "quantity_unit": "tsp" },
+        { "name": "Garlic powder", "quantity_amount": 0.5, "quantity_unit": "tsp" },
+        { "name": "Ground mustard", "quantity_amount": 0.5, "quantity_unit": "tsp" },
+        { "name": "Black pepper", "quantity_amount": 0.25, "quantity_unit": "tsp" },
+        { "name": "Paprika", "quantity_amount": 0.25, "quantity_unit": "tsp" }
+      ]
+    },
+    {
+      "recipe_key": "vegan-hot-chocolate",
+      "name": "Vegan Hot Chocolate",
+      "category": "Desserts & Snacks",
+      "base_servings": 2,
+      "diets": ["Vegan", "Dairy Free"],
+      "calories_per_serving": 155,
+      "macros_per_serving": { "carbs": 25, "protein": 2, "fats": 5 },
+      "micros_per_serving": {
+        "sodium": 120,
+        "potassium": 380,
+        "fiber": 2,
+        "sugar": 22,
+        "vitaminA_IU": 400,
+        "vitaminC_mg": 1,
+        "calcium_mg": 240,
+        "iron_mg": 1.8
+      },
+      "ingredients": [
+        { "name": "Dairy-free milk", "quantity_amount": 2, "quantity_unit": "cup" },
+        { "name": "Vegan chocolate", "quantity_amount": 60, "quantity_unit": "g" },
+        { "name": "Sugar", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Vanilla extract", "quantity_amount": 1, "quantity_unit": "tsp" },
+        { "name": "Cinnamon", "quantity_amount": 0.25, "quantity_unit": "tsp" },
+        { "name": "Maple syrup", "quantity_amount": 1, "quantity_unit": "tbsp" }
+      ]
+    },
+    {
+      "recipe_key": "turkey-stir-fry-bowl",
+      "name": "Turkey Stir-Fry Bowl",
+      "category": "Lunch",
+      "base_servings": 2,
+      "diets": ["High Protein", "Gluten Free", "Balanced", "DASH"],
+      "calories_per_serving": 240,
+      "macros_per_serving": { "carbs": 25, "protein": 20, "fats": 6 },
+      "micros_per_serving": {
+        "sodium": 950,
+        "potassium": 680,
+        "fiber": 6,
+        "sugar": 6,
+        "vitaminA_IU": 4200,
+        "vitaminC_mg": 28,
+        "calcium_mg": 85,
+        "iron_mg": 3.8
+      },
+      "ingredients": [
+        { "name": "Ground turkey", "quantity_amount": 300, "quantity_unit": "g" },
+        { "name": "Brown rice", "quantity_amount": 1.5, "quantity_unit": "cup" },
+        { "name": "Broccoli", "quantity_amount": 200, "quantity_unit": "g" },
+        { "name": "Carrots", "quantity_amount": 2, "quantity_unit": "piece" },
+        { "name": "Soy sauce", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Garlic", "quantity_amount": 2, "quantity_unit": "clove" },
+        { "name": "Ginger", "quantity_amount": 1, "quantity_unit": "tsp" }
+      ]
+    },
+    {
+      "recipe_key": "quinoa-protein-bowl",
+      "name": "Quinoa Protein Bowl",
+      "category": "Lunch",
+      "base_servings": 2,
+      "diets": ["Vegetarian", "High Protein", "Gluten Free", "Balanced"],
+      "calories_per_serving": 355,
+      "macros_per_serving": { "carbs": 36, "protein": 11, "fats": 13 },
+      "micros_per_serving": {
+        "sodium": 380,
+        "potassium": 920,
+        "fiber": 12,
+        "sugar": 4,
+        "vitaminA_IU": 3400,
+        "vitaminC_mg": 18,
+        "calcium_mg": 160,
+        "iron_mg": 4.8
+      },
+      "ingredients": [
+        { "name": "Quinoa", "quantity_amount": 2, "quantity_unit": "cup" },
+        { "name": "Black beans", "quantity_amount": 1, "quantity_unit": "cup" },
+        { "name": "Avocado", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Cherry tomatoes", "quantity_amount": 1, "quantity_unit": "cup" },
+        { "name": "Cucumber", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Feta cheese", "quantity_amount": 50, "quantity_unit": "g" },
+        { "name": "Olive oil", "quantity_amount": 2, "quantity_unit": "tbsp" }
+      ]
+    },
+    {
+      "recipe_key": "sweet-potato-frittata",
+      "name": "Sweet Potato Frittata",
+      "category": "Breakfast",
+      "base_servings": 3,
+      "diets": ["Vegetarian", "Gluten Free", "Balanced"],
+      "calories_per_serving": 352,
+      "macros_per_serving": { "carbs": 21, "protein": 21, "fats": 21 },
+      "micros_per_serving": {
+        "sodium": 420,
+        "potassium": 880,
+        "fiber": 6,
+        "sugar": 10,
+        "vitaminA_IU": 12200,
+        "vitaminC_mg": 22,
+        "calcium_mg": 260,
+        "iron_mg": 3.2
+      },
+      "ingredients": [
+        { "name": "Eggs", "quantity_amount": 8, "quantity_unit": "piece" },
+        { "name": "Sweet potato", "quantity_amount": 2, "quantity_unit": "piece" },
+        { "name": "Spinach", "quantity_amount": 150, "quantity_unit": "g" },
+        { "name": "Onion", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Bell pepper", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Cheddar cheese", "quantity_amount": 100, "quantity_unit": "g" },
+        { "name": "Olive oil", "quantity_amount": 1, "quantity_unit": "tbsp" }
+      ]
+    },
+    {
+      "recipe_key": "beef-zucchini-noodles",
+      "name": "Beef Zucchini Noodles",
+      "category": "Dinner",
+      "base_servings": 2,
+      "diets": ["Low Carb", "High Protein", "Gluten Free", "Keto"],
+      "calories_per_serving": 420,
+      "macros_per_serving": { "carbs": 12, "protein": 45, "fats": 22 },
+      "micros_per_serving": {
+        "sodium": 680,
+        "potassium": 890,
+        "fiber": 6,
+        "sugar": 8,
+        "vitaminA_IU": 3200,
+        "vitaminC_mg": 45,
+        "calcium_mg": 140,
+        "iron_mg": 6.8
+      },
+      "ingredients": [
+        { "name": "Ground beef", "quantity_amount": 300, "quantity_unit": "g" },
+        { "name": "Zucchini", "quantity_amount": 4, "quantity_unit": "piece" },
+        { "name": "Tomato sauce", "quantity_amount": 1, "quantity_unit": "cup" },
+        { "name": "Garlic", "quantity_amount": 3, "quantity_unit": "clove" },
+        { "name": "Basil", "quantity_amount": 1, "quantity_unit": "tbsp" },
+        { "name": "Parmesan cheese", "quantity_amount": 50, "quantity_unit": "g" }
+      ]
+    },
+    {
+      "recipe_key": "oatmeal-protein-pancakes",
+      "name": "Oatmeal Protein Pancakes",
+      "category": "Breakfast",
+      "base_servings": 2,
+      "diets": ["Vegetarian", "High Protein", "Balanced"],
+      "calories_per_serving": 480,
+      "macros_per_serving": { "carbs": 55, "protein": 28, "fats": 12 },
+      "micros_per_serving": {
+        "sodium": 320,
+        "potassium": 580,
+        "fiber": 12,
+        "sugar": 18,
+        "vitaminA_IU": 1200,
+        "vitaminC_mg": 8,
+        "calcium_mg": 380,
+        "iron_mg": 4.5
+      },
+      "ingredients": [
+        { "name": "Oats", "quantity_amount": 1.5, "quantity_unit": "cup" },
+        { "name": "Protein powder", "quantity_amount": 2, "quantity_unit": "scoop" },
+        { "name": "Eggs", "quantity_amount": 2, "quantity_unit": "piece" },
+        { "name": "Banana", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Almond milk", "quantity_amount": 1, "quantity_unit": "cup" },
+        { "name": "Blueberries", "quantity_amount": 0.5, "quantity_unit": "cup" },
+        { "name": "Honey", "quantity_amount": 2, "quantity_unit": "tbsp" }
+      ]
+    },
+    {
+      "recipe_key": "lentil-soup",
+      "name": "Hearty Lentil Soup",
+      "category": "Lunch",
+      "base_servings": 4,
+      "diets": ["Vegan", "Vegetarian", "Dairy Free", "Gluten Free", "Balanced"],
+      "calories_per_serving": 320,
+      "macros_per_serving": { "carbs": 45, "protein": 18, "fats": 8 },
+      "micros_per_serving": {
+        "sodium": 580,
+        "potassium": 720,
+        "fiber": 18,
+        "sugar": 6,
+        "vitaminA_IU": 4200,
+        "vitaminC_mg": 12,
+        "calcium_mg": 120,
+        "iron_mg": 6.8
+      },
+      "ingredients": [
+        { "name": "Lentils", "quantity_amount": 1.5, "quantity_unit": "cup" },
+        { "name": "Carrots", "quantity_amount": 3, "quantity_unit": "piece" },
+        { "name": "Celery", "quantity_amount": 2, "quantity_unit": "stalk" },
+        { "name": "Onion", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Garlic", "quantity_amount": 3, "quantity_unit": "clove" },
+        { "name": "Vegetable broth", "quantity_amount": 6, "quantity_unit": "cup" },
+        { "name": "Tomatoes", "quantity_amount": 2, "quantity_unit": "piece" },
+        { "name": "Spinach", "quantity_amount": 100, "quantity_unit": "g" }
+      ]
+    },
+    {
+      "recipe_key": "chicken-caesar-salad",
+      "name": "Chicken Caesar Salad",
+      "category": "Lunch",
+      "base_servings": 2,
+      "diets": ["High Protein", "Gluten Free", "Balanced"],
+      "calories_per_serving": 450,
+      "macros_per_serving": { "carbs": 15, "protein": 38, "fats": 28 },
+      "micros_per_serving": {
+        "sodium": 720,
+        "potassium": 680,
+        "fiber": 8,
+        "sugar": 4,
+        "vitaminA_IU": 2800,
+        "vitaminC_mg": 15,
+        "calcium_mg": 320,
+        "iron_mg": 3.2
+      },
+      "ingredients": [
+        { "name": "Chicken breast", "quantity_amount": 250, "quantity_unit": "g" },
+        { "name": "Romaine lettuce", "quantity_amount": 4, "quantity_unit": "cup" },
+        { "name": "Caesar dressing", "quantity_amount": 4, "quantity_unit": "tbsp" },
+        { "name": "Parmesan cheese", "quantity_amount": 50, "quantity_unit": "g" },
+        { "name": "Croutons", "quantity_amount": 0.5, "quantity_unit": "cup" },
+        { "name": "Lemon juice", "quantity_amount": 1, "quantity_unit": "tbsp" }
+      ]
+    },
+    {
+      "recipe_key": "baked-salmon-lemon-dill",
+      "name": "Baked Salmon with Lemon Dill",
+      "category": "Dinner",
+      "base_servings": 2,
+      "diets": ["High Protein", "Gluten Free", "Mediterranean", "DASH"],
+      "calories_per_serving": 420,
+      "macros_per_serving": { "carbs": 8, "protein": 45, "fats": 25 },
+      "micros_per_serving": {
+        "sodium": 380,
+        "potassium": 980,
+        "fiber": 4,
+        "sugar": 2,
+        "vitaminA_IU": 1200,
+        "vitaminC_mg": 25,
+        "calcium_mg": 80,
+        "iron_mg": 1.8
+      },
+      "ingredients": [
+        { "name": "Salmon fillet", "quantity_amount": 300, "quantity_unit": "g" },
+        { "name": "Lemon", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Fresh dill", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Olive oil", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Garlic", "quantity_amount": 2, "quantity_unit": "clove" },
+        { "name": "Salt", "quantity_amount": 0.5, "quantity_unit": "tsp" },
+        { "name": "Black pepper", "quantity_amount": 0.25, "quantity_unit": "tsp" }
+      ]
+    },
+    {
+      "recipe_key": "banana-protein-smoothie",
+      "name": "Banana Protein Smoothie",
+      "category": "Breakfast",
+      "base_servings": 1,
+      "diets": ["Vegetarian", "High Protein", "Balanced"],
+      "calories_per_serving": 380,
+      "macros_per_serving": { "carbs": 45, "protein": 32, "fats": 8 },
+      "micros_per_serving": {
+        "sodium": 220,
+        "potassium": 680,
+        "fiber": 8,
+        "sugar": 35,
+        "vitaminA_IU": 180,
+        "vitaminC_mg": 12,
+        "calcium_mg": 420,
+        "iron_mg": 2.8
+      },
+      "ingredients": [
+        { "name": "Banana", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Protein powder", "quantity_amount": 1, "quantity_unit": "scoop" },
+        { "name": "Greek yogurt", "quantity_amount": 200, "quantity_unit": "g" },
+        { "name": "Almond milk", "quantity_amount": 1, "quantity_unit": "cup" },
+        { "name": "Peanut butter", "quantity_amount": 1, "quantity_unit": "tbsp" },
+        { "name": "Ice cubes", "quantity_amount": 4, "quantity_unit": "piece" }
+      ]
+    },
+    {
+      "recipe_key": "turkey-chili",
+      "name": "Turkey Chili",
+      "category": "Dinner",
+      "base_servings": 4,
+      "diets": ["High Protein", "Gluten Free", "Balanced", "DASH"],
+      "calories_per_serving": 380,
+      "macros_per_serving": { "carbs": 35, "protein": 32, "fats": 12 },
+      "micros_per_serving": {
+        "sodium": 650,
+        "potassium": 820,
+        "fiber": 12,
+        "sugar": 8,
+        "vitaminA_IU": 3200,
+        "vitaminC_mg": 28,
+        "calcium_mg": 120,
+        "iron_mg": 4.8
+      },
+      "ingredients": [
+        { "name": "Ground turkey", "quantity_amount": 400, "quantity_unit": "g" },
+        { "name": "Kidney beans", "quantity_amount": 1, "quantity_unit": "cup" },
+        { "name": "Black beans", "quantity_amount": 1, "quantity_unit": "cup" },
+        { "name": "Tomatoes", "quantity_amount": 2, "quantity_unit": "piece" },
+        { "name": "Onion", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Bell pepper", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Garlic", "quantity_amount": 3, "quantity_unit": "clove" },
+        { "name": "Chili powder", "quantity_amount": 2, "quantity_unit": "tbsp" }
+      ]
+    },
+    {
+      "recipe_key": "kimchi-fried-rice",
+      "name": "Kimchi Fried Rice",
+      "category": "Dinner",
+      "base_servings": 2,
+      "diets": ["Vegan", "Vegetarian", "Dairy Free", "Gluten Free", "Low Carb"],
+      "calories_per_serving": 420,
+      "macros_per_serving": { "carbs": 55, "protein": 12, "fats": 18 },
+      "micros_per_serving": {
+        "sodium": 850,
+        "potassium": 580,
+        "fiber": 8,
+        "sugar": 12,
+        "vitaminA_IU": 3200,
+        "vitaminC_mg": 45,
+        "calcium_mg": 120,
+        "iron_mg": 4.2
+      },
+      "ingredients": [
+        { "name": "Brown rice", "quantity_amount": 2, "quantity_unit": "cup" },
+        { "name": "Kimchi", "quantity_amount": 1, "quantity_unit": "cup" },
+        { "name": "Tofu", "quantity_amount": 200, "quantity_unit": "g" },
+        { "name": "Carrots", "quantity_amount": 2, "quantity_unit": "piece" },
+        { "name": "Green onions", "quantity_amount": 4, "quantity_unit": "stalk" },
+        { "name": "Garlic", "quantity_amount": 3, "quantity_unit": "clove" },
+        { "name": "Ginger", "quantity_amount": 1, "quantity_unit": "tbsp" },
+        { "name": "Soy sauce", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Sesame oil", "quantity_amount": 1, "quantity_unit": "tbsp" },
+        { "name": "Sesame seeds", "quantity_amount": 1, "quantity_unit": "tbsp" }
+      ]
+    },
+    {
+      "recipe_key": "chicken-teriyaki-bowl",
+      "name": "Chicken Teriyaki Bowl",
+      "category": "Dinner",
+      "base_servings": 2,
+      "diets": ["High Protein", "Gluten Free", "Balanced"],
+      "calories_per_serving": 480,
+      "macros_per_serving": { "carbs": 65, "protein": 35, "fats": 12 },
+      "micros_per_serving": {
+        "sodium": 780,
+        "potassium": 720,
+        "fiber": 6,
+        "sugar": 28,
+        "vitaminA_IU": 1800,
+        "vitaminC_mg": 25,
+        "calcium_mg": 85,
+        "iron_mg": 3.8
+      },
+      "ingredients": [
+        { "name": "Chicken breast", "quantity_amount": 300, "quantity_unit": "g" },
+        { "name": "Brown rice", "quantity_amount": 2, "quantity_unit": "cup" },
+        { "name": "Broccoli", "quantity_amount": 200, "quantity_unit": "g" },
+        { "name": "Carrots", "quantity_amount": 2, "quantity_unit": "piece" },
+        { "name": "Soy sauce", "quantity_amount": 3, "quantity_unit": "tbsp" },
+        { "name": "Honey", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Garlic", "quantity_amount": 2, "quantity_unit": "clove" },
+        { "name": "Ginger", "quantity_amount": 1, "quantity_unit": "tsp" },
+        { "name": "Cornstarch", "quantity_amount": 1, "quantity_unit": "tbsp" },
+        { "name": "Sesame seeds", "quantity_amount": 1, "quantity_unit": "tbsp" }
+      ]
+    },
+    {
+      "recipe_key": "thai-green-curry-tofu",
+      "name": "Thai Green Curry with Tofu",
+      "category": "Dinner",
+      "base_servings": 3,
+      "diets": ["Vegan", "Vegetarian", "Dairy Free", "Gluten Free", "Thai"],
+      "calories_per_serving": 380,
+      "macros_per_serving": { "carbs": 28, "protein": 18, "fats": 22 },
+      "micros_per_serving": {
+        "sodium": 920,
+        "potassium": 680,
+        "fiber": 8,
+        "sugar": 12,
+        "vitaminA_IU": 4200,
+        "vitaminC_mg": 35,
+        "calcium_mg": 180,
+        "iron_mg": 5.2
+      },
+      "ingredients": [
+        { "name": "Tofu", "quantity_amount": 400, "quantity_unit": "g" },
+        { "name": "Coconut milk", "quantity_amount": 1, "quantity_unit": "cup" },
+        { "name": "Green curry paste", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Bell pepper", "quantity_amount": 2, "quantity_unit": "piece" },
+        { "name": "Zucchini", "quantity_amount": 2, "quantity_unit": "piece" },
+        { "name": "Eggplant", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Basil", "quantity_amount": 0.25, "quantity_unit": "cup" },
+        { "name": "Lime", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Brown rice", "quantity_amount": 2, "quantity_unit": "cup" },
+        { "name": "Fish sauce", "quantity_amount": 1, "quantity_unit": "tbsp" }
+      ]
+    },
+    {
+      "recipe_key": "korean-bibimbap",
+      "name": "Korean Bibimbap",
+      "category": "Dinner",
+      "base_servings": 2,
+      "diets": ["Vegetarian", "Gluten Free", "Balanced", "Korean"],
+      "calories_per_serving": 520,
+      "macros_per_serving": { "carbs": 68, "protein": 22, "fats": 16 },
+      "micros_per_serving": {
+        "sodium": 680,
+        "potassium": 920,
+        "fiber": 12,
+        "sugar": 15,
+        "vitaminA_IU": 5800,
+        "vitaminC_mg": 45,
+        "calcium_mg": 140,
+        "iron_mg": 6.8
+      },
+      "ingredients": [
+        { "name": "Brown rice", "quantity_amount": 2, "quantity_unit": "cup" },
+        { "name": "Spinach", "quantity_amount": 200, "quantity_unit": "g" },
+        { "name": "Carrots", "quantity_amount": 2, "quantity_unit": "piece" },
+        { "name": "Zucchini", "quantity_amount": 2, "quantity_unit": "piece" },
+        { "name": "Mushrooms", "quantity_amount": 200, "quantity_unit": "g" },
+        { "name": "Egg", "quantity_amount": 2, "quantity_unit": "piece" },
+        { "name": "Sesame oil", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Soy sauce", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Sesame seeds", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Gochujang", "quantity_amount": 1, "quantity_unit": "tbsp" }
+      ]
+    },
+    {
+      "recipe_key": "vegetable-sushi-rolls",
+      "name": "Vegetable Sushi Rolls",
+      "category": "Lunch",
+      "base_servings": 2,
+      "diets": ["Vegan", "Vegetarian", "Raw", "Gluten Free", "Japanese"],
+      "calories_per_serving": 320,
+      "macros_per_serving": { "carbs": 55, "protein": 8, "fats": 6 },
+      "micros_per_serving": {
+        "sodium": 580,
+        "potassium": 420,
+        "fiber": 6,
+        "sugar": 12,
+        "vitaminA_IU": 2800,
+        "vitaminC_mg": 25,
+        "calcium_mg": 85,
+        "iron_mg": 3.2
+      },
+      "ingredients": [
+        { "name": "Sushi rice", "quantity_amount": 2, "quantity_unit": "cup" },
+        { "name": "Nori sheets", "quantity_amount": 4, "quantity_unit": "piece" },
+        { "name": "Cucumber", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Avocado", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Carrots", "quantity_amount": 2, "quantity_unit": "piece" },
+        { "name": "Bell pepper", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Rice vinegar", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Sugar", "quantity_amount": 1, "quantity_unit": "tbsp" },
+        { "name": "Soy sauce", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Wasabi", "quantity_amount": 1, "quantity_unit": "tsp" }
+      ]
+    },
+    {
+      "recipe_key": "indian-chickpea-curry",
+      "name": "Indian Chickpea Curry",
+      "category": "Dinner",
+      "base_servings": 4,
+      "diets": ["Vegan", "Vegetarian", "Dairy Free", "Gluten Free", "Indian"],
+      "calories_per_serving": 340,
+      "macros_per_serving": { "carbs": 48, "protein": 16, "fats": 10 },
+      "micros_per_serving": {
+        "sodium": 620,
+        "potassium": 580,
+        "fiber": 14,
+        "sugar": 8,
+        "vitaminA_IU": 1200,
+        "vitaminC_mg": 15,
+        "calcium_mg": 120,
+        "iron_mg": 5.8
+      },
+      "ingredients": [
+        { "name": "Chickpea", "quantity_amount": 2, "quantity_unit": "cup" },
+        { "name": "Tomatoes", "quantity_amount": 3, "quantity_unit": "piece" },
+        { "name": "Onion", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Garlic", "quantity_amount": 4, "quantity_unit": "clove" },
+        { "name": "Ginger", "quantity_amount": 1, "quantity_unit": "tbsp" },
+        { "name": "Coconut milk", "quantity_amount": 0.5, "quantity_unit": "cup" },
+        { "name": "Curry powder", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Cumin", "quantity_amount": 1, "quantity_unit": "tsp" },
+        { "name": "Turmeric", "quantity_amount": 1, "quantity_unit": "tsp" },
+        { "name": "Brown rice", "quantity_amount": 2, "quantity_unit": "cup" }
+      ]
+    },
+    {
+      "recipe_key": "lentil-meatballs",
+      "name": "Lentil Meatballs",
+      "category": "Dinner",
+      "base_servings": 4,
+      "diets": ["Vegan", "Vegetarian", "Dairy Free", "High Protein"],
+      "calories_per_serving": 280,
+      "macros_per_serving": { "carbs": 35, "protein": 18, "fats": 8 },
+      "micros_per_serving": {
+        "sodium": 480,
+        "potassium": 620,
+        "fiber": 12,
+        "sugar": 6,
+        "vitaminA_IU": 800,
+        "vitaminC_mg": 12,
+        "calcium_mg": 85,
+        "iron_mg": 4.8
+      },
+      "ingredients": [
+        { "name": "Lentils", "quantity_amount": 1, "quantity_unit": "cup" },
+        { "name": "Oats", "quantity_amount": 0.5, "quantity_unit": "cup" },
+        { "name": "Onion", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Garlic", "quantity_amount": 3, "quantity_unit": "clove" },
+        { "name": "Carrots", "quantity_amount": 2, "quantity_unit": "piece" },
+        { "name": "Tomato sauce", "quantity_amount": 2, "quantity_unit": "cup" },
+        { "name": "Italian seasoning", "quantity_amount": 1, "quantity_unit": "tbsp" },
+        { "name": "Olive oil", "quantity_amount": 1, "quantity_unit": "tbsp" },
+        { "name": "Flaxseed", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Spaghetti", "quantity_amount": 200, "quantity_unit": "g" }
+      ]
+    },
+    {
+      "recipe_key": "mushroom-stroganoff",
+      "name": "Creamy Mushroom Stroganoff",
+      "category": "Dinner",
+      "base_servings": 3,
+      "diets": ["Vegetarian", "Balanced"],
+      "calories_per_serving": 420,
+      "macros_per_serving": { "carbs": 45, "protein": 16, "fats": 18 },
+      "micros_per_serving": {
+        "sodium": 580,
+        "potassium": 720,
+        "fiber": 8,
+        "sugar": 8,
+        "vitaminA_IU": 120,
+        "vitaminC_mg": 15,
+        "calcium_mg": 180,
+        "iron_mg": 3.2
+      },
+      "ingredients": [
+        { "name": "Mushrooms", "quantity_amount": 500, "quantity_unit": "g" },
+        { "name": "Onion", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Garlic", "quantity_amount": 3, "quantity_unit": "clove" },
+        { "name": "Vegetable broth", "quantity_amount": 1, "quantity_unit": "cup" },
+        { "name": "Greek yogurt", "quantity_amount": 200, "quantity_unit": "g" },
+        { "name": "Sour cream", "quantity_amount": 0.5, "quantity_unit": "cup" },
+        { "name": "Flour", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Egg noodles", "quantity_amount": 200, "quantity_unit": "g" },
+        { "name": "Paprika", "quantity_amount": 1, "quantity_unit": "tsp" },
+        { "name": "Parsley", "quantity_amount": 2, "quantity_unit": "tbsp" }
+      ]
+    },
+    {
+      "recipe_key": "eggplant-parmesan",
+      "name": "Eggplant Parmesan",
+      "category": "Dinner",
+      "base_servings": 4,
+      "diets": ["Vegetarian", "Balanced"],
+      "calories_per_serving": 380,
+      "macros_per_serving": { "carbs": 35, "protein": 18, "fats": 18 },
+      "micros_per_serving": {
+        "sodium": 720,
+        "potassium": 580,
+        "fiber": 10,
+        "sugar": 12,
+        "vitaminA_IU": 180,
+        "vitaminC_mg": 8,
+        "calcium_mg": 320,
+        "iron_mg": 3.8
+      },
+      "ingredients": [
+        { "name": "Eggplant", "quantity_amount": 2, "quantity_unit": "piece" },
+        { "name": "Mozzarella cheese", "quantity_amount": 200, "quantity_unit": "g" },
+        { "name": "Parmesan cheese", "quantity_amount": 100, "quantity_unit": "g" },
+        { "name": "Tomato sauce", "quantity_amount": 2, "quantity_unit": "cup" },
+        { "name": "Breadcrumbs", "quantity_amount": 0.5, "quantity_unit": "cup" },
+        { "name": "Egg", "quantity_amount": 2, "quantity_unit": "piece" },
+        { "name": "Basil", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Olive oil", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Garlic", "quantity_amount": 2, "quantity_unit": "clove" },
+        { "name": "Oregano", "quantity_amount": 1, "quantity_unit": "tsp" }
+      ]
+    },
+    {
+      "recipe_key": "black-bean-burgers",
+      "name": "Black Bean Burgers",
+      "category": "Lunch",
+      "base_servings": 4,
+      "diets": ["Vegan", "Vegetarian", "Dairy Free", "High Protein"],
+      "calories_per_serving": 320,
+      "macros_per_serving": { "carbs": 45, "protein": 16, "fats": 8 },
+      "micros_per_serving": {
+        "sodium": 580,
+        "potassium": 680,
+        "fiber": 12,
+        "sugar": 4,
+        "vitaminA_IU": 220,
+        "vitaminC_mg": 8,
+        "calcium_mg": 120,
+        "iron_mg": 4.8
+      },
+      "ingredients": [
+        { "name": "Black beans", "quantity_amount": 2, "quantity_unit": "cup" },
+        { "name": "Oats", "quantity_amount": 0.5, "quantity_unit": "cup" },
+        { "name": "Onion", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Garlic", "quantity_amount": 3, "quantity_unit": "clove" },
+        { "name": "Bell pepper", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Cumin", "quantity_amount": 1, "quantity_unit": "tsp" },
+        { "name": "Chili powder", "quantity_amount": 1, "quantity_unit": "tsp" },
+        { "name": "Flaxseed", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Burger buns", "quantity_amount": 4, "quantity_unit": "piece" },
+        { "name": "Lettuce", "quantity_amount": 4, "quantity_unit": "leaf" }
+      ]
+    },
+    {
+      "recipe_key": "quinoa-stuffed-peppers",
+      "name": "Quinoa Stuffed Peppers",
+      "category": "Dinner",
+      "base_servings": 4,
+      "diets": ["Vegetarian", "Gluten Free", "High Protein"],
+      "calories_per_serving": 380,
+      "macros_per_serving": { "carbs": 48, "protein": 18, "fats": 12 },
+      "micros_per_serving": {
+        "sodium": 520,
+        "potassium": 780,
+        "fiber": 10,
+        "sugar": 12,
+        "vitaminA_IU": 4200,
+        "vitaminC_mg": 180,
+        "calcium_mg": 160,
+        "iron_mg": 4.2
+      },
+      "ingredients": [
+        { "name": "Bell pepper", "quantity_amount": 4, "quantity_unit": "piece" },
+        { "name": "Quinoa", "quantity_amount": 1.5, "quantity_unit": "cup" },
+        { "name": "Black beans", "quantity_amount": 1, "quantity_unit": "cup" },
+        { "name": "Corn", "quantity_amount": 1, "quantity_unit": "cup" },
+        { "name": "Tomatoes", "quantity_amount": 2, "quantity_unit": "piece" },
+        { "name": "Onion", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Cheddar cheese", "quantity_amount": 100, "quantity_unit": "g" },
+        { "name": "Cumin", "quantity_amount": 1, "quantity_unit": "tsp" },
+        { "name": "Chili powder", "quantity_amount": 1, "quantity_unit": "tsp" },
+        { "name": "Olive oil", "quantity_amount": 1, "quantity_unit": "tbsp" }
+      ]
+    },
+    {
+      "recipe_key": "cauliflower-wings",
+      "name": "Cauliflower Wings",
+      "category": "Appetizer",
+      "base_servings": 4,
+      "diets": ["Vegan", "Vegetarian", "Dairy Free", "Gluten Free"],
+      "calories_per_serving": 220,
+      "macros_per_serving": { "carbs": 18, "protein": 8, "fats": 12 },
+      "micros_per_serving": {
+        "sodium": 680,
+        "potassium": 420,
+        "fiber": 6,
+        "sugar": 8,
+        "vitaminA_IU": 80,
+        "vitaminC_mg": 45,
+        "calcium_mg": 85,
+        "iron_mg": 2.8
+      },
+      "ingredients": [
+        { "name": "Cauliflower", "quantity_amount": 1, "quantity_unit": "head" },
+        { "name": "Flour", "quantity_amount": 0.5, "quantity_unit": "cup" },
+        { "name": "Plant-based milk", "quantity_amount": 0.5, "quantity_unit": "cup" },
+        { "name": "Hot sauce", "quantity_amount": 0.25, "quantity_unit": "cup" },
+        { "name": "Garlic powder", "quantity_amount": 1, "quantity_unit": "tsp" },
+        { "name": "Paprika", "quantity_amount": 1, "quantity_unit": "tsp" },
+        { "name": "Olive oil", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Celery sticks", "quantity_amount": 4, "quantity_unit": "piece" },
+        { "name": "Carrot sticks", "quantity_amount": 8, "quantity_unit": "piece" },
+        { "name": "Vegan ranch", "quantity_amount": 0.25, "quantity_unit": "cup" }
+      ]
+    },
+    {
+      "recipe_key": "spinach-ricotta-shells",
+      "name": "Spinach and Ricotta Stuffed Shells",
+      "category": "Dinner",
+      "base_servings": 4,
+      "diets": ["Vegetarian", "Balanced"],
+      "calories_per_serving": 420,
+      "macros_per_serving": { "carbs": 48, "protein": 22, "fats": 16 },
+      "micros_per_serving": {
+        "sodium": 580,
+        "potassium": 520,
+        "fiber": 8,
+        "sugar": 10,
+        "vitaminA_IU": 3800,
+        "vitaminC_mg": 18,
+        "calcium_mg": 380,
+        "iron_mg": 3.2
+      },
+      "ingredients": [
+        { "name": "Jumbo pasta shells", "quantity_amount": 12, "quantity_unit": "piece" },
+        { "name": "Ricotta cheese", "quantity_amount": 400, "quantity_unit": "g" },
+        { "name": "Spinach", "quantity_amount": 300, "quantity_unit": "g" },
+        { "name": "Mozzarella cheese", "quantity_amount": 200, "quantity_unit": "g" },
+        { "name": "Parmesan cheese", "quantity_amount": 50, "quantity_unit": "g" },
+        { "name": "Egg", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Garlic", "quantity_amount": 2, "quantity_unit": "clove" },
+        { "name": "Tomato sauce", "quantity_amount": 2, "quantity_unit": "cup" },
+        { "name": "Basil", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Oregano", "quantity_amount": 1, "quantity_unit": "tsp" }
+      ]
+    },
+    {
+      "recipe_key": "beef-bulgogi",
+      "name": "Korean Beef Bulgogi",
+      "category": "Dinner",
+      "base_servings": 3,
+      "diets": ["High Protein", "Gluten Free", "Korean"],
+      "calories_per_serving": 380,
+      "macros_per_serving": { "carbs": 18, "protein": 35, "fats": 16 },
+      "micros_per_serving": {
+        "sodium": 720,
+        "potassium": 580,
+        "fiber": 4,
+        "sugar": 12,
+        "vitaminA_IU": 280,
+        "vitaminC_mg": 15,
+        "calcium_mg": 85,
+        "iron_mg": 4.8
+      },
+      "ingredients": [
+        { "name": "Beef sirloin", "quantity_amount": 400, "quantity_unit": "g" },
+        { "name": "Soy sauce", "quantity_amount": 0.25, "quantity_unit": "cup" },
+        { "name": "Brown sugar", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Sesame oil", "quantity_amount": 1, "quantity_unit": "tbsp" },
+        { "name": "Garlic", "quantity_amount": 4, "quantity_unit": "clove" },
+        { "name": "Ginger", "quantity_amount": 1, "quantity_unit": "tbsp" },
+        { "name": "Asian pear", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Green onions", "quantity_amount": 4, "quantity_unit": "stalk" },
+        { "name": "Sesame seeds", "quantity_amount": 1, "quantity_unit": "tbsp" },
+        { "name": "Brown rice", "quantity_amount": 2, "quantity_unit": "cup" }
+      ]
+    },
+    {
+      "recipe_key": "vegetable-dumplings",
+      "name": "Vegetable Dumplings",
+      "category": "Appetizer",
+      "base_servings": 4,
+      "diets": ["Vegetarian", "Balanced", "Chinese"],
+      "calories_per_serving": 280,
+      "macros_per_serving": { "carbs": 42, "protein": 12, "fats": 6 },
+      "micros_per_serving": {
+        "sodium": 520,
+        "potassium": 380,
+        "fiber": 6,
+        "sugar": 6,
+        "vitaminA_IU": 2200,
+        "vitaminC_mg": 25,
+        "calcium_mg": 85,
+        "iron_mg": 3.8
+      },
+      "ingredients": [
+        { "name": "Wonton wrappers", "quantity_amount": 24, "quantity_unit": "piece" },
+        { "name": "Cabbage", "quantity_amount": 200, "quantity_unit": "g" },
+        { "name": "Carrots", "quantity_amount": 2, "quantity_unit": "piece" },
+        { "name": "Mushrooms", "quantity_amount": 150, "quantity_unit": "g" },
+        { "name": "Green onions", "quantity_amount": 4, "quantity_unit": "stalk" },
+        { "name": "Garlic", "quantity_amount": 2, "quantity_unit": "clove" },
+        { "name": "Ginger", "quantity_amount": 1, "quantity_unit": "tsp" },
+        { "name": "Soy sauce", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Sesame oil", "quantity_amount": 1, "quantity_unit": "tsp" },
+        { "name": "Dumpling dipping sauce", "quantity_amount": 2, "quantity_unit": "tbsp" }
+      ]
+    },
+    {
+      "recipe_key": "vegetable-tagine",
+      "name": "Moroccan Vegetable Tagine",
+      "category": "Dinner",
+      "base_servings": 4,
+      "diets": ["Vegan", "Vegetarian", "Dairy Free", "Gluten Free", "Moroccan"],
+      "calories_per_serving": 320,
+      "macros_per_serving": { "carbs": 45, "protein": 12, "fats": 10 },
+      "micros_per_serving": {
+        "sodium": 480,
+        "potassium": 820,
+        "fiber": 14,
+        "sugar": 18,
+        "vitaminA_IU": 5800,
+        "vitaminC_mg": 35,
+        "calcium_mg": 120,
+        "iron_mg": 4.2
+      },
+      "ingredients": [
+        { "name": "Sweet potato", "quantity_amount": 2, "quantity_unit": "piece" },
+        { "name": "Carrots", "quantity_amount": 4, "quantity_unit": "piece" },
+        { "name": "Zucchini", "quantity_amount": 2, "quantity_unit": "piece" },
+        { "name": "Chickpea", "quantity_amount": 1, "quantity_unit": "cup" },
+        { "name": "Tomatoes", "quantity_amount": 2, "quantity_unit": "piece" },
+        { "name": "Onion", "quantity_amount": 1, "quantity_unit": "piece" },
+        { "name": "Garlic", "quantity_amount": 3, "quantity_unit": "clove" },
+        { "name": "Ras el hanout", "quantity_amount": 1, "quantity_unit": "tbsp" },
+        { "name": "Cinnamon", "quantity_amount": 0.5, "quantity_unit": "tsp" },
+        { "name": "Couscous", "quantity_amount": 1.5, "quantity_unit": "cup" }
+      ]
+    },
+    {
+      "recipe_key": "vegan-ramen",
+      "name": "Vegan Ramen",
+      "category": "Dinner",
+      "base_servings": 2,
+      "diets": ["Vegan", "Vegetarian", "Dairy Free", "Japanese"],
+      "calories_per_serving": 380,
+      "macros_per_serving": { "carbs": 55, "protein": 16, "fats": 10 },
+      "micros_per_serving": {
+        "sodium": 920,
+        "potassium": 580,
+        "fiber": 8,
+        "sugar": 12,
+        "vitaminA_IU": 4200,
+        "vitaminC_mg": 25,
+        "calcium_mg": 140,
+        "iron_mg": 5.2
+      },
+      "ingredients": [
+        { "name": "Ramen noodles", "quantity_amount": 200, "quantity_unit": "g" },
+        { "name": "Mushroom broth", "quantity_amount": 4, "quantity_unit": "cup" },
+        { "name": "Tofu", "quantity_amount": 200, "quantity_unit": "g" },
+        { "name": "Shiitake mushrooms", "quantity_amount": 100, "quantity_unit": "g" },
+        { "name": "Bok choy", "quantity_amount": 200, "quantity_unit": "g" },
+        { "name": "Green onions", "quantity_amount": 4, "quantity_unit": "stalk" },
+        { "name": "Garlic", "quantity_amount": 2, "quantity_unit": "clove" },
+        { "name": "Ginger", "quantity_amount": 1, "quantity_unit": "tbsp" },
+        { "name": "Soy sauce", "quantity_amount": 2, "quantity_unit": "tbsp" },
+        { "name": "Sesame oil", "quantity_amount": 1, "quantity_unit": "tbsp" }
+      ]
+    }
+  ]
+}

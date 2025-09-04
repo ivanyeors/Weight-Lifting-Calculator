@@ -9,6 +9,10 @@ export const HEALTHY_RECIPES: Recipe[] = [
     category: 'Lunch',
     baseServings: 2,
     diets: ['High Protein', 'Balanced', 'Gluten Free', 'Paleo', 'DASH', 'Low Sodium'],
+    // Optional explicit per-serving nutrition (fill gradually as available)
+    // caloriesPerServing: 560,
+    // macrosPerServing: { carbs: 60, protein: 35, fats: 18 },
+    // microsPerServing: { sodium: 500, potassium: 900, iron: 3.2 }
     ingredients: [
       { name: 'Chicken breast', quantity: q(200, 'g') },
       { name: 'Brown rice', quantity: q(2, 'cup') },

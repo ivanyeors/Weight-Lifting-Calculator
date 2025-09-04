@@ -136,19 +136,96 @@ async function upsertExerciseEquipment(mappings: Array<{ exercise_id: string; eq
 }
 
 // Foods seed
-async function upsertFoods(foods: Array<{ name: string; category?: string; unit_kind: 'mass'|'volume'|'count'; carbs_per_100: number; fats_per_100: number; protein_per_100: number; micros?: Record<string, number> }>) {
+async function upsertFoods(foods: Array<{ name: string; category?: string; unit_kind: 'mass'|'volume'|'count'; carbs?: number; fats?: number; protein?: number; carbs_per_100?: number; fats_per_100?: number; protein_per_100?: number; micros?: Record<string, number> }>) {
 	if (foods.length === 0) return
-	const rows = foods.map(f => ({
-		name: f.name,
-		category: f.category ?? null,
-		unit_kind: f.unit_kind,
-		carbs_per_100: f.carbs_per_100,
-		fats_per_100: f.fats_per_100,
-		protein_per_100: f.protein_per_100,
-		micros: f.micros ?? {}
-	}))
+	const rows = foods.map(f => {
+		// Support new schema (carbs/fats/protein) and legacy (carbs_per_100/fats_per_100/protein_per_100)
+		const isCount = f.unit_kind === 'count'
+		const carbsPer100 = f.carbs_per_100 != null
+			? f.carbs_per_100
+			: (f.carbs != null ? (isCount ? f.carbs * 100 : f.carbs) : 0)
+		const fatsPer100 = f.fats_per_100 != null
+			? f.fats_per_100
+			: (f.fats != null ? (isCount ? f.fats * 100 : f.fats) : 0)
+		const proteinPer100 = f.protein_per_100 != null
+			? f.protein_per_100
+			: (f.protein != null ? (isCount ? f.protein * 100 : f.protein) : 0)
+		return {
+			name: f.name,
+			category: f.category ?? null,
+			unit_kind: f.unit_kind,
+			carbs_per_100: carbsPer100,
+			fats_per_100: fatsPer100,
+			protein_per_100: proteinPer100,
+			micros: f.micros ?? {}
+		}
+	})
 	const { error } = await supabase.from('foods').upsert(rows, { onConflict: 'name' })
 	if (error) throw error
+}
+
+// Recipes seed
+type RecipesJson = {
+	recipes: Array<{
+		recipe_key: string
+		name: string
+		base_servings: number
+		diets: string[]
+		category?: string | null
+		calories_per_serving?: number
+		macros_per_serving?: { carbs?: number; fats?: number; protein?: number }
+		micros_per_serving?: Record<string, number>
+		ingredients: Array<{ name: string; quantity_amount: number; quantity_unit: string }>
+	}>
+}
+
+async function upsertRecipesWithIngredients(recipes: RecipesJson['recipes']) {
+	if (!recipes || recipes.length === 0) return
+
+	// Preload foods referenced by name to map -> id
+	const allFoodNames = Array.from(new Set(recipes.flatMap(r => r.ingredients.map(i => i.name))))
+	let foodNameToId: Record<string, string> = {}
+	if (allFoodNames.length > 0) {
+		const { data: foodsRows, error: foodsErr } = await supabase
+			.from('foods')
+			.select('id, name')
+			.in('name', allFoodNames)
+		if (foodsErr) throw foodsErr
+		foodNameToId = Object.fromEntries((foodsRows ?? []).map(r => [r.name as string, r.id as string]))
+	}
+
+	for (const r of recipes) {
+		const { data: recRow, error: recErr } = await supabase
+			.from('nutrition_recipes')
+			.upsert({
+				recipe_key: r.recipe_key,
+				name: r.name,
+				base_servings: r.base_servings,
+				diets: r.diets,
+				category: r.category ?? null,
+				calories_per_serving: r.calories_per_serving ?? 0,
+				macros_per_serving: r.macros_per_serving ?? {},
+				micros_per_serving: r.micros_per_serving ?? {}
+			}, { onConflict: 'recipe_key' })
+			.select('id')
+			.single()
+		if (recErr) throw recErr
+		const recipe_id = recRow.id as string
+
+		for (const ing of r.ingredients) {
+			const row = {
+				recipe_id,
+				food_id: foodNameToId[ing.name] ?? null,
+				name: ing.name,
+				quantity_amount: ing.quantity_amount,
+				quantity_unit: ing.quantity_unit
+			}
+			const { error: ingErr } = await supabase
+				.from('nutrition_recipe_ingredients')
+				.upsert(row, { onConflict: 'recipe_id,name' })
+			if (ingErr) throw ingErr
+		}
+	}
 }
 
 async function main() {
@@ -177,6 +254,14 @@ async function main() {
 		await upsertFoods(foodsSeed.foods)
 	} catch (e) {
 		console.warn('foods.json not found or failed to load; skipping foods seed')
+	}
+
+	// Recipes
+	try {
+		const recipesSeed = await readJson<RecipesJson>('recipes.json')
+		await upsertRecipesWithIngredients(recipesSeed.recipes)
+	} catch (e) {
+		console.warn('recipes.json not found or failed to load; skipping recipes seed')
 	}
 
 	console.log('Seed completed')
