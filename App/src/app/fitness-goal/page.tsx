@@ -4,7 +4,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { useSelectedUser } from '@/hooks/use-selected-user'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus, PanelLeft, PanelRight } from 'lucide-react'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Plus, PanelLeft, PanelRight, User, ArrowRight } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 
 
@@ -14,15 +16,18 @@ import { CreatePlanDrawer } from './plan-create-drawer'
 import { PlanDetailsDrawer } from './plan-details-drawer'
 import { usePlans } from './plan-store'
 import { fetchPlans } from './plan-api'
+import { syncService } from '@/lib/sync-service'
  
 // (kept for potential future use)
 
 export default function FitnessGoalPage() {
   const { user } = useSelectedUser()
+  const router = useRouter()
 
   // Plans integration
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [userProfileDialogOpen, setUserProfileDialogOpen] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState<string>(() => {
     try {
       const stored = typeof window !== 'undefined' ? (localStorage.getItem('fitspo:selected_user_id') || '') : ''
@@ -57,8 +62,62 @@ export default function FitnessGoalPage() {
       if (!selectedPlanId) setSelectedPlanId(plans[0].id)
     } catch {/* ignore */}
   }, [plans, selectedPlanId])
+
+  // Create fitness reminders in calendar for active plans
+  useEffect(() => {
+    if (activePlan && activePlan.status === 'active' && selectedUserId) {
+      syncService.createFitnessRemindersInCalendar(activePlan, selectedUserId).catch(console.error)
+    }
+  }, [activePlan, selectedUserId])
   const [detailsOpen, setDetailsOpen] = useState(false)
   const activePlan = useMemo(() => plans.find(p => p.id === selectedPlanId) || null, [plans, selectedPlanId])
+
+  // Sync active plans to database on page load
+  useEffect(() => {
+    if (selectedUserId) {
+      syncService.syncActivePlansToDb(selectedUserId).catch(console.error)
+    }
+  }, [selectedUserId])
+
+  // Set up sync listeners for real-time updates
+  useEffect(() => {
+    const handleLogsChanged = () => {
+      // Sync fitness logs when they change
+      if (selectedUserId && activePlan?.status === 'active') {
+        syncService.syncFitnessLogsToDb(activePlan.id, selectedUserId).catch(console.error)
+      }
+    }
+
+    const handleWorkoutCompletion = () => {
+      // Sync completed workouts to fitness logs
+      if (selectedUserId) {
+        syncService.syncCompletedWorkoutsToFitness(selectedUserId).catch(console.error)
+      }
+    }
+
+    // Listen for log changes
+    syncService.on('fitness-logs-changed', handleLogsChanged)
+    syncService.on('workout-completion-synced', handleWorkoutCompletion)
+
+    // Listen for storage events (cross-tab sync)
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key?.startsWith('fitspo:') && selectedUserId && activePlan?.status === 'active') {
+        syncService.syncFitnessLogsToDb(activePlan.id, selectedUserId).catch(console.error)
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', handleStorage)
+    }
+
+    return () => {
+      syncService.off('fitness-logs-changed', handleLogsChanged)
+      syncService.off('workout-completion-synced', handleWorkoutCompletion)
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('storage', handleStorage)
+      }
+    }
+  }, [selectedUserId, activePlan])
 
   useEffect(() => {
     const onChange = () => {
@@ -91,7 +150,20 @@ export default function FitnessGoalPage() {
 
   // Removed unused calculator helpers and render-only helpers for this layout
 
+  // Handle create plan button click - check for user profile first
+  const handleCreatePlanClick = () => {
+    if (!user) {
+      setUserProfileDialogOpen(true)
+    } else {
+      setDrawerOpen(true)
+    }
+  }
 
+  // Handle navigation to users page
+  const handleGoToUsersPage = () => {
+    setUserProfileDialogOpen(false)
+    router.push('/plans/users')
+  }
 
   return (
     <div className="flex h-full">
@@ -99,7 +171,7 @@ export default function FitnessGoalPage() {
         <PlanSidebar
           selectedUserId={selectedUserId}
           onSelectUser={(id) => { setSelectedUserId(id); setSelectedPlanId(null) }}
-          onCreatePlan={() => setDrawerOpen(true)}
+          onCreatePlan={handleCreatePlanClick}
           plans={plans}
           selectedPlanId={selectedPlanId}
           onSelectPlan={(id) => { setSelectedPlanId(id); setDetailsOpen(true) }}
@@ -125,7 +197,7 @@ export default function FitnessGoalPage() {
             <div className="text-sm text-muted-foreground">{activePlan ? activePlan.title : 'Fitness Goals'}</div>
           </div>
           {activePlan ? null : (
-            <Button onClick={() => setDrawerOpen(true)} className="bg-primary hover:bg-primary/90">
+            <Button onClick={handleCreatePlanClick} className="bg-primary hover:bg-primary/90">
               <Plus className="mr-2 h-4 w-4" />
               Create Plan
             </Button>
@@ -263,6 +335,40 @@ export default function FitnessGoalPage() {
         </div>
 
         <CreatePlanDrawer open={drawerOpen} onOpenChange={setDrawerOpen} userId={selectedUserId} />
+
+        {/* User Profile Required Dialog */}
+        <Dialog open={userProfileDialogOpen} onOpenChange={setUserProfileDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                <User className="h-6 w-6 text-primary" />
+              </div>
+              <DialogTitle className="text-center">User Profile Required</DialogTitle>
+              <DialogDescription className="text-center">
+                To create a personalized fitness plan, you need to set up a user profile first.
+                This helps us tailor goals and recommendations to your specific needs.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col gap-3">
+              <Button onClick={handleGoToUsersPage} className="w-full">
+                <User className="mr-2 h-4 w-4" />
+                Create User Profile
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setUserProfileDialogOpen(false)}
+                className="w-full"
+              >
+                Cancel
+              </Button>
+            </div>
+            <div className="mt-4 text-xs text-muted-foreground text-center">
+              You'll be able to set up your body measurements, fitness goals, and preferences
+              to get the most accurate fitness plan recommendations.
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )

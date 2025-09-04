@@ -11,6 +11,7 @@ import type { Plan } from './plan-types'
 import { usePlans } from './plan-store'
 import { savePlan } from './plan-api'
 import { useSelectedUser } from '@/hooks/use-selected-user'
+import { syncService } from '@/lib/sync-service'
 
 export type PillarKey = 'food' | 'water' | 'sleep' | 'exercise'
 
@@ -227,6 +228,10 @@ export function CreatePlanDrawer({ open, onOpenChange, userId, plan, onSaved }: 
                 add(next)
               }
               try { await savePlan(next) } catch {/* ignore */}
+              // Sync to database if plan is active
+              if (next.status === 'active' && userId) {
+                try { await syncService.syncActivePlansToDb(userId) } catch {/* ignore */}
+              }
               try { onSaved?.(next) } catch {}
               onOpenChange(false)
             }}>Save</Button>
