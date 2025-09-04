@@ -9,6 +9,7 @@ import { Slider } from '@/components/ui/slider'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import type { Food } from '@/lib/nutrition/foods'
 import { fetchFoods } from '@/lib/nutrition/foods'
 import { fetchUserInventory, upsertUserInventoryByFoodId } from '@/lib/nutrition/db'
@@ -22,6 +23,7 @@ export function IngredientList() {
   const [selection, setSelection] = useState<Record<string, number>>({}) // foodId -> base amount (g/ml or pieces)
   const [pax, setPax] = useState<number | null>(null)
   const [generated, setGenerated] = useState<null | Array<{ food: Food; total: number; perPerson: number }>>(null)
+  const [showResetDialog, setShowResetDialog] = useState(false)
 
   // Sidebar filter state
   const [unitKinds, setUnitKinds] = useState<{ mass: boolean; volume: boolean; count: boolean }>({ mass: true, volume: true, count: true })
@@ -116,6 +118,23 @@ export function IngredientList() {
       rows.push({ food: f, total, perPerson: total / pax })
     }
     setGenerated(rows)
+  }
+
+  const handleResetInventory = async () => {
+    setSelection({})
+    setGenerated(null)
+    setPax(null)
+    setShowResetDialog(false)
+
+    // Clear all inventory in database
+    try {
+      for (const f of foods) {
+        await upsertUserInventoryByFoodId(f.id, { std_remaining: 0 })
+      }
+      try { if (typeof window !== 'undefined') window.dispatchEvent(new Event('fitspo:inventory_changed')) } catch { /* ignore */ }
+    } catch (e) {
+      console.warn('Failed to clear inventory', e)
+    }
   }
 
   return (
@@ -298,9 +317,8 @@ export function IngredientList() {
             </Table>
           </Card>
 
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => { setSelection({}); setGenerated(null); setPax(null) }}>Reset</Button>
-            <Button disabled={!macrosSatisfied || !pax || pax <= 0} onClick={handleGenerate}>Generate</Button>
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={() => setShowResetDialog(true)}>Reset inventory</Button>
           </div>
 
           {generated && (
@@ -328,6 +346,26 @@ export function IngredientList() {
           )}
         </div>
       </div>
+
+      <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset All Inventory</DialogTitle>
+            <DialogDescription>
+              This will set all ingredient inventory amounts to 0. This action cannot be undone.
+              Are you sure you want to continue?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowResetDialog(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleResetInventory}>
+              Reset All
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

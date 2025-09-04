@@ -2,6 +2,7 @@
   "foods": [
     {
       "name": "Chickpeas (dry)",
+      "aliases": ["Garbanzo beans", "Chana", "Bengal gram"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 61,
@@ -10,6 +11,7 @@
     },
     {
       "name": "Lentils (red, dry)",
+      "aliases": ["Masoor dal", "Red dal"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 60,
@@ -18,6 +20,7 @@
     },
     {
       "name": "Black beans (dry)",
+      "aliases": ["Black turtle beans", "Turtle beans"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 63,
@@ -26,6 +29,7 @@
     },
     {
       "name": "Kidney beans (dry)",
+      "aliases": ["Rajma", "Red kidney beans"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 60,
@@ -34,6 +38,7 @@
     },
     {
       "name": "Pinto beans (dry)",
+      "aliases": ["Speckled beans", "Mottled beans"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 63,
@@ -42,6 +47,7 @@
     },
     {
       "name": "Navy beans (dry)",
+      "aliases": ["Boston beans", "Yankee beans", "Pea beans", "White pea beans"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 61,
@@ -50,6 +56,7 @@
     },
     {
       "name": "Cannellini beans (dry)",
+      "aliases": ["White kidney beans", "Fazolia beans", "Italian kidney beans"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 62,
@@ -58,6 +65,7 @@
     },
     {
       "name": "Adzuki beans (dry)",
+      "aliases": ["Aduki beans", "Azuki beans", "Red mung beans"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 63,
@@ -66,6 +74,7 @@
     },
     {
       "name": "Mung beans (dry)",
+      "aliases": ["Moong beans", "Green gram", "Mung dal"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 63,
@@ -74,6 +83,7 @@
     },
     {
       "name": "Soybeans (dry)",
+      "aliases": ["Soya beans", "Soyabeans"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 30,
@@ -82,6 +92,7 @@
     },
     {
       "name": "Split peas (dry)",
+      "aliases": ["Matar dal", "Yellow split peas", "Toor dal"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 60,
@@ -90,6 +101,7 @@
     },
     {
       "name": "Lentils (cooked)",
+      "aliases": ["Dal", "Lentil soup"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 19.5,
@@ -98,6 +110,7 @@
     },
     {
       "name": "Hummus",
+      "aliases": ["Chickpea dip", "Tahini dip"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 20,
@@ -106,6 +119,7 @@
     },
     {
       "name": "Garbanzo beans (dry)",
+      "aliases": ["Chickpeas", "Chana", "Bengal gram"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 61,
@@ -114,6 +128,7 @@
     },
     {
       "name": "Lima beans (dry)",
+      "aliases": ["Butter beans", "Sieva beans", "Double beans", "Madagascar beans", "Burma beans", "Rangoon beans", "Sugar beans", "Haba beans"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 63,
@@ -122,6 +137,7 @@
     },
     {
       "name": "Fava beans (dry)",
+      "aliases": ["Broad beans", "Horse beans", "Windsor beans", "Haba beans", "Faba beans"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 58,
@@ -130,6 +146,7 @@
     },
     {
       "name": "Green lentils (dry)",
+      "aliases": ["French lentils", "Lentils vertes", "Sabut moong dal"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 60,
@@ -138,6 +155,7 @@
     },
     {
       "name": "Brown lentils (dry)",
+      "aliases": ["German lentils", "Continental lentils"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 63,
@@ -146,6 +164,7 @@
     },
     {
       "name": "Yellow lentils (dry)",
+      "aliases": ["Moong dal", "Mung dal", "Toor dal"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 63,
@@ -154,6 +173,7 @@
     },
     {
       "name": "Pigeon peas (dry)",
+      "aliases": ["Congo peas", "No-eye peas", "Gungo peas", "Toor dal", "Arhar dal"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 62,
@@ -162,6 +182,7 @@
     },
     {
       "name": "Black-eyed peas (dry)",
+      "aliases": ["Cowpeas", "Southern peas", "Lobiya", "Chawli"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 61,
@@ -170,6 +191,7 @@
     },
     {
       "name": "Great northern beans (dry)",
+      "aliases": ["Large white beans", "White beans", "Common beans"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 62,
@@ -178,6 +200,7 @@
     },
     {
       "name": "Cranberry beans (dry)",
+      "aliases": ["Borlotti beans", "Roman beans", "Shell beans"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 61,
@@ -186,6 +209,7 @@
     },
     {
       "name": "Edamame (shelled, cooked)",
+      "aliases": ["Soy beans (young)", "Green soybeans"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 9,
@@ -194,6 +218,7 @@
     },
     {
       "name": "Bean sprouts",
+      "aliases": ["Sprouted beans", "Bean shoots"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 6,
@@ -202,6 +227,7 @@
     },
     {
       "name": "Black beans (canned)",
+      "aliases": ["Canned black beans", "Black turtle beans (canned)"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 22,
@@ -210,6 +236,7 @@
     },
     {
       "name": "Kidney beans (canned)",
+      "aliases": ["Canned kidney beans", "Rajma (canned)"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 20,
@@ -218,6 +245,7 @@
     },
     {
       "name": "Chickpeas (canned)",
+      "aliases": ["Canned chickpeas", "Canned garbanzo beans", "Chana (canned)"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 19,
@@ -226,6 +254,7 @@
     },
     {
       "name": "Lentils (canned)",
+      "aliases": ["Canned lentils", "Dal (canned)"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 16,
@@ -234,6 +263,7 @@
     },
     {
       "name": "Baked beans",
+      "aliases": ["Boston baked beans", "Heinz beans"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 22,
@@ -242,6 +272,7 @@
     },
     {
       "name": "Refried beans",
+      "aliases": ["Frijoles refritos", "Refritos"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 19,
@@ -250,6 +281,7 @@
     },
     {
       "name": "Tempeh",
+      "aliases": ["Tempe", "Fermented soy"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 8,
@@ -258,6 +290,7 @@
     },
     {
       "name": "Tofu (firm)",
+      "aliases": ["Firm tofu", "Cotton tofu", "Pressed tofu"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 2.3,
@@ -266,6 +299,7 @@
     },
     {
       "name": "Tofu (soft)",
+      "aliases": ["Soft tofu", "Silken tofu", "Kinugoshi tofu"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 1.8,
@@ -274,6 +308,7 @@
     },
     {
       "name": "Green peas (dry)",
+      "aliases": ["Field peas", "Garden peas"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 60,
@@ -282,6 +317,7 @@
     },
     {
       "name": "Green peas (cooked)",
+      "aliases": ["Cooked peas", "Fresh peas"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 14,
@@ -290,6 +326,7 @@
     },
     {
       "name": "Moth beans (dry)",
+      "aliases": ["Mat bean", "Turkish gram"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 63,
@@ -298,6 +335,7 @@
     },
     {
       "name": "Horse gram (dry)",
+      "aliases": ["Kulthi bean", "Madras gram"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 57,
@@ -306,6 +344,7 @@
     },
     {
       "name": "Chickpeas (sprouted)",
+      "aliases": ["Sprouted garbanzo", "Sprouted chana"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 19,
@@ -314,6 +353,7 @@
     },
     {
       "name": "Lentils (sprouted)",
+      "aliases": ["Sprouted lentils", "Sprouted dal"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 21,
@@ -322,6 +362,7 @@
     },
     {
       "name": "Black turtle beans (dry)",
+      "aliases": ["Black beans", "Turtle beans"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 63,
@@ -330,6 +371,7 @@
     },
     {
       "name": "Pinto beans (canned)",
+      "aliases": ["Canned pinto beans", "Canned speckled beans"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 21,
@@ -338,6 +380,7 @@
     },
     {
       "name": "Navy beans (canned)",
+      "aliases": ["Canned navy beans", "Canned pea beans"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 19,
@@ -346,6 +389,7 @@
     },
     {
       "name": "Cannellini beans (canned)",
+      "aliases": ["Canned cannellini beans", "Canned white kidney beans"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 18,
@@ -354,6 +398,7 @@
     },
     {
       "name": "Lima beans (canned)",
+      "aliases": ["Canned lima beans", "Canned butter beans", "Canned sieva beans"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 21,
@@ -362,6 +407,7 @@
     },
     {
       "name": "Fava beans (canned)",
+      "aliases": ["Canned fava beans", "Canned broad beans"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 14,
@@ -370,6 +416,7 @@
     },
     {
       "name": "Adzuki beans (cooked)",
+      "aliases": ["Cooked adzuki beans", "Cooked azuki beans"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 17,
@@ -378,6 +425,7 @@
     },
     {
       "name": "Mung beans (cooked)",
+      "aliases": ["Cooked mung beans", "Cooked moong beans"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 19,
@@ -386,6 +434,7 @@
     },
     {
       "name": "Split peas (cooked)",
+      "aliases": ["Cooked split peas", "Cooked matar dal"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 21,
@@ -394,6 +443,7 @@
     },
     {
       "name": "Soybeans (cooked)",
+      "aliases": ["Cooked soybeans", "Cooked soya beans"],
       "category": "Beans",
       "unit_kind": "mass",
       "carbs": 11,

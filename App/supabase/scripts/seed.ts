@@ -160,8 +160,19 @@ async function upsertFoods(foods: Array<{ name: string; category?: string; unit_
 			micros: f.micros ?? {}
 		}
 	})
-	const { error } = await supabase.from('foods').upsert(rows, { onConflict: 'name' })
-	if (error) throw error
+	// Use individual inserts with ON CONFLICT DO UPDATE to handle duplicates properly
+	for (const row of rows) {
+		const { error } = await supabase
+			.from('foods')
+			.upsert(row, {
+				onConflict: 'name',
+				ignoreDuplicates: false
+			})
+		if (error) {
+			console.warn(`Failed to upsert food ${row.name}:`, error)
+			// Continue with other foods instead of failing completely
+		}
+	}
 }
 
 // Recipes seed

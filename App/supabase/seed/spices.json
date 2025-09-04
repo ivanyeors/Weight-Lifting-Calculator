@@ -2,6 +2,7 @@
   "foods": [
     {
       "name": "Turmeric powder",
+      "aliases": ["Turmeric", "Curcuma", "Indian saffron", "Haldi powder"],
       "category": "Spices",
       "unit_kind": "mass",
       "carbs": 67,
@@ -10,6 +11,7 @@
     },
     {
       "name": "Cumin seeds",
+      "aliases": ["Cumin", "Jeera", "Comino", "Cuminum cyminum"],
       "category": "Spices",
       "unit_kind": "mass",
       "carbs": 44,
@@ -18,6 +20,7 @@
     },
     {
       "name": "Coriander seeds",
+      "aliases": ["Coriander", "Dhania", "Cilantro seeds", "Chinese parsley seeds"],
       "category": "Spices",
       "unit_kind": "mass",
       "carbs": 55,
@@ -26,6 +29,7 @@
     },
     {
       "name": "Chili powder",
+      "aliases": ["Chili powder", "Red pepper powder", "Cayenne powder", "Paprika powder"],
       "category": "Spices",
       "unit_kind": "mass",
       "carbs": 56,
@@ -34,6 +38,7 @@
     },
     {
       "name": "Paprika (ground)",
+      "aliases": ["Paprika", "Sweet paprika", "Hungarian paprika", "Red pepper powder"],
       "category": "Spices",
       "unit_kind": "mass",
       "carbs": 54,
@@ -42,6 +47,7 @@
     },
     {
       "name": "Black pepper (ground)",
+      "aliases": ["Black pepper", "Pepper", "Piper nigrum", "Tellicherry pepper"],
       "category": "Spices",
       "unit_kind": "mass",
       "carbs": 64,
@@ -50,6 +56,7 @@
     },
     {
       "name": "White pepper (ground)",
+      "aliases": ["White pepper", "Sarawak pepper", "Muntok pepper", "Decorticated pepper"],
       "category": "Spices",
       "unit_kind": "mass",
       "carbs": 68,
@@ -58,6 +65,7 @@
     },
     {
       "name": "Cinnamon (ground)",
+      "aliases": ["Cinnamon", "Ceylon cinnamon", "Cassia cinnamon", "Cinnamomum"],
       "category": "Spices",
       "unit_kind": "mass",
       "carbs": 81,
@@ -66,6 +74,7 @@
     },
     {
       "name": "Cloves (ground)",
+      "aliases": ["Cloves", "Clove powder", "Syzygium aromaticum", "Laung powder"],
       "category": "Spices",
       "unit_kind": "mass",
       "carbs": 61,
@@ -74,6 +83,7 @@
     },
     {
       "name": "Nutmeg (ground)",
+      "aliases": ["Nutmeg", "Mace", "Myristica fragrans", "Jaiphal powder"],
       "category": "Spices",
       "unit_kind": "mass",
       "carbs": 49,
@@ -82,6 +92,7 @@
     },
     {
       "name": "Cardamom pods",
+      "aliases": ["Cardamom", "Elaichi", "Green cardamom", "Elettaria cardamomum"],
       "category": "Spices",
       "unit_kind": "mass",
       "carbs": 68,
@@ -90,6 +101,7 @@
     },
     {
       "name": "Star anise",
+      "aliases": ["Star anise", "Anise stars", "Illicium verum", "Badain"],
       "category": "Spices",
       "unit_kind": "mass",
       "carbs": 72,
@@ -98,6 +110,7 @@
     },
     {
       "name": "Fennel seeds",
+      "aliases": ["Fennel", "Saunf", "Foeniculum vulgare", "Sweet cumin"],
       "category": "Spices",
       "unit_kind": "mass",
       "carbs": 52,
@@ -106,6 +119,7 @@
     },
     {
       "name": "Fenugreek seeds",
+      "aliases": ["Fenugreek", "Methi", "Trigonella foenum-graecum", "Greek hay"],
       "category": "Spices",
       "unit_kind": "mass",
       "carbs": 58,
@@ -114,6 +128,7 @@
     },
     {
       "name": "Mustard seeds",
+      "aliases": ["Mustard", "Sarson", "Brassica seeds", "Yellow mustard"],
       "category": "Spices",
       "unit_kind": "mass",
       "carbs": 28,
@@ -122,6 +137,7 @@
     },
     {
       "name": "Curry powder",
+      "aliases": ["Curry powder", "Indian curry", "Madras curry", "Curry blend"],
       "category": "Spices",
       "unit_kind": "mass",
       "carbs": 58,
@@ -130,6 +146,7 @@
     },
     {
       "name": "Garam masala",
+      "aliases": ["Garam masala", "Indian spice mix", "Warm spice blend", "Masala"],
       "category": "Spices",
       "unit_kind": "mass",
       "carbs": 50,
@@ -138,6 +155,7 @@
     },
     {
       "name": "Black pepper (ground)",
+      "aliases": ["Black pepper", "Pepper", "Piper nigrum", "Tellicherry pepper"],
       "category": "Spices",
       "unit_kind": "mass",
       "carbs": 64,
@@ -146,6 +164,7 @@
     },
     {
       "name": "Cinnamon (ground)",
+      "aliases": ["Cinnamon", "Ceylon cinnamon", "Cassia cinnamon", "Cinnamomum"],
       "category": "Spices",
       "unit_kind": "mass",
       "carbs": 81,
@@ -153,12 +172,121 @@
       "protein": 4
     },
     {
-      "name": "Vanilla extract",
+      "name": "Oregano (dried)",
+      "aliases": ["Oregano", "Dried oregano", "Pizza herb", "Greek oregano"],
       "category": "Spices",
-      "unit_kind": "volume",
-      "carbs": 12.7,
-      "fats": 0.1,
-      "protein": 0.1
+      "unit_kind": "mass",
+      "carbs": 69,
+      "fats": 4.3,
+      "protein": 9
+    },
+    {
+      "name": "Nutritional yeast",
+      "aliases": ["Nutritional yeast flakes", "Brewer's yeast", "Saccharomyces cerevisiae"],
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 42,
+      "fats": 1.6,
+      "protein": 50
+    },
+    {
+      "name": "Kimchi",
+      "aliases": ["Korean kimchi", "Fermented cabbage", "Baechu kimchi"],
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 8.4,
+      "fats": 0.5,
+      "protein": 3.5
+    },
+    {
+      "name": "Wasabi",
+      "aliases": ["Wasabi paste", "Japanese horseradish", "Wasabia japonica"],
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 24,
+      "fats": 0.6,
+      "protein": 4.8
+    },
+    {
+      "name": "Nori sheets",
+      "aliases": ["Nori", "Seaweed sheets", "Laver seaweed"],
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 35,
+      "fats": 0.3,
+      "protein": 30
+    },
+    {
+      "name": "Red pepper flakes",
+      "aliases": ["Crushed red pepper", "Chili flakes", "Red chili flakes"],
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 54,
+      "fats": 17,
+      "protein": 12
+    },
+    {
+      "name": "Italian seasoning",
+      "aliases": ["Italian herbs", "Italian spice mix", "Herbes de Provence"],
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 50,
+      "fats": 5,
+      "protein": 15
+    },
+    {
+      "name": "Fresh basil",
+      "aliases": ["Basil leaves", "Sweet basil", "Ocimum basilicum"],
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 2.7,
+      "fats": 0.6,
+      "protein": 3.2
+    },
+    {
+      "name": "Fresh parsley",
+      "aliases": ["Parsley leaves", "Flat-leaf parsley", "Petroselinum crispum"],
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 6.3,
+      "fats": 0.8,
+      "protein": 3
+    },
+    {
+      "name": "Sun-dried tomatoes",
+      "aliases": ["Dried tomatoes", "Semi-dried tomatoes", "Solanum lycopersicum"],
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 23,
+      "fats": 3,
+      "protein": 5.1
+    },
+    {
+      "name": "Ras el hanout",
+      "aliases": ["Moroccan spice mix", "Ras el hanout", "North African spice blend"],
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 45,
+      "fats": 10,
+      "protein": 12
+    },
+    {
+      "name": "Garlic powder",
+      "aliases": ["Garlic powder", "Dehydrated garlic", "Powdered garlic"],
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 73,
+      "fats": 0.7,
+      "protein": 17
+    },
+    {
+      "name": "Ground mustard",
+      "aliases": ["Mustard powder", "Dry mustard", "Yellow mustard powder"],
+      "category": "Spices",
+      "unit_kind": "mass",
+      "carbs": 28,
+      "fats": 8,
+      "protein": 27
     }
   ]
 }

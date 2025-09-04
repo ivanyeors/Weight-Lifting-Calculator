@@ -2,6 +2,7 @@
   "foods": [
     {
       "name": "Garlic cloves",
+      "aliases": ["Garlic", "Fresh garlic", "Allium sativum"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 33.06,
@@ -10,6 +11,7 @@
     },
     {
       "name": "Onion",
+      "aliases": ["Yellow onion", "Red onion", "Sweet onion"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 9.34,
@@ -18,6 +20,7 @@
     },
     {
       "name": "Potato",
+      "aliases": ["White potato", "Russet potato", "Yukon gold"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 17,
@@ -26,6 +29,7 @@
     },
     {
       "name": "Artichoke",
+      "aliases": ["Globe artichoke", "French artichoke", "Cynara scolymus"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 10.51,
@@ -34,6 +38,7 @@
     },
     {
       "name": "Asparagus",
+      "aliases": ["Green asparagus", "White asparagus", "Wild asparagus"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 3.88,
@@ -42,6 +47,7 @@
     },
     {
       "name": "Eggplant",
+      "aliases": ["Aubergine", "Purple eggplant", "Asian eggplant"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 5.88,
@@ -50,6 +56,7 @@
     },
     {
       "name": "Beetroot",
+      "aliases": ["Beet", "Red beet", "Golden beet"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 9.56,
@@ -58,6 +65,7 @@
     },
     {
       "name": "Bell pepper (red)",
+      "aliases": ["Red bell pepper", "Sweet pepper", "Capsicum annuum"],
       "category": "Vegetables",
       "unit_kind": "count",
       "carbs": 7.236,
@@ -66,6 +74,7 @@
     },
     {
       "name": "Bell pepper (green)",
+      "aliases": ["Green bell pepper", "Sweet pepper", "Capsicum annuum"],
       "category": "Vegetables",
       "unit_kind": "count",
       "carbs": 5.568,
@@ -74,6 +83,7 @@
     },
     {
       "name": "Bok choy",
+      "aliases": ["Pak choi", "Chinese cabbage", "Brassica rapa"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 2.18,
@@ -82,6 +92,7 @@
     },
     {
       "name": "Broccoli",
+      "aliases": ["Green broccoli", "Broccoli florets", "Brassica oleracea"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 6.64,
@@ -90,6 +101,7 @@
     },
     {
       "name": "Brussels sprouts",
+      "aliases": ["Brussels", "Mini cabbages", "Brassica oleracea"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 8.95,
@@ -98,6 +110,7 @@
     },
     {
       "name": "Cabbage (green)",
+      "aliases": ["Green cabbage", "Savoy cabbage", "Brassica oleracea"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 5.8,
@@ -106,6 +119,7 @@
     },
     {
       "name": "Cabbage (red)",
+      "aliases": ["Red cabbage", "Purple cabbage", "Brassica oleracea"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 7.37,
@@ -114,6 +128,7 @@
     },
     {
       "name": "Carrot",
+      "aliases": ["Orange carrot", "Baby carrot", "Daucus carota"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 9.58,
@@ -122,6 +137,7 @@
     },
     {
       "name": "Cauliflower",
+      "aliases": ["White cauliflower", "Romanesco", "Brassica oleracea"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 4.97,
@@ -130,6 +146,7 @@
     },
     {
       "name": "Celery",
+      "aliases": ["Celery stalks", "Green celery", "Apium graveolens"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 2.97,
@@ -138,6 +155,7 @@
     },
     {
       "name": "Chayote",
+      "aliases": ["Choko", "Mirliton", "Sechium edule"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 4.51,
@@ -146,6 +164,7 @@
     },
     {
       "name": "Collard greens",
+      "aliases": ["Collards", "Collard", "Brassica oleracea"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 5.42,
@@ -154,6 +173,7 @@
     },
     {
       "name": "Corn (sweet)",
+      "aliases": ["Sweet corn", "Maize", "Zea mays"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 18.7,
@@ -162,6 +182,7 @@
     },
     {
       "name": "Cucumber",
+      "aliases": ["English cucumber", "Seedless cucumber", "Cucumis sativus"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 3.63,
@@ -170,6 +191,7 @@
     },
     {
       "name": "Daikon radish",
+      "aliases": ["Daikon", "White radish", "Raphanus sativus"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 4.1,
@@ -178,6 +200,7 @@
     },
     {
       "name": "Edamame",
+      "aliases": ["Edamame beans", "Young soybeans", "Glycine max"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 8.9,
@@ -186,6 +209,7 @@
     },
     {
       "name": "Endive",
+      "aliases": ["Belgian endive", "Witloof", "Cichorium intybus"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 3.35,
@@ -194,6 +218,7 @@
     },
     {
       "name": "Fennel bulb",
+      "aliases": ["Fennel", "Florence fennel", "Foeniculum vulgare"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 7.3,
@@ -202,6 +227,7 @@
     },
     {
       "name": "Ginger root",
+      "aliases": ["Ginger", "Fresh ginger", "Zingiber officinale"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 17.77,
@@ -210,6 +236,7 @@
     },
     {
       "name": "Green beans",
+      "aliases": ["String beans", "Snap beans", "Phaseolus vulgaris"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 6.97,
@@ -218,6 +245,7 @@
     },
     {
       "name": "Kale",
+      "aliases": ["Curly kale", "Dinosaur kale", "Brassica oleracea"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 8.75,
@@ -226,6 +254,7 @@
     },
     {
       "name": "Leek",
+      "aliases": ["Wild leek", "Allium ampeloprasum", "Allium porrum"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 14.15,
@@ -234,6 +263,7 @@
     },
     {
       "name": "Lettuce (romaine)",
+      "aliases": ["Romaine", "Cos lettuce", "Lactuca sativa"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 3.29,
@@ -242,6 +272,7 @@
     },
     {
       "name": "Lettuce (iceberg)",
+      "aliases": ["Iceberg lettuce", "Crisphead lettuce", "Lactuca sativa"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 2.97,
@@ -250,6 +281,7 @@
     },
     {
       "name": "Mushroom (white)",
+      "aliases": ["White mushroom", "Button mushroom", "Agaricus bisporus"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 3.26,
@@ -258,6 +290,7 @@
     },
     {
       "name": "Okra",
+      "aliases": ["Lady's finger", "Bhindi", "Abelmoschus esculentus"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 7.45,
@@ -266,6 +299,7 @@
     },
     {
       "name": "Parsnip",
+      "aliases": ["White parsnip", "Pastinaca sativa", "Pastinake"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 18,
@@ -274,6 +308,7 @@
     },
     {
       "name": "Peas (green)",
+      "aliases": ["Green peas", "Garden peas", "Pisum sativum"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 14.45,
@@ -282,6 +317,7 @@
     },
     {
       "name": "Pumpkin",
+      "aliases": ["Winter squash", "Cucurbita pepo", "Field pumpkin"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 6.5,
@@ -290,6 +326,7 @@
     },
     {
       "name": "Radish",
+      "aliases": ["Red radish", "White radish", "Raphanus sativus"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 3.4,
@@ -298,6 +335,7 @@
     },
     {
       "name": "Spinach",
+      "aliases": ["Baby spinach", "Leaf spinach", "Spinacia oleracea"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 3.63,
@@ -306,6 +344,7 @@
     },
     {
       "name": "Squash (butternut)",
+      "aliases": ["Butternut squash", "Cucurbita moschata", "Winter squash"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 11.69,
@@ -314,6 +353,7 @@
     },
     {
       "name": "Zucchini",
+      "aliases": ["Courgette", "Summer squash", "Cucurbita pepo"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 3.11,
@@ -322,6 +362,7 @@
     },
     {
       "name": "Sweet potato",
+      "aliases": ["Orange sweet potato", "Ipomoea batatas", "Yam"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 20.12,
@@ -330,6 +371,7 @@
     },
     {
       "name": "Swiss chard",
+      "aliases": ["Chard", "Beta vulgaris", "Leaf beet"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 3.74,
@@ -338,6 +380,7 @@
     },
     {
       "name": "Tomato",
+      "aliases": ["Red tomato", "Cherry tomato", "Solanum lycopersicum"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 3.89,
@@ -346,6 +389,7 @@
     },
     {
       "name": "Turnip",
+      "aliases": ["White turnip", "Brassica rapa", "Rapini"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 6.43,
@@ -354,6 +398,7 @@
     },
     {
       "name": "Yam",
+      "aliases": ["African yam", "Dioscorea", "Sweet yam"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 27.9,
@@ -362,6 +407,7 @@
     },
     {
       "name": "Watercress",
+      "aliases": ["Nasturtium officinale", "Nasturtium", "Water cress"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 1.29,
@@ -370,6 +416,7 @@
     },
     {
       "name": "Jalapeño",
+      "aliases": ["Jalapeno pepper", "Capsicum annuum", "Hot pepper"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 6.5,
@@ -378,6 +425,7 @@
     },
     {
       "name": "Chili pepper (red)",
+      "aliases": ["Red chili", "Capsicum", "Hot pepper"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 8.8,
@@ -386,6 +434,7 @@
     },
     {
       "name": "Shallot",
+      "aliases": ["French shallot", "Allium cepa", "Pearl onion"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 16.8,
@@ -394,6 +443,7 @@
     },
     {
       "name": "Scallion (green onion)",
+      "aliases": ["Green onion", "Spring onion", "Allium fistulosum"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 7.34,
@@ -402,6 +452,7 @@
     },
     {
       "name": "Arugula",
+      "aliases": ["Rocket", "Eruca sativa", "Rucola"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 3.65,
@@ -410,6 +461,7 @@
     },
     {
       "name": "Beet greens",
+      "aliases": ["Beet tops", "Beta vulgaris", "Beet leaves"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 4.33,
@@ -418,6 +470,7 @@
     },
     {
       "name": "Mustard greens",
+      "aliases": ["Mustard", "Brassica juncea", "Leaf mustard"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 4.67,
@@ -426,6 +479,7 @@
     },
     {
       "name": "Napa cabbage",
+      "aliases": ["Napa", "Chinese cabbage", "Brassica rapa"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 3.23,
@@ -434,6 +488,7 @@
     },
     {
       "name": "Parsley (fresh)",
+      "aliases": ["Flat-leaf parsley", "Curly parsley", "Petroselinum crispum"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 6.3,
@@ -442,6 +497,7 @@
     },
     {
       "name": "Cilantro (fresh)",
+      "aliases": ["Coriander", "Chinese parsley", "Coriandrum sativum"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 3.7,
@@ -450,6 +506,7 @@
     },
     {
       "name": "Basil (fresh)",
+      "aliases": ["Sweet basil", "Genovese basil", "Ocimum basilicum"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 2.7,
@@ -458,6 +515,7 @@
     },
     {
       "name": "Mint (fresh)",
+      "aliases": ["Spearmint", "Peppermint", "Mentha spicata"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 8.4,
@@ -466,6 +524,7 @@
     },
     {
       "name": "Dill (fresh)",
+      "aliases": ["Dill weed", "Anethum graveolens", "Garden dill"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 7,
@@ -474,6 +533,7 @@
     },
     {
       "name": "Chives (fresh)",
+      "aliases": ["Garlic chives", "Allium schoenoprasum", "Onion chives"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 4.4,
@@ -482,6 +542,7 @@
     },
     {
       "name": "Rosemary (fresh)",
+      "aliases": ["Rosemary herb", "Salvia rosmarinus", "Pine-scented herb"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 20.7,
@@ -490,6 +551,7 @@
     },
     {
       "name": "Thyme (fresh)",
+      "aliases": ["Common thyme", "Thymus vulgaris", "Garden thyme"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 24,
@@ -498,6 +560,7 @@
     },
     {
       "name": "Oregano (fresh)",
+      "aliases": ["Wild marjoram", "Origanum vulgare", "Pizza herb"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 4.1,
@@ -506,6 +569,7 @@
     },
     {
       "name": "Sage (fresh)",
+      "aliases": ["Common sage", "Salvia officinalis", "Garden sage"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 6.3,
@@ -514,6 +578,7 @@
     },
     {
       "name": "Lemongrass (fresh)",
+      "aliases": ["Lemongrass", "Cymbopogon citratus", "Citronella grass"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 25.3,
@@ -522,6 +587,7 @@
     },
     {
       "name": "Rutabaga",
+      "aliases": ["Swede", "Brassica napus", "Yellow turnip"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 8.6,
@@ -530,6 +596,7 @@
     },
     {
       "name": "Kohlrabi",
+      "aliases": ["German turnip", "Brassica oleracea", "Stem cabbage"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 6.2,
@@ -538,6 +605,7 @@
     },
     {
       "name": "Sunchoke (Jerusalem artichoke)",
+      "aliases": ["Jerusalem artichoke", "Helianthus tuberosus", "Sunchoke"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 17.4,
@@ -546,6 +614,7 @@
     },
     {
       "name": "Mushroom (shiitake)",
+      "aliases": ["Shiitake", "Lentinula edodes", "Black mushroom"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 6.8,
@@ -554,6 +623,7 @@
     },
     {
       "name": "Mushroom (portobello)",
+      "aliases": ["Portobello", "Portabella", "Agaricus bisporus"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 3.3,
@@ -562,6 +632,7 @@
     },
     {
       "name": "Mushroom (oyster)",
+      "aliases": ["Oyster mushroom", "Pleurotus ostreatus", "Tree oyster"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 6.1,
@@ -570,6 +641,7 @@
     },
     {
       "name": "Mushroom (chanterelle)",
+      "aliases": ["Chanterelle", "Cantharellus cibarius", "Girolle"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 6.9,
@@ -578,6 +650,7 @@
     },
     {
       "name": "Mushroom (morel)",
+      "aliases": ["Morel", "Morchella", "Sponge mushroom"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 5.1,
@@ -586,6 +659,7 @@
     },
     {
       "name": "Cabbage (savoy)",
+      "aliases": ["Savoy cabbage", "Wrinkled cabbage", "Brassica oleracea"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 5.4,
@@ -594,6 +668,7 @@
     },
     {
       "name": "Broccoli rabe (rapini)",
+      "aliases": ["Rapini", "Broccoli raab", "Brassica rapa"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 4.1,
@@ -602,6 +677,7 @@
     },
     {
       "name": "Bitter melon",
+      "aliases": ["Bitter gourd", "Momordica charantia", "Balsam pear"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 4.3,
@@ -610,6 +686,7 @@
     },
     {
       "name": "Tomatillo",
+      "aliases": ["Husk tomato", "Physalis philadelphica", "Mexican husk tomato"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 5.8,
@@ -618,6 +695,7 @@
     },
     {
       "name": "Pattypan squash",
+      "aliases": ["Patty pan", "Scallop squash", "Cucurbita pepo"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 4.4,
@@ -626,6 +704,7 @@
     },
     {
       "name": "Spaghetti squash",
+      "aliases": ["Spaghetti squash", "Vegetable spaghetti", "Cucurbita pepo"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 6.9,
@@ -634,6 +713,7 @@
     },
     {
       "name": "Delicata squash",
+      "aliases": ["Delicata", "Sweet potato squash", "Cucurbita pepo"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 7.2,
@@ -642,6 +722,7 @@
     },
     {
       "name": "Acorn squash",
+      "aliases": ["Acorn squash", "Winter squash", "Cucurbita pepo"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 10.1,
@@ -650,6 +731,7 @@
     },
     {
       "name": "Hubbard squash",
+      "aliases": ["Hubbard squash", "Blue Hubbard", "Cucurbita maxima"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 8.7,
@@ -658,6 +740,7 @@
     },
     {
       "name": "Kabocha squash",
+      "aliases": ["Kabocha", "Japanese pumpkin", "Cucurbita maxima"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 9.2,
@@ -666,6 +749,7 @@
     },
     {
       "name": "Sugar snap peas",
+      "aliases": ["Snap peas", "Mangetout", "Pisum sativum"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 7.6,
@@ -674,6 +758,7 @@
     },
     {
       "name": "Snow peas",
+      "aliases": ["Snow peas", "Chinese pea pods", "Pisum sativum"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 7.6,
@@ -682,6 +767,7 @@
     },
     {
       "name": "Fava beans (broad beans)",
+      "aliases": ["Broad beans", "Vicia faba", "Faba beans"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 58.3,
@@ -690,6 +776,7 @@
     },
     {
       "name": "Lima beans",
+      "aliases": ["Butter beans", "Sieva beans", "Phaseolus lunatus"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 63.4,
@@ -698,6 +785,7 @@
     },
     {
       "name": "Wax beans",
+      "aliases": ["Yellow beans", "Wax bean", "Phaseolus vulgaris"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 7.1,
@@ -706,6 +794,7 @@
     },
     {
       "name": "Radicchio",
+      "aliases": ["Radicchio", "Italian chicory", "Cichorium intybus"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 4.5,
@@ -714,6 +803,7 @@
     },
     {
       "name": "Frisée",
+      "aliases": ["Frisee", "Curly endive", "Cichorium endivia"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 2,
@@ -722,6 +812,7 @@
     },
     {
       "name": "Mâche (lamb's lettuce)",
+      "aliases": ["Lamb's lettuce", "Valerianella locusta", "Corn salad"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 2.6,
@@ -730,6 +821,7 @@
     },
     {
       "name": "Microgreens",
+      "aliases": ["Micro greens", "Baby greens", "Sprouted greens"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 5,
@@ -738,6 +830,7 @@
     },
     {
       "name": "Tatsoi",
+      "aliases": ["Tat soi", "Brassica rapa", "Oriental greens"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 4.2,
@@ -746,6 +839,7 @@
     },
     {
       "name": "Mizuna",
+      "aliases": ["Mizuna greens", "Brassica rapa", "Japanese mustard"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 3.7,
@@ -754,6 +848,7 @@
     },
     {
       "name": "Komatsuna",
+      "aliases": ["Komatsuna", "Brassica rapa", "Japanese mustard spinach"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 4.9,
@@ -762,6 +857,7 @@
     },
     {
       "name": "Yukina savoy",
+      "aliases": ["Yukina", "Brassica rapa", "Savoy cabbage"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 4.1,
@@ -770,6 +866,7 @@
     },
     {
       "name": "Sorrel",
+      "aliases": ["Garden sorrel", "Rumex acetosa", "Sour dock"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 3.2,
@@ -778,6 +875,7 @@
     },
     {
       "name": "Malabar spinach",
+      "aliases": ["Malabar spinach", "Basella alba", "Ceylon spinach"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 3.4,
@@ -786,6 +884,7 @@
     },
     {
       "name": "Purslane",
+      "aliases": ["Purslane", "Portulaca oleracea", "Pigweed"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 3.4,
@@ -794,6 +893,7 @@
     },
     {
       "name": "Amaranth leaves",
+      "aliases": ["Amaranth greens", "Amaranthus", "Chinese spinach"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 4,
@@ -802,6 +902,7 @@
     },
     {
       "name": "Dandelion greens",
+      "aliases": ["Dandelion leaves", "Taraxacum", "Wild greens"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 9.2,
@@ -810,6 +911,7 @@
     },
     {
       "name": "Nettle leaves",
+      "aliases": ["Stinging nettles", "Urtica dioica", "Nettle greens"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 6.9,
@@ -818,6 +920,7 @@
     },
     {
       "name": "Wood sorrel",
+      "aliases": ["Wood sorrel", "Oxalis acetosella", "Sour grass"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 5.3,
@@ -826,6 +929,7 @@
     },
     {
       "name": "Garlic scapes",
+      "aliases": ["Garlic scapes", "Garlic stems", "Garlic shoots"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 11.2,
@@ -834,6 +938,7 @@
     },
     {
       "name": "Ramps (wild leeks)",
+      "aliases": ["Ramps", "Allium tricoccum", "Wild leeks"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 7.1,
@@ -842,6 +947,7 @@
     },
     {
       "name": "Horseradish root",
+      "aliases": ["Horseradish", "Armoracia rusticana", "Wasabi root"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 16.3,
@@ -850,6 +956,7 @@
     },
     {
       "name": "Wasabi root",
+      "aliases": ["Wasabi", "Wasabia japonica", "Japanese horseradish"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 23.5,
@@ -858,6 +965,7 @@
     },
     {
       "name": "Celeriac (celery root)",
+      "aliases": ["Celery root", "Apium graveolens", "Knob celery"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 9.2,
@@ -866,6 +974,7 @@
     },
     {
       "name": "Parsley root",
+      "aliases": ["Parsley root", "Petroselinum crispum", "Hamburg parsley"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 10.5,
@@ -874,6 +983,7 @@
     },
     {
       "name": "Salsify",
+      "aliases": ["Oyster plant", "Tragopogon porrifolius", "Vegetable oyster"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 17.3,
@@ -882,6 +992,7 @@
     },
     {
       "name": "Skirret",
+      "aliases": ["Skirret", "Sium sisarum", "Sugar root"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 12.8,
@@ -890,6 +1001,7 @@
     },
     {
       "name": "Seaweed (nori)",
+      "aliases": ["Nori", "Porphyra", "Laver seaweed"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 34,
@@ -898,6 +1010,7 @@
     },
     {
       "name": "Seaweed (wakame)",
+      "aliases": ["Wakame", "Undaria pinnatifida", "Sea mustard"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 9.1,
@@ -906,6 +1019,7 @@
     },
     {
       "name": "Seaweed (kombu)",
+      "aliases": ["Kombu", "Laminaria", "Kelp"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 12,
@@ -914,6 +1028,7 @@
     },
     {
       "name": "Seaweed (dulse)",
+      "aliases": ["Dulse", "Palmaria palmata", "Red dulse"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 50,
@@ -922,6 +1037,7 @@
     },
     {
       "name": "Seaweed (hijiki)",
+      "aliases": ["Hijiki", "Sargassum fusiforme", "Hijiki seaweed"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 57,
@@ -930,6 +1046,7 @@
     },
     {
       "name": "Bamboo shoots",
+      "aliases": ["Bamboo shoots", "Bamboo sprouts", "Fresh bamboo"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 5.2,
@@ -938,6 +1055,7 @@
     },
     {
       "name": "Lotus root",
+      "aliases": ["Lotus root", "Nelumbo nucifera", "Renkon"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 17.2,
@@ -946,6 +1064,7 @@
     },
     {
       "name": "Taro root",
+      "aliases": ["Taro", "Colocasia esculenta", "Eddoe"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 26.5,
@@ -954,6 +1073,7 @@
     },
     {
       "name": "Ube (purple yam)",
+      "aliases": ["Ube", "Dioscorea alata", "Purple yam"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 27.9,
@@ -962,6 +1082,7 @@
     },
     {
       "name": "Arrowroot",
+      "aliases": ["Arrowroot", "Maranta arundinacea", "Arrowroot starch"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 23.2,
@@ -970,6 +1091,7 @@
     },
     {
       "name": "Cassava root",
+      "aliases": ["Cassava", "Manihot esculenta", "Yuca"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 38.1,
@@ -978,6 +1100,7 @@
     },
     {
       "name": "Maca root",
+      "aliases": ["Maca", "Lepidium meyenii", "Peruvian ginseng"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 75,
@@ -986,6 +1109,7 @@
     },
     {
       "name": "Burdock root",
+      "aliases": ["Burdock", "Arctium lappa", "Gobo"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 17.3,
@@ -994,6 +1118,7 @@
     },
     {
       "name": "Licorice root",
+      "aliases": ["Licorice", "Glycyrrhiza glabra", "Sweet root"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 75,
@@ -1002,6 +1127,7 @@
     },
     {
       "name": "Fiddlehead ferns",
+      "aliases": ["Fiddleheads", "Ostrich ferns", "Fern shoots"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 5.5,
@@ -1010,6 +1136,7 @@
     },
     {
       "name": "Morels",
+      "aliases": ["Morel mushrooms", "Morchella", "Sponge morels"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 5.1,
@@ -1018,6 +1145,7 @@
     },
     {
       "name": "Chicken of the woods",
+      "aliases": ["Chicken mushroom", "Laetiporus sulphureus", "Sulphur shelf"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 6.2,
@@ -1026,6 +1154,7 @@
     },
     {
       "name": "Lion's mane mushroom",
+      "aliases": ["Lion's mane", "Hericium erinaceus", "Bearded tooth"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 7.8,
@@ -1034,6 +1163,7 @@
     },
     {
       "name": "Reishi mushroom",
+      "aliases": ["Reishi", "Ganoderma lucidum", "Lingzhi"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 44.2,
@@ -1042,6 +1172,7 @@
     },
     {
       "name": "Chaga mushroom",
+      "aliases": ["Chaga", "Inonotus obliquus", "Birch mushroom"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 15,
@@ -1050,6 +1181,7 @@
     },
     {
       "name": "Cordyceps mushroom",
+      "aliases": ["Cordyceps", "Ophiocordyceps sinensis", "Caterpillar fungus"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 29,
@@ -1058,6 +1190,7 @@
     },
     {
       "name": "Turkey tail mushroom",
+      "aliases": ["Turkey tail", "Trametes versicolor", "Yunzhi"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 26,
@@ -1066,6 +1199,7 @@
     },
     {
       "name": "Maitake mushroom",
+      "aliases": ["Maitake", "Grifola frondosa", "Hen of the woods"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 6.8,
@@ -1074,6 +1208,7 @@
     },
     {
       "name": "Enoki mushroom",
+      "aliases": ["Enoki", "Flammulina velutipes", "Winter mushroom"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 7.8,
@@ -1082,6 +1217,7 @@
     },
     {
       "name": "King oyster mushroom",
+      "aliases": ["King oyster", "Pleurotus eryngii", "King trumpet"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 6.1,
@@ -1090,6 +1226,7 @@
     },
     {
       "name": "Beech mushroom",
+      "aliases": ["Beech mushroom", "Hypsizygus tessellatus", "Bunashimeji"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 4.3,
@@ -1098,6 +1235,7 @@
     },
     {
       "name": "Shimeji mushroom",
+      "aliases": ["Shimeji", "Lyophyllum shimeji", "Hon-shimeji"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 5.3,
@@ -1106,6 +1244,7 @@
     },
     {
       "name": "Nameko mushroom",
+      "aliases": ["Nameko", "Pholiota nameko", "Butterscotch mushroom"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 5.6,
@@ -1114,6 +1253,7 @@
     },
     {
       "name": "Cloud ear fungus",
+      "aliases": ["Cloud ear", "Auricularia polytricha", "Wood ear"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 74,
@@ -1122,6 +1262,7 @@
     },
     {
       "name": "Wood ear fungus",
+      "aliases": ["Wood ear", "Auricularia auricula", "Tree ear"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 30,
@@ -1130,6 +1271,7 @@
     },
     {
       "name": "Snow fungus",
+      "aliases": ["Snow fungus", "Tremella fuciformis", "Silver ear"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 78,
@@ -1138,6 +1280,7 @@
     },
     {
       "name": "Alfalfa sprouts",
+      "aliases": ["Alfalfa sprouts", "Lucerne sprouts", "Medicago sativa"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 2.1,
@@ -1146,6 +1289,7 @@
     },
     {
       "name": "Broccoli sprouts",
+      "aliases": ["Broccoli sprouts", "Brassica oleracea", "Sulforaphane sprouts"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 4.4,
@@ -1154,6 +1298,7 @@
     },
     {
       "name": "Radish sprouts",
+      "aliases": ["Radish sprouts", "Raphanus sativus", "Daikon sprouts"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 3.6,
@@ -1162,6 +1307,7 @@
     },
     {
       "name": "Sunflower sprouts",
+      "aliases": ["Sunflower sprouts", "Helianthus annuus", "Sunflower greens"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 3,
@@ -1170,6 +1316,7 @@
     },
     {
       "name": "Pea shoots",
+      "aliases": ["Pea shoots", "Pisum sativum", "Pea tendrils"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 7.6,
@@ -1178,6 +1325,7 @@
     },
     {
       "name": "Wheatgrass",
+      "aliases": ["Wheat grass", "Triticum aestivum", "Green wheat"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 19.4,
@@ -1186,6 +1334,7 @@
     },
     {
       "name": "Barley grass",
+      "aliases": ["Barley grass", "Hordeum vulgare", "Green barley"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 20,
@@ -1194,6 +1343,7 @@
     },
     {
       "name": "Kamut grass",
+      "aliases": ["Kamut grass", "Triticum turanicum", "Ancient wheat grass"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 18,
@@ -1202,6 +1352,7 @@
     },
     {
       "name": "Spirulina",
+      "aliases": ["Spirulina", "Arthrospira platensis", "Blue-green algae"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 24,
@@ -1210,6 +1361,7 @@
     },
     {
       "name": "Chlorella",
+      "aliases": ["Chlorella", "Chlorella vulgaris", "Green algae"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 12,
@@ -1218,6 +1370,7 @@
     },
     {
       "name": "Kale sprouts",
+      "aliases": ["Kale sprouts", "Brassica oleracea", "Baby kale"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 4.7,
@@ -1226,6 +1379,7 @@
     },
     {
       "name": "Cabbage sprouts",
+      "aliases": ["Cabbage sprouts", "Brassica oleracea", "Baby cabbage"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 5.2,
@@ -1234,6 +1388,7 @@
     },
     {
       "name": "Mustard sprouts",
+      "aliases": ["Mustard sprouts", "Brassica juncea", "Baby mustard"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 4.1,
@@ -1242,6 +1397,7 @@
     },
     {
       "name": "Cress sprouts",
+      "aliases": ["Cress sprouts", "Lepidium sativum", "Garden cress"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 2.8,
@@ -1250,6 +1406,7 @@
     },
     {
       "name": "Fenugreek sprouts",
+      "aliases": ["Fenugreek sprouts", "Trigonella foenum-graecum", "Methi sprouts"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 6.5,
@@ -1258,6 +1415,7 @@
     },
     {
       "name": "Lentil sprouts",
+      "aliases": ["Lentil sprouts", "Lens culinaris", "Dal sprouts"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 9.6,
@@ -1266,6 +1424,7 @@
     },
     {
       "name": "Mung bean sprouts",
+      "aliases": ["Mung sprouts", "Vigna radiata", "Bean sprouts"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 5.9,
@@ -1274,6 +1433,7 @@
     },
     {
       "name": "Adzuki bean sprouts",
+      "aliases": ["Adzuki sprouts", "Vigna angularis", "Red bean sprouts"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 10.3,
@@ -1282,6 +1442,7 @@
     },
     {
       "name": "Chickpea sprouts",
+      "aliases": ["Chickpea sprouts", "Cicer arietinum", "Garbanzo sprouts"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 11.2,
@@ -1290,6 +1451,7 @@
     },
     {
       "name": "Soybean sprouts",
+      "aliases": ["Soy sprouts", "Glycine max", "Soybean shoots"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 6.2,
@@ -1298,6 +1460,7 @@
     },
     {
       "name": "Guacamole",
+      "aliases": ["Guacamole", "Avocado dip", "Fresh guac"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 9,
@@ -1306,11 +1469,93 @@
     },
     {
       "name": "Potato chips",
+      "aliases": ["Potato chips", "Crisps", "Chips"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 50,
       "fats": 35,
       "protein": 7
+    },
+    {
+      "name": "Mushrooms",
+      "aliases": ["Button mushrooms", "White mushrooms", "Common mushrooms"],
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 3.3,
+      "fats": 0.3,
+      "protein": 3.1
+    },
+    {
+      "name": "Carrots",
+      "aliases": ["Carrot", "Fresh carrots", "Orange carrots"],
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 9.6,
+      "fats": 0.2,
+      "protein": 0.9
+    },
+    {
+      "name": "Ginger",
+      "aliases": ["Fresh ginger", "Ginger root", "Zingiber officinale"],
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 18,
+      "fats": 0.8,
+      "protein": 1.8
+    },
+    {
+      "name": "Bok choy",
+      "aliases": ["Pak choi", "Chinese cabbage", "Brassica rapa"],
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 2.2,
+      "fats": 0.2,
+      "protein": 1.5
+    },
+    {
+      "name": "Shiitake mushrooms",
+      "aliases": ["Shiitake", "Black mushrooms", "Forest mushrooms"],
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 6.8,
+      "fats": 0.5,
+      "protein": 2.2
+    },
+    {
+      "name": "Sweet potato",
+      "aliases": ["Sweet potato", "Yam", "Ipomoea batatas"],
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 20.1,
+      "fats": 0.1,
+      "protein": 1.6
+    },
+    {
+      "name": "Cauliflower",
+      "aliases": ["Cauliflower", "White cauliflower", "Brassica oleracea"],
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 5,
+      "fats": 0.3,
+      "protein": 1.9
+    },
+    {
+      "name": "Green onions",
+      "aliases": ["Scallions", "Spring onions", "Allium fistulosum"],
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 7.3,
+      "fats": 0.2,
+      "protein": 1.8
+    },
+    {
+      "name": "Corn",
+      "aliases": ["Sweet corn", "Maize", "Fresh corn"],
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 18.7,
+      "fats": 1.4,
+      "protein": 3.3
     }
   ]
 }
