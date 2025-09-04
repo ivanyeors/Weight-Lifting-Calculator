@@ -1,0 +1,28 @@
+{
+  "foods": [
+    {
+      "name": "Almonds",
+      "category": "Nuts & Seeds",
+      "unit_kind": "mass",
+      "carbs": 21.6,
+      "fats": 49.4,
+      "protein": 21.2
+    },
+    {
+      "name": "Walnuts",
+      "category": "Nuts & Seeds",
+      "unit_kind": "mass",
+      "carbs": 13.7,
+      "fats": 65.2,
+      "protein": 15.2
+    },
+    {
+      "name": "Trail mix",
+      "category": "Nuts & Seeds",
+      "unit_kind": "mass",
+      "carbs": 30,
+      "fats": 45,
+      "protein": 15
+    }
+  ]
+}

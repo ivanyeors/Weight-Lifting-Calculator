@@ -1,0 +1,852 @@
+{
+  "foods": [
+    {
+      "name": "Light soy sauce",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 4.9,
+      "fats": 0.6,
+      "protein": 8
+    },
+    {
+      "name": "Dark soy sauce",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 15,
+      "fats": 0.6,
+      "protein": 7
+    },
+    {
+      "name": "Fish sauce",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 0,
+      "fats": 0,
+      "protein": 4
+    },
+    {
+      "name": "Oyster sauce",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 23,
+      "fats": 0.6,
+      "protein": 1
+    },
+    {
+      "name": "Tomato ketchup",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 25,
+      "fats": 0.2,
+      "protein": 1.3
+    },
+    {
+      "name": "Mayonnaise",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 0.6,
+      "fats": 75,
+      "protein": 1
+    },
+    {
+      "name": "Yellow mustard",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 5.8,
+      "fats": 6.4,
+      "protein": 4.4
+    },
+    {
+      "name": "Dijon mustard",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 6.3,
+      "fats": 6.9,
+      "protein": 5.7
+    },
+    {
+      "name": "BBQ sauce",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 33,
+      "fats": 0.3,
+      "protein": 1
+    },
+    {
+      "name": "Sriracha chili sauce",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 23,
+      "fats": 0.9,
+      "protein": 1.3
+    },
+    {
+      "name": "Hot sauce",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 1.5,
+      "fats": 0.2,
+      "protein": 0.7
+    },
+    {
+      "name": "White vinegar",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 0.1,
+      "fats": 0,
+      "protein": 0
+    },
+    {
+      "name": "Apple cider vinegar",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 0.9,
+      "fats": 0,
+      "protein": 0
+    },
+    {
+      "name": "Balsamic vinegar",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 17,
+      "fats": 0,
+      "protein": 0.5
+    },
+    {
+      "name": "Sesame oil",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 0,
+      "fats": 100,
+      "protein": 0
+    },
+    {
+      "name": "Olive oil (extra virgin)",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 0,
+      "fats": 100,
+      "protein": 0
+    },
+    {
+      "name": "Peanut butter",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 20,
+      "fats": 50,
+      "protein": 25
+    },
+    {
+      "name": "Strawberry jam",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 60,
+      "fats": 0.2,
+      "protein": 0.5
+    },
+    {
+      "name": "Honey",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 82,
+      "fats": 0,
+      "protein": 0.3
+    },
+    {
+      "name": "Maple syrup",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 67,
+      "fats": 0,
+      "protein": 0
+    },
+    {
+      "name": "Tahini (sesame paste)",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 17,
+      "fats": 53,
+      "protein": 17
+    },
+    {
+      "name": "Hoisin sauce",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 54,
+      "fats": 3,
+      "protein": 3
+    },
+    {
+      "name": "Mirin",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 40,
+      "fats": 0,
+      "protein": 0.2
+    },
+    {
+      "name": "Rice vinegar",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 0.3,
+      "fats": 0,
+      "protein": 0
+    },
+    {
+      "name": "Gochujang (chili paste)",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 50,
+      "fats": 3,
+      "protein": 5
+    },
+    {
+      "name": "Miso paste",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 26,
+      "fats": 6,
+      "protein": 12
+    },
+    {
+      "name": "Peanut butter",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 20,
+      "fats": 50,
+      "protein": 25
+    },
+    {
+      "name": "Honey",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 82,
+      "fats": 0,
+      "protein": 0.3
+    },
+    {
+      "name": "Protein bar",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 35,
+      "fats": 15,
+      "protein": 20
+    },
+    {
+      "name": "Chocolate bar (milk)",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 60,
+      "fats": 30,
+      "protein": 7
+    },
+    {
+      "name": "Candy bar",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 65,
+      "fats": 25,
+      "protein": 5
+    },
+    {
+      "name": "Worcestershire sauce",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 10,
+      "fats": 0.1,
+      "protein": 0.5
+    },
+    {
+      "name": "Teriyaki sauce",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 25,
+      "fats": 0.1,
+      "protein": 2
+    },
+    {
+      "name": "Ranch dressing",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 2,
+      "fats": 55,
+      "protein": 0.7
+    },
+    {
+      "name": "Italian dressing",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 4,
+      "fats": 35,
+      "protein": 0.2
+    },
+    {
+      "name": "Caesar dressing",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 1,
+      "fats": 65,
+      "protein": 1
+    },
+    {
+      "name": "Vinaigrette dressing",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 2,
+      "fats": 45,
+      "protein": 0.1
+    },
+    {
+      "name": "Red wine vinegar",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 0.5,
+      "fats": 0,
+      "protein": 0.1
+    },
+    {
+      "name": "White wine vinegar",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 0.3,
+      "fats": 0,
+      "protein": 0
+    },
+    {
+      "name": "Champagne vinegar",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 0.2,
+      "fats": 0,
+      "protein": 0
+    },
+    {
+      "name": "Malt vinegar",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 1.2,
+      "fats": 0,
+      "protein": 0
+    },
+    {
+      "name": "Sherry vinegar",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 0.5,
+      "fats": 0,
+      "protein": 0.1
+    },
+    {
+      "name": "Rice wine vinegar",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 0.5,
+      "fats": 0,
+      "protein": 0
+    },
+    {
+      "name": "Canola oil",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 0,
+      "fats": 100,
+      "protein": 0
+    },
+    {
+      "name": "Vegetable oil",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 0,
+      "fats": 100,
+      "protein": 0
+    },
+    {
+      "name": "Avocado oil",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 0,
+      "fats": 100,
+      "protein": 0
+    },
+    {
+      "name": "Coconut oil",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 0,
+      "fats": 100,
+      "protein": 0
+    },
+    {
+      "name": "Grapeseed oil",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 0,
+      "fats": 100,
+      "protein": 0
+    },
+    {
+      "name": "Whole grain mustard",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 7,
+      "fats": 5,
+      "protein": 5
+    },
+    {
+      "name": "Honey mustard",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 20,
+      "fats": 5,
+      "protein": 2
+    },
+    {
+      "name": "Spicy brown mustard",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 8,
+      "fats": 6,
+      "protein": 4
+    },
+    {
+      "name": "Almond butter",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 19,
+      "fats": 56,
+      "protein": 21
+    },
+    {
+      "name": "Cashew butter",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 28,
+      "fats": 49,
+      "protein": 17
+    },
+    {
+      "name": "Sunbutter (sunflower seed butter)",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 23,
+      "fats": 51,
+      "protein": 19
+    },
+    {
+      "name": "Raspberry jam",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 68,
+      "fats": 0.1,
+      "protein": 0.4
+    },
+    {
+      "name": "Apricot jam",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 64,
+      "fats": 0.2,
+      "protein": 0.6
+    },
+    {
+      "name": "Blackberry jam",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 70,
+      "fats": 0.1,
+      "protein": 0.5
+    },
+    {
+      "name": "Grape jelly",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 66,
+      "fats": 0,
+      "protein": 0.1
+    },
+    {
+      "name": "Agave nectar",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 75,
+      "fats": 0,
+      "protein": 0
+    },
+    {
+      "name": "Corn syrup",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 77,
+      "fats": 0,
+      "protein": 0
+    },
+    {
+      "name": "Golden syrup",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 66,
+      "fats": 0,
+      "protein": 0
+    },
+    {
+      "name": "Pesto sauce",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 3,
+      "fats": 58,
+      "protein": 4
+    },
+    {
+      "name": "Sun-dried tomato pesto",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 8,
+      "fats": 45,
+      "protein": 5
+    },
+    {
+      "name": "Arugula pesto",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 2,
+      "fats": 55,
+      "protein": 4
+    },
+    {
+      "name": "Salsa (mild)",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 7,
+      "fats": 0.2,
+      "protein": 1.5
+    },
+    {
+      "name": "Pico de gallo",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 4,
+      "fats": 0.1,
+      "protein": 0.8
+    },
+    {
+      "name": "Tomatillo salsa (verde)",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 6,
+      "fats": 0.3,
+      "protein": 1
+    },
+    {
+      "name": "Relish (pickle)",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 18,
+      "fats": 0.5,
+      "protein": 0.5
+    },
+    {
+      "name": "Corn relish",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 25,
+      "fats": 0.3,
+      "protein": 1.2
+    },
+    {
+      "name": "Onion relish",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 20,
+      "fats": 0.1,
+      "protein": 0.8
+    },
+    {
+      "name": "Tartar sauce",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 3,
+      "fats": 60,
+      "protein": 0.5
+    },
+    {
+      "name": "Cocktail sauce",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 12,
+      "fats": 0.2,
+      "protein": 1
+    },
+    {
+      "name": "Aioli (garlic mayonnaise)",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 1,
+      "fats": 80,
+      "protein": 0.5
+    },
+    {
+      "name": "Romesco sauce",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 5,
+      "fats": 45,
+      "protein": 2
+    },
+    {
+      "name": "Chimichurri sauce",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 2,
+      "fats": 50,
+      "protein": 1
+    },
+    {
+      "name": "Harissa paste",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 12,
+      "fats": 20,
+      "protein": 3
+    },
+    {
+      "name": "Za'atar spice blend",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 40,
+      "fats": 15,
+      "protein": 12
+    },
+    {
+      "name": "Dukkah spice blend",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 25,
+      "fats": 45,
+      "protein": 20
+    },
+    {
+      "name": "Sweet chili sauce",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 45,
+      "fats": 0.5,
+      "protein": 1
+    },
+    {
+      "name": "Garlic chili sauce",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 30,
+      "fats": 1,
+      "protein": 2
+    },
+    {
+      "name": "Tabasco sauce",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 5,
+      "fats": 0.2,
+      "protein": 1.3
+    },
+    {
+      "name": "Buffalo sauce",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 8,
+      "fats": 0.5,
+      "protein": 0.8
+    },
+    {
+      "name": "Chipotle hot sauce",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 6,
+      "fats": 0.3,
+      "protein": 0.7
+    },
+    {
+      "name": "Greek dressing",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 3,
+      "fats": 40,
+      "protein": 0.5
+    },
+    {
+      "name": "Thousand island dressing",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 12,
+      "fats": 35,
+      "protein": 0.3
+    },
+    {
+      "name": "French dressing",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 15,
+      "fats": 30,
+      "protein": 0.2
+    },
+    {
+      "name": "Blue cheese dressing",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 2,
+      "fats": 70,
+      "protein": 1
+    },
+    {
+      "name": "Raspberry vinaigrette",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 8,
+      "fats": 35,
+      "protein": 0.1
+    },
+    {
+      "name": "Balsamic vinaigrette",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 7,
+      "fats": 40,
+      "protein": 0.1
+    },
+    {
+      "name": "Citrus vinaigrette",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 5,
+      "fats": 45,
+      "protein": 0.1
+    },
+    {
+      "name": "Truffle oil",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 0,
+      "fats": 100,
+      "protein": 0
+    },
+    {
+      "name": "Chili oil",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 0,
+      "fats": 100,
+      "protein": 0
+    },
+    {
+      "name": "Garlic-infused oil",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 0,
+      "fats": 100,
+      "protein": 0
+    },
+    {
+      "name": "Herb-infused oil",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 0,
+      "fats": 100,
+      "protein": 0
+    },
+    {
+      "name": "Tamari (gluten-free soy sauce)",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 5,
+      "fats": 0.1,
+      "protein": 8
+    },
+    {
+      "name": "Low-sodium soy sauce",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 4,
+      "fats": 0.1,
+      "protein": 8
+    },
+    {
+      "name": "Hickory BBQ sauce",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 35,
+      "fats": 0.2,
+      "protein": 0.8
+    },
+    {
+      "name": "Mesquite BBQ sauce",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 32,
+      "fats": 0.3,
+      "protein": 1
+    },
+    {
+      "name": "Sweet and sour sauce",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 40,
+      "fats": 0.2,
+      "protein": 0.5
+    },
+    {
+      "name": "Plum sauce",
+      "category": "Condiments",
+      "unit_kind": "volume",
+      "carbs": 45,
+      "fats": 0.3,
+      "protein": 0.7
+    },
+    {
+      "name": "Horseradish (prepared)",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 8,
+      "fats": 0.5,
+      "protein": 1
+    },
+    {
+      "name": "Wasabi paste",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 20,
+      "fats": 0.5,
+      "protein": 4
+    },
+    {
+      "name": "Pickle relish",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 15,
+      "fats": 0.3,
+      "protein": 0.4
+    },
+    {
+      "name": "Sweet pickle relish",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 22,
+      "fats": 0.2,
+      "protein": 0.3
+    },
+    {
+      "name": "Dill pickle relish",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 12,
+      "fats": 0.4,
+      "protein": 0.5
+    },
+    {
+      "name": "Bread and butter pickle relish",
+      "category": "Condiments",
+      "unit_kind": "mass",
+      "carbs": 25,
+      "fats": 0.1,
+      "protein": 0.2
+    }
+  ]
+}

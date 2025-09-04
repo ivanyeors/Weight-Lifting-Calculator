@@ -1,0 +1,1316 @@
+{
+  "foods": [
+    {
+      "name": "Garlic cloves",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 33.06,
+      "fats": 0.5,
+      "protein": 6.36
+    },
+    {
+      "name": "Onion",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 9.34,
+      "fats": 0.1,
+      "protein": 1.1
+    },
+    {
+      "name": "Potato",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 17,
+      "fats": 0.1,
+      "protein": 2
+    },
+    {
+      "name": "Artichoke",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 10.51,
+      "fats": 0.15,
+      "protein": 3.27
+    },
+    {
+      "name": "Asparagus",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 3.88,
+      "fats": 0.12,
+      "protein": 2.2
+    },
+    {
+      "name": "Eggplant",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 5.88,
+      "fats": 0.18,
+      "protein": 0.98
+    },
+    {
+      "name": "Beetroot",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 9.56,
+      "fats": 0.17,
+      "protein": 1.61
+    },
+    {
+      "name": "Bell pepper (red)",
+      "category": "Vegetables",
+      "unit_kind": "count",
+      "carbs": 7.236,
+      "fats": 0.36,
+      "protein": 1.188
+    },
+    {
+      "name": "Bell pepper (green)",
+      "category": "Vegetables",
+      "unit_kind": "count",
+      "carbs": 5.568,
+      "fats": 0.204,
+      "protein": 1.032
+    },
+    {
+      "name": "Bok choy",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 2.18,
+      "fats": 0.2,
+      "protein": 1.5
+    },
+    {
+      "name": "Broccoli",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 6.64,
+      "fats": 0.37,
+      "protein": 2.82
+    },
+    {
+      "name": "Brussels sprouts",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 8.95,
+      "fats": 0.3,
+      "protein": 3.38
+    },
+    {
+      "name": "Cabbage (green)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 5.8,
+      "fats": 0.1,
+      "protein": 1.28
+    },
+    {
+      "name": "Cabbage (red)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 7.37,
+      "fats": 0.14,
+      "protein": 1.43
+    },
+    {
+      "name": "Carrot",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 9.58,
+      "fats": 0.24,
+      "protein": 0.93
+    },
+    {
+      "name": "Cauliflower",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 4.97,
+      "fats": 0.28,
+      "protein": 1.92
+    },
+    {
+      "name": "Celery",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 2.97,
+      "fats": 0.17,
+      "protein": 0.69
+    },
+    {
+      "name": "Chayote",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 4.51,
+      "fats": 0.12,
+      "protein": 0.82
+    },
+    {
+      "name": "Collard greens",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 5.42,
+      "fats": 0.61,
+      "protein": 3.02
+    },
+    {
+      "name": "Corn (sweet)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 18.7,
+      "fats": 1.35,
+      "protein": 3.27
+    },
+    {
+      "name": "Cucumber",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 3.63,
+      "fats": 0.11,
+      "protein": 0.65
+    },
+    {
+      "name": "Daikon radish",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 4.1,
+      "fats": 0.1,
+      "protein": 0.6
+    },
+    {
+      "name": "Edamame",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 8.9,
+      "fats": 4.8,
+      "protein": 11.9
+    },
+    {
+      "name": "Endive",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 3.35,
+      "fats": 0.2,
+      "protein": 1.25
+    },
+    {
+      "name": "Fennel bulb",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 7.3,
+      "fats": 0.2,
+      "protein": 1.24
+    },
+    {
+      "name": "Ginger root",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 17.77,
+      "fats": 0.75,
+      "protein": 1.82
+    },
+    {
+      "name": "Green beans",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 6.97,
+      "fats": 0.22,
+      "protein": 1.83
+    },
+    {
+      "name": "Kale",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 8.75,
+      "fats": 1.49,
+      "protein": 2.92
+    },
+    {
+      "name": "Leek",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 14.15,
+      "fats": 0.3,
+      "protein": 1.5
+    },
+    {
+      "name": "Lettuce (romaine)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 3.29,
+      "fats": 0.3,
+      "protein": 1.23
+    },
+    {
+      "name": "Lettuce (iceberg)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 2.97,
+      "fats": 0.14,
+      "protein": 0.9
+    },
+    {
+      "name": "Mushroom (white)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 3.26,
+      "fats": 0.34,
+      "protein": 3.09
+    },
+    {
+      "name": "Okra",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 7.45,
+      "fats": 0.19,
+      "protein": 1.93
+    },
+    {
+      "name": "Parsnip",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 18,
+      "fats": 0.3,
+      "protein": 1.2
+    },
+    {
+      "name": "Peas (green)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 14.45,
+      "fats": 0.4,
+      "protein": 5.42
+    },
+    {
+      "name": "Pumpkin",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 6.5,
+      "fats": 0.1,
+      "protein": 1
+    },
+    {
+      "name": "Radish",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 3.4,
+      "fats": 0.1,
+      "protein": 0.68
+    },
+    {
+      "name": "Spinach",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 3.63,
+      "fats": 0.39,
+      "protein": 2.86
+    },
+    {
+      "name": "Squash (butternut)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 11.69,
+      "fats": 0.1,
+      "protein": 1
+    },
+    {
+      "name": "Zucchini",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 3.11,
+      "fats": 0.32,
+      "protein": 1.21
+    },
+    {
+      "name": "Sweet potato",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 20.12,
+      "fats": 0.05,
+      "protein": 1.57
+    },
+    {
+      "name": "Swiss chard",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 3.74,
+      "fats": 0.2,
+      "protein": 1.8
+    },
+    {
+      "name": "Tomato",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 3.89,
+      "fats": 0.2,
+      "protein": 0.88
+    },
+    {
+      "name": "Turnip",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 6.43,
+      "fats": 0.1,
+      "protein": 0.9
+    },
+    {
+      "name": "Yam",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 27.9,
+      "fats": 0.17,
+      "protein": 1.53
+    },
+    {
+      "name": "Watercress",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 1.29,
+      "fats": 0.1,
+      "protein": 2.3
+    },
+    {
+      "name": "Jalapeño",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 6.5,
+      "fats": 0.4,
+      "protein": 0.9
+    },
+    {
+      "name": "Chili pepper (red)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 8.8,
+      "fats": 0.4,
+      "protein": 1.9
+    },
+    {
+      "name": "Shallot",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 16.8,
+      "fats": 0.1,
+      "protein": 2.5
+    },
+    {
+      "name": "Scallion (green onion)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 7.34,
+      "fats": 0.19,
+      "protein": 1.83
+    },
+    {
+      "name": "Arugula",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 3.65,
+      "fats": 0.66,
+      "protein": 2.58
+    },
+    {
+      "name": "Beet greens",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 4.33,
+      "fats": 0.2,
+      "protein": 2.2
+    },
+    {
+      "name": "Mustard greens",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 4.67,
+      "fats": 0.42,
+      "protein": 2.86
+    },
+    {
+      "name": "Napa cabbage",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 3.23,
+      "fats": 0.2,
+      "protein": 1.23
+    },
+    {
+      "name": "Parsley (fresh)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 6.3,
+      "fats": 0.8,
+      "protein": 3
+    },
+    {
+      "name": "Cilantro (fresh)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 3.7,
+      "fats": 0.5,
+      "protein": 2.1
+    },
+    {
+      "name": "Basil (fresh)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 2.7,
+      "fats": 0.6,
+      "protein": 3.2
+    },
+    {
+      "name": "Mint (fresh)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 8.4,
+      "fats": 0.7,
+      "protein": 3.8
+    },
+    {
+      "name": "Dill (fresh)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 7,
+      "fats": 1.1,
+      "protein": 3.5
+    },
+    {
+      "name": "Chives (fresh)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 4.4,
+      "fats": 0.7,
+      "protein": 3.3
+    },
+    {
+      "name": "Rosemary (fresh)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 20.7,
+      "fats": 5.9,
+      "protein": 3.3
+    },
+    {
+      "name": "Thyme (fresh)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 24,
+      "fats": 1.7,
+      "protein": 5.6
+    },
+    {
+      "name": "Oregano (fresh)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 4.1,
+      "fats": 0.5,
+      "protein": 3.1
+    },
+    {
+      "name": "Sage (fresh)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 6.3,
+      "fats": 1,
+      "protein": 3.3
+    },
+    {
+      "name": "Lemongrass (fresh)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 25.3,
+      "fats": 0.5,
+      "protein": 1.8
+    },
+    {
+      "name": "Rutabaga",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 8.6,
+      "fats": 0.2,
+      "protein": 1.1
+    },
+    {
+      "name": "Kohlrabi",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 6.2,
+      "fats": 0.1,
+      "protein": 1.7
+    },
+    {
+      "name": "Sunchoke (Jerusalem artichoke)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 17.4,
+      "fats": 0,
+      "protein": 2
+    },
+    {
+      "name": "Mushroom (shiitake)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 6.8,
+      "fats": 0.5,
+      "protein": 2.2
+    },
+    {
+      "name": "Mushroom (portobello)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 3.3,
+      "fats": 0.4,
+      "protein": 3.1
+    },
+    {
+      "name": "Mushroom (oyster)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 6.1,
+      "fats": 0.4,
+      "protein": 2.3
+    },
+    {
+      "name": "Mushroom (chanterelle)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 6.9,
+      "fats": 0.5,
+      "protein": 1.5
+    },
+    {
+      "name": "Mushroom (morel)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 5.1,
+      "fats": 0.6,
+      "protein": 3.1
+    },
+    {
+      "name": "Cabbage (savoy)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 5.4,
+      "fats": 0.1,
+      "protein": 2
+    },
+    {
+      "name": "Broccoli rabe (rapini)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 4.1,
+      "fats": 0.5,
+      "protein": 3.2
+    },
+    {
+      "name": "Bitter melon",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 4.3,
+      "fats": 0.2,
+      "protein": 1
+    },
+    {
+      "name": "Tomatillo",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 5.8,
+      "fats": 1,
+      "protein": 1
+    },
+    {
+      "name": "Pattypan squash",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 4.4,
+      "fats": 0.2,
+      "protein": 1.2
+    },
+    {
+      "name": "Spaghetti squash",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 6.9,
+      "fats": 0.6,
+      "protein": 0.6
+    },
+    {
+      "name": "Delicata squash",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 7.2,
+      "fats": 0.3,
+      "protein": 0.9
+    },
+    {
+      "name": "Acorn squash",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 10.1,
+      "fats": 0.1,
+      "protein": 0.8
+    },
+    {
+      "name": "Hubbard squash",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 8.7,
+      "fats": 0.5,
+      "protein": 1.4
+    },
+    {
+      "name": "Kabocha squash",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 9.2,
+      "fats": 0.1,
+      "protein": 1.8
+    },
+    {
+      "name": "Sugar snap peas",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 7.6,
+      "fats": 0.4,
+      "protein": 3.4
+    },
+    {
+      "name": "Snow peas",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 7.6,
+      "fats": 0.2,
+      "protein": 3.3
+    },
+    {
+      "name": "Fava beans (broad beans)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 58.3,
+      "fats": 1.5,
+      "protein": 26.1
+    },
+    {
+      "name": "Lima beans",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 63.4,
+      "fats": 0.9,
+      "protein": 21.5
+    },
+    {
+      "name": "Wax beans",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 7.1,
+      "fats": 0.3,
+      "protein": 2
+    },
+    {
+      "name": "Radicchio",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 4.5,
+      "fats": 0.3,
+      "protein": 1.4
+    },
+    {
+      "name": "Frisée",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 2,
+      "fats": 0.1,
+      "protein": 1.2
+    },
+    {
+      "name": "Mâche (lamb's lettuce)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 2.6,
+      "fats": 0.6,
+      "protein": 2
+    },
+    {
+      "name": "Microgreens",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 5,
+      "fats": 0.5,
+      "protein": 3
+    },
+    {
+      "name": "Tatsoi",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 4.2,
+      "fats": 0.4,
+      "protein": 2.1
+    },
+    {
+      "name": "Mizuna",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 3.7,
+      "fats": 0.4,
+      "protein": 2.7
+    },
+    {
+      "name": "Komatsuna",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 4.9,
+      "fats": 0.4,
+      "protein": 3.3
+    },
+    {
+      "name": "Yukina savoy",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 4.1,
+      "fats": 0.4,
+      "protein": 2.8
+    },
+    {
+      "name": "Sorrel",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 3.2,
+      "fats": 0.7,
+      "protein": 2
+    },
+    {
+      "name": "Malabar spinach",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 3.4,
+      "fats": 0.4,
+      "protein": 2.3
+    },
+    {
+      "name": "Purslane",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 3.4,
+      "fats": 0.4,
+      "protein": 2
+    },
+    {
+      "name": "Amaranth leaves",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 4,
+      "fats": 0.3,
+      "protein": 2.5
+    },
+    {
+      "name": "Dandelion greens",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 9.2,
+      "fats": 0.7,
+      "protein": 2.7
+    },
+    {
+      "name": "Nettle leaves",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 6.9,
+      "fats": 0.1,
+      "protein": 2.2
+    },
+    {
+      "name": "Wood sorrel",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 5.3,
+      "fats": 0.7,
+      "protein": 1.9
+    },
+    {
+      "name": "Garlic scapes",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 11.2,
+      "fats": 0.2,
+      "protein": 2.4
+    },
+    {
+      "name": "Ramps (wild leeks)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 7.1,
+      "fats": 0.3,
+      "protein": 1.5
+    },
+    {
+      "name": "Horseradish root",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 16.3,
+      "fats": 0.7,
+      "protein": 1.2
+    },
+    {
+      "name": "Wasabi root",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 23.5,
+      "fats": 0.6,
+      "protein": 4.8
+    },
+    {
+      "name": "Celeriac (celery root)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 9.2,
+      "fats": 0.3,
+      "protein": 1.5
+    },
+    {
+      "name": "Parsley root",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 10.5,
+      "fats": 0.3,
+      "protein": 2.1
+    },
+    {
+      "name": "Salsify",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 17.3,
+      "fats": 0.2,
+      "protein": 3.3
+    },
+    {
+      "name": "Skirret",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 12.8,
+      "fats": 0.2,
+      "protein": 1.6
+    },
+    {
+      "name": "Seaweed (nori)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 34,
+      "fats": 0.3,
+      "protein": 30.6
+    },
+    {
+      "name": "Seaweed (wakame)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 9.1,
+      "fats": 0.6,
+      "protein": 3
+    },
+    {
+      "name": "Seaweed (kombu)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 12,
+      "fats": 0.6,
+      "protein": 5
+    },
+    {
+      "name": "Seaweed (dulse)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 50,
+      "fats": 2.2,
+      "protein": 16
+    },
+    {
+      "name": "Seaweed (hijiki)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 57,
+      "fats": 0.2,
+      "protein": 11
+    },
+    {
+      "name": "Bamboo shoots",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 5.2,
+      "fats": 0.3,
+      "protein": 2.6
+    },
+    {
+      "name": "Lotus root",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 17.2,
+      "fats": 0.1,
+      "protein": 2.6
+    },
+    {
+      "name": "Taro root",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 26.5,
+      "fats": 0.2,
+      "protein": 1.5
+    },
+    {
+      "name": "Ube (purple yam)",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 27.9,
+      "fats": 0.1,
+      "protein": 1.4
+    },
+    {
+      "name": "Arrowroot",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 23.2,
+      "fats": 0.2,
+      "protein": 4.2
+    },
+    {
+      "name": "Cassava root",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 38.1,
+      "fats": 0.3,
+      "protein": 1.4
+    },
+    {
+      "name": "Maca root",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 75,
+      "fats": 0.6,
+      "protein": 10.2
+    },
+    {
+      "name": "Burdock root",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 17.3,
+      "fats": 0.2,
+      "protein": 1.5
+    },
+    {
+      "name": "Licorice root",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 75,
+      "fats": 0.1,
+      "protein": 2
+    },
+    {
+      "name": "Fiddlehead ferns",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 5.5,
+      "fats": 0.4,
+      "protein": 4.6
+    },
+    {
+      "name": "Morels",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 5.1,
+      "fats": 0.6,
+      "protein": 3.1
+    },
+    {
+      "name": "Chicken of the woods",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 6.2,
+      "fats": 0.5,
+      "protein": 2.5
+    },
+    {
+      "name": "Lion's mane mushroom",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 7.8,
+      "fats": 0.3,
+      "protein": 2
+    },
+    {
+      "name": "Reishi mushroom",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 44.2,
+      "fats": 0.4,
+      "protein": 1.3
+    },
+    {
+      "name": "Chaga mushroom",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 15,
+      "fats": 0.5,
+      "protein": 2
+    },
+    {
+      "name": "Cordyceps mushroom",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 29,
+      "fats": 0.3,
+      "protein": 9.4
+    },
+    {
+      "name": "Turkey tail mushroom",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 26,
+      "fats": 0.3,
+      "protein": 2
+    },
+    {
+      "name": "Maitake mushroom",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 6.8,
+      "fats": 0.4,
+      "protein": 3.9
+    },
+    {
+      "name": "Enoki mushroom",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 7.8,
+      "fats": 0.3,
+      "protein": 2.7
+    },
+    {
+      "name": "King oyster mushroom",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 6.1,
+      "fats": 0.4,
+      "protein": 2
+    },
+    {
+      "name": "Beech mushroom",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 4.3,
+      "fats": 0.4,
+      "protein": 3.2
+    },
+    {
+      "name": "Shimeji mushroom",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 5.3,
+      "fats": 0.4,
+      "protein": 2.2
+    },
+    {
+      "name": "Nameko mushroom",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 5.6,
+      "fats": 0.2,
+      "protein": 2.3
+    },
+    {
+      "name": "Cloud ear fungus",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 74,
+      "fats": 0,
+      "protein": 2.6
+    },
+    {
+      "name": "Wood ear fungus",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 30,
+      "fats": 0.1,
+      "protein": 2
+    },
+    {
+      "name": "Snow fungus",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 78,
+      "fats": 0,
+      "protein": 1.4
+    },
+    {
+      "name": "Alfalfa sprouts",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 2.1,
+      "fats": 0.7,
+      "protein": 4
+    },
+    {
+      "name": "Broccoli sprouts",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 4.4,
+      "fats": 0.3,
+      "protein": 3
+    },
+    {
+      "name": "Radish sprouts",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 3.6,
+      "fats": 0.2,
+      "protein": 3.8
+    },
+    {
+      "name": "Sunflower sprouts",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 3,
+      "fats": 1.5,
+      "protein": 4
+    },
+    {
+      "name": "Pea shoots",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 7.6,
+      "fats": 0.4,
+      "protein": 3.3
+    },
+    {
+      "name": "Wheatgrass",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 19.4,
+      "fats": 1.8,
+      "protein": 8.6
+    },
+    {
+      "name": "Barley grass",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 20,
+      "fats": 1,
+      "protein": 10
+    },
+    {
+      "name": "Kamut grass",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 18,
+      "fats": 1.2,
+      "protein": 9
+    },
+    {
+      "name": "Spirulina",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 24,
+      "fats": 1,
+      "protein": 57
+    },
+    {
+      "name": "Chlorella",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 12,
+      "fats": 2,
+      "protein": 58
+    },
+    {
+      "name": "Kale sprouts",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 4.7,
+      "fats": 0.6,
+      "protein": 3.8
+    },
+    {
+      "name": "Cabbage sprouts",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 5.2,
+      "fats": 0.3,
+      "protein": 3.2
+    },
+    {
+      "name": "Mustard sprouts",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 4.1,
+      "fats": 0.8,
+      "protein": 3.5
+    },
+    {
+      "name": "Cress sprouts",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 2.8,
+      "fats": 0.6,
+      "protein": 2.6
+    },
+    {
+      "name": "Fenugreek sprouts",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 6.5,
+      "fats": 0.5,
+      "protein": 4.1
+    },
+    {
+      "name": "Lentil sprouts",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 9.6,
+      "fats": 0.6,
+      "protein": 9
+    },
+    {
+      "name": "Mung bean sprouts",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 5.9,
+      "fats": 0.2,
+      "protein": 3.2
+    },
+    {
+      "name": "Adzuki bean sprouts",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 10.3,
+      "fats": 0.1,
+      "protein": 3.7
+    },
+    {
+      "name": "Chickpea sprouts",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 11.2,
+      "fats": 1.6,
+      "protein": 7.6
+    },
+    {
+      "name": "Soybean sprouts",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 6.2,
+      "fats": 1.4,
+      "protein": 13.1
+    },
+    {
+      "name": "Guacamole",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 9,
+      "fats": 15,
+      "protein": 2
+    },
+    {
+      "name": "Potato chips",
+      "category": "Vegetables",
+      "unit_kind": "mass",
+      "carbs": 50,
+      "fats": 35,
+      "protein": 7
+    }
+  ]
+}

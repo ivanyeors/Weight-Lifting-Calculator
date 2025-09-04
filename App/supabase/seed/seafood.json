@@ -1,0 +1,156 @@
+{
+  "foods": [
+    {
+      "name": "Salmon fillet",
+      "category": "Seafood",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 13,
+      "protein": 20.4
+    },
+    {
+      "name": "Barramundi (seabass) fillet",
+      "category": "Seafood",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 4,
+      "protein": 19
+    },
+    {
+      "name": "Tilapia fillet",
+      "category": "Seafood",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 2,
+      "protein": 20.1
+    },
+    {
+      "name": "Mackerel fillet",
+      "category": "Seafood",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 13.9,
+      "protein": 19
+    },
+    {
+      "name": "Tuna (yellowfin) loin",
+      "category": "Seafood",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 0.5,
+      "protein": 23.3
+    },
+    {
+      "name": "Red snapper fillet",
+      "category": "Seafood",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 1.3,
+      "protein": 20.5
+    },
+    {
+      "name": "Prawn (shrimp)",
+      "category": "Seafood",
+      "unit_kind": "mass",
+      "carbs": 0.2,
+      "fats": 1.5,
+      "protein": 20.3
+    },
+    {
+      "name": "Squid",
+      "category": "Seafood",
+      "unit_kind": "mass",
+      "carbs": 3.1,
+      "fats": 1.4,
+      "protein": 15.6
+    },
+    {
+      "name": "Cuttlefish",
+      "category": "Seafood",
+      "unit_kind": "mass",
+      "carbs": 1.9,
+      "fats": 1.4,
+      "protein": 16
+    },
+    {
+      "name": "Octopus",
+      "category": "Seafood",
+      "unit_kind": "mass",
+      "carbs": 2.2,
+      "fats": 1,
+      "protein": 14.9
+    },
+    {
+      "name": "Clams",
+      "category": "Seafood",
+      "unit_kind": "mass",
+      "carbs": 5.1,
+      "fats": 0.6,
+      "protein": 14.7
+    },
+    {
+      "name": "Mussels",
+      "category": "Seafood",
+      "unit_kind": "mass",
+      "carbs": 3.7,
+      "fats": 3.8,
+      "protein": 11.9
+    },
+    {
+      "name": "Crab",
+      "category": "Seafood",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 1.5,
+      "protein": 18.1
+    },
+    {
+      "name": "Scallops",
+      "category": "Seafood",
+      "unit_kind": "mass",
+      "carbs": 3.2,
+      "fats": 0.8,
+      "protein": 14
+    },
+    {
+      "name": "Anchovy",
+      "category": "Seafood",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 4.8,
+      "protein": 20.4
+    },
+    {
+      "name": "Sardine",
+      "category": "Seafood",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 10.5,
+      "protein": 20.9
+    },
+    {
+      "name": "Pomfret",
+      "category": "Seafood",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 6,
+      "protein": 18
+    },
+    {
+      "name": "Stingray",
+      "category": "Seafood",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 1,
+      "protein": 24
+    },
+    {
+      "name": "Grouper",
+      "category": "Seafood",
+      "unit_kind": "mass",
+      "carbs": 0,
+      "fats": 2,
+      "protein": 19
+    }
+  ]
+}

@@ -1,0 +1,148 @@
+{
+  "recipes": [
+    {
+      "recipe_key": "baked-salmon-lemon-dill",
+      "name": "Baked Salmon with Lemon Dill",
+      "category": "High Protein",
+      "base_servings": 2,
+      "diets": [
+        "High Protein",
+        "Gluten Free",
+        "Mediterranean",
+        "DASH"
+      ],
+      "calories_per_serving": 420,
+      "macros_per_serving": {
+        "carbs": 8,
+        "protein": 45,
+        "fats": 25
+      },
+      "micros_per_serving": {
+        "sodium": 380,
+        "potassium": 980,
+        "fiber": 4,
+        "sugar": 2,
+        "vitaminA_IU": 1200,
+        "vitaminC_mg": 25,
+        "calcium_mg": 80,
+        "iron_mg": 1.8
+      },
+      "ingredients": [
+        {
+          "name": "Salmon fillet",
+          "quantity_amount": 300,
+          "quantity_unit": "g"
+        },
+        {
+          "name": "Lemon",
+          "quantity_amount": 1,
+          "quantity_unit": "piece"
+        },
+        {
+          "name": "Fresh dill",
+          "quantity_amount": 2,
+          "quantity_unit": "tbsp"
+        },
+        {
+          "name": "Olive oil",
+          "quantity_amount": 2,
+          "quantity_unit": "tbsp"
+        },
+        {
+          "name": "Garlic",
+          "quantity_amount": 2,
+          "quantity_unit": "clove"
+        },
+        {
+          "name": "Salt",
+          "quantity_amount": 0.5,
+          "quantity_unit": "tsp"
+        },
+        {
+          "name": "Black pepper",
+          "quantity_amount": 0.25,
+          "quantity_unit": "tsp"
+        }
+      ]
+    },
+    {
+      "recipe_key": "beef-bulgogi",
+      "name": "Korean Beef Bulgogi",
+      "category": "High Protein",
+      "base_servings": 3,
+      "diets": [
+        "High Protein",
+        "Gluten Free",
+        "Korean"
+      ],
+      "calories_per_serving": 380,
+      "macros_per_serving": {
+        "carbs": 18,
+        "protein": 35,
+        "fats": 16
+      },
+      "micros_per_serving": {
+        "sodium": 720,
+        "potassium": 580,
+        "fiber": 4,
+        "sugar": 12,
+        "vitaminA_IU": 280,
+        "vitaminC_mg": 15,
+        "calcium_mg": 85,
+        "iron_mg": 4.8
+      },
+      "ingredients": [
+        {
+          "name": "Beef sirloin",
+          "quantity_amount": 400,
+          "quantity_unit": "g"
+        },
+        {
+          "name": "Soy sauce",
+          "quantity_amount": 0.25,
+          "quantity_unit": "cup"
+        },
+        {
+          "name": "Brown sugar",
+          "quantity_amount": 2,
+          "quantity_unit": "tbsp"
+        },
+        {
+          "name": "Sesame oil",
+          "quantity_amount": 1,
+          "quantity_unit": "tbsp"
+        },
+        {
+          "name": "Garlic",
+          "quantity_amount": 4,
+          "quantity_unit": "clove"
+        },
+        {
+          "name": "Ginger",
+          "quantity_amount": 1,
+          "quantity_unit": "tbsp"
+        },
+        {
+          "name": "Asian pear",
+          "quantity_amount": 1,
+          "quantity_unit": "piece"
+        },
+        {
+          "name": "Green onions",
+          "quantity_amount": 4,
+          "quantity_unit": "stalk"
+        },
+        {
+          "name": "Sesame seeds",
+          "quantity_amount": 1,
+          "quantity_unit": "tbsp"
+        },
+        {
+          "name": "Brown rice",
+          "quantity_amount": 2,
+          "quantity_unit": "cup"
+        }
+      ]
+    }
+  ]
+}

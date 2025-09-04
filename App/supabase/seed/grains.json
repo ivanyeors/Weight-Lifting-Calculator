@@ -1,0 +1,524 @@
+{
+  "foods": [
+    {
+      "name": "White rice (long grain)",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 80,
+      "fats": 0.7,
+      "protein": 7
+    },
+    {
+      "name": "Jasmine rice",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 80,
+      "fats": 0.8,
+      "protein": 7
+    },
+    {
+      "name": "Basmati rice",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 78,
+      "fats": 0.9,
+      "protein": 7.9
+    },
+    {
+      "name": "Brown rice",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 77,
+      "fats": 2.7,
+      "protein": 7.5
+    },
+    {
+      "name": "Red rice",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 76,
+      "fats": 2.5,
+      "protein": 7.6
+    },
+    {
+      "name": "Quinoa",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 64,
+      "fats": 6,
+      "protein": 14
+    },
+    {
+      "name": "Oats (rolled)",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 66,
+      "fats": 7,
+      "protein": 16
+    },
+    {
+      "name": "Barley (pearled)",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 73,
+      "fats": 1.2,
+      "protein": 10
+    },
+    {
+      "name": "Buckwheat groats",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 71,
+      "fats": 3.4,
+      "protein": 13
+    },
+    {
+      "name": "Millet",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 73,
+      "fats": 4.2,
+      "protein": 11
+    },
+    {
+      "name": "Couscous (durum)",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 77,
+      "fats": 0.6,
+      "protein": 12.8
+    },
+    {
+      "name": "Bulgur",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 76,
+      "fats": 1.3,
+      "protein": 12.3
+    },
+    {
+      "name": "Cornmeal (polenta)",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 73,
+      "fats": 1.7,
+      "protein": 8.1
+    },
+    {
+      "name": "Rye grain",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 76,
+      "fats": 1.6,
+      "protein": 10.3
+    },
+    {
+      "name": "Sorghum",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 72,
+      "fats": 3.3,
+      "protein": 11
+    },
+    {
+      "name": "Wild rice",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 75,
+      "fats": 1.1,
+      "protein": 15
+    },
+    {
+      "name": "Quinoa",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 21.3,
+      "fats": 1.9,
+      "protein": 4.4
+    },
+    {
+      "name": "Avocado toast",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 30,
+      "fats": 12,
+      "protein": 6
+    },
+    {
+      "name": "Bagel (plain)",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 53,
+      "fats": 1,
+      "protein": 10
+    },
+    {
+      "name": "Popcorn (plain)",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 77,
+      "fats": 4,
+      "protein": 12
+    },
+    {
+      "name": "Granola",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 60,
+      "fats": 20,
+      "protein": 10
+    },
+    {
+      "name": "Black rice",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 75,
+      "fats": 2.9,
+      "protein": 8.9
+    },
+    {
+      "name": "Glutinous rice",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 79,
+      "fats": 0.6,
+      "protein": 6.6
+    },
+    {
+      "name": "Parboiled rice",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 78,
+      "fats": 1.0,
+      "protein": 7.1
+    },
+    {
+      "name": "Farro",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 75,
+      "fats": 1.2,
+      "protein": 13
+    },
+    {
+      "name": "Spelt",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 70,
+      "fats": 2.4,
+      "protein": 14.6
+    },
+    {
+      "name": "Kamut",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 71,
+      "fats": 2.1,
+      "protein": 15.6
+    },
+    {
+      "name": "Amaranth",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 65,
+      "fats": 7,
+      "protein": 14
+    },
+    {
+      "name": "Teff",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 73,
+      "fats": 2.4,
+      "protein": 13
+    },
+    {
+      "name": "Freekeh",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 63,
+      "fats": 1.4,
+      "protein": 13.1
+    },
+    {
+      "name": "Einkorn",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 72,
+      "fats": 2.0,
+      "protein": 15.8
+    },
+    {
+      "name": "Emmer (farro)",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 72,
+      "fats": 1.5,
+      "protein": 13.7
+    },
+    {
+      "name": "Durum wheat",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 75,
+      "fats": 1.5,
+      "protein": 13
+    },
+    {
+      "name": "Semolina (durum)",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 72,
+      "fats": 1.1,
+      "protein": 13
+    },
+    {
+      "name": "Wheat berries",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 72,
+      "fats": 1.8,
+      "protein": 12.6
+    },
+    {
+      "name": "Pasta",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 75,
+      "fats": 1.1,
+      "protein": 13
+    },
+    {
+      "name": "Whole wheat pasta",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 75,
+      "fats": 2.5,
+      "protein": 14
+    },
+    {
+      "name": "Bread (whole wheat)",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 41,
+      "fats": 3.5,
+      "protein": 13
+    },
+    {
+      "name": "Bread (white)",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 50,
+      "fats": 3.2,
+      "protein": 9
+    },
+    {
+      "name": "Bread (rye)",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 48,
+      "fats": 1.8,
+      "protein": 8.5
+    },
+    {
+      "name": "Bread (sourdough)",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 48,
+      "fats": 1.4,
+      "protein": 9.4
+    },
+    {
+      "name": "Tortillas (corn)",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 46,
+      "fats": 5.7,
+      "protein": 5.7
+    },
+    {
+      "name": "Tortillas (flour)",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 53,
+      "fats": 8.5,
+      "protein": 7.5
+    },
+    {
+      "name": "Crackers (whole wheat)",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 67,
+      "fats": 12,
+      "protein": 10
+    },
+    {
+      "name": "Oatmeal",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 12,
+      "fats": 2.5,
+      "protein": 2.5
+    },
+    {
+      "name": "Brown rice",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 23,
+      "fats": 0.9,
+      "protein": 2.7
+    },
+    {
+      "name": "White rice",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 25,
+      "fats": 0.3,
+      "protein": 2.7
+    },
+    {
+      "name": "Cream of wheat",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 11,
+      "fats": 0.4,
+      "protein": 3.2
+    },
+    {
+      "name": "Grits",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 12,
+      "fats": 0.4,
+      "protein": 2.5
+    },
+    {
+      "name": "Rice noodles",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 79,
+      "fats": 0.2,
+      "protein": 5.8
+    },
+    {
+      "name": "Soba noodles",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 75,
+      "fats": 0.1,
+      "protein": 16
+    },
+    {
+      "name": "Udon noodles",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 75,
+      "fats": 0.4,
+      "protein": 10
+    },
+    {
+      "name": "Ramen noodles",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 75,
+      "fats": 1.5,
+      "protein": 10
+    },
+    {
+      "name": "Pita bread",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 56,
+      "fats": 1.2,
+      "protein": 9.8
+    },
+    {
+      "name": "Naan bread",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 53,
+      "fats": 5.3,
+      "protein": 9.8
+    },
+    {
+      "name": "English muffin",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 51,
+      "fats": 1.8,
+      "protein": 9.0
+    },
+    {
+      "name": "Muffin (bran)",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 45,
+      "fats": 8,
+      "protein": 6
+    },
+    {
+      "name": "Cereal (corn flakes)",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 84,
+      "fats": 0.4,
+      "protein": 7
+    },
+    {
+      "name": "Cereal (bran flakes)",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 75,
+      "fats": 1.8,
+      "protein": 10
+    },
+    {
+      "name": "Cereal (oat flakes)",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 66,
+      "fats": 7,
+      "protein": 16
+    },
+    {
+      "name": "Rice cakes",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 81,
+      "fats": 0.3,
+      "protein": 7
+    },
+    {
+      "name": "Corn chips",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 65,
+      "fats": 35,
+      "protein": 6
+    },
+    {
+      "name": "Pretzels",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 80,
+      "fats": 2.6,
+      "protein": 10
+    },
+    {
+      "name": "Pita chips",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 68,
+      "fats": 13,
+      "protein": 10
+    },
+    {
+      "name": "Bagel chips",
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 68,
+      "fats": 2.5,
+      "protein": 12
+    }
+  ]
+}

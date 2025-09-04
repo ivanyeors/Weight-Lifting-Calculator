@@ -1,0 +1,20 @@
+{
+  "foods": [
+    {
+      "name": "Coffee (black)",
+      "category": "Beverages",
+      "unit_kind": "volume",
+      "carbs": 0,
+      "fats": 0,
+      "protein": 0.3
+    },
+    {
+      "name": "Orange juice",
+      "category": "Beverages",
+      "unit_kind": "volume",
+      "carbs": 10.4,
+      "fats": 0.2,
+      "protein": 0.8
+    }
+  ]
+}

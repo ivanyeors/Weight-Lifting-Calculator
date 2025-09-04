@@ -1,0 +1,83 @@
+{
+  "recipes": [
+    {
+      "recipe_key": "quinoa-stuffed-peppers",
+      "name": "Quinoa Stuffed Peppers",
+      "category": "Vegetarian",
+      "base_servings": 4,
+      "diets": [
+        "Vegetarian",
+        "Gluten Free",
+        "High Protein"
+      ],
+      "calories_per_serving": 380,
+      "macros_per_serving": {
+        "carbs": 48,
+        "protein": 18,
+        "fats": 12
+      },
+      "micros_per_serving": {
+        "sodium": 520,
+        "potassium": 780,
+        "fiber": 10,
+        "sugar": 12,
+        "vitaminA_IU": 4200,
+        "vitaminC_mg": 180,
+        "calcium_mg": 160,
+        "iron_mg": 4.2
+      },
+      "ingredients": [
+        {
+          "name": "Bell pepper",
+          "quantity_amount": 4,
+          "quantity_unit": "piece"
+        },
+        {
+          "name": "Quinoa",
+          "quantity_amount": 1.5,
+          "quantity_unit": "cup"
+        },
+        {
+          "name": "Black beans",
+          "quantity_amount": 1,
+          "quantity_unit": "cup"
+        },
+        {
+          "name": "Corn",
+          "quantity_amount": 1,
+          "quantity_unit": "cup"
+        },
+        {
+          "name": "Tomatoes",
+          "quantity_amount": 2,
+          "quantity_unit": "piece"
+        },
+        {
+          "name": "Onion",
+          "quantity_amount": 1,
+          "quantity_unit": "piece"
+        },
+        {
+          "name": "Cheddar cheese",
+          "quantity_amount": 100,
+          "quantity_unit": "g"
+        },
+        {
+          "name": "Cumin",
+          "quantity_amount": 1,
+          "quantity_unit": "tsp"
+        },
+        {
+          "name": "Chili powder",
+          "quantity_amount": 1,
+          "quantity_unit": "tsp"
+        },
+        {
+          "name": "Olive oil",
+          "quantity_amount": 1,
+          "quantity_unit": "tbsp"
+        }
+      ]
+    }
+  ]
+}

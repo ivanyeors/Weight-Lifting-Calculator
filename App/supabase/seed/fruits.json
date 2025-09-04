@@ -1,0 +1,372 @@
+{
+  "foods": [
+    {
+      "name": "Apple",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 13.81,
+      "fats": 0.17,
+      "protein": 0.26
+    },
+    {
+      "name": "Banana",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 22.84,
+      "fats": 0.33,
+      "protein": 1.09
+    },
+    {
+      "name": "Apricot",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 11.12,
+      "fats": 0.39,
+      "protein": 1.4
+    },
+    {
+      "name": "Avocado",
+      "category": "Fruits",
+      "unit_kind": "count",
+      "carbs": 12.795,
+      "fats": 21.99,
+      "protein": 3
+    },
+    {
+      "name": "Blackberry",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 9.61,
+      "fats": 0.49,
+      "protein": 1.39
+    },
+    {
+      "name": "Blueberry",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 14.49,
+      "fats": 0.33,
+      "protein": 0.74
+    },
+    {
+      "name": "Cherry",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 16,
+      "fats": 0.2,
+      "protein": 1.06
+    },
+    {
+      "name": "Cranberry",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 12.2,
+      "fats": 0.13,
+      "protein": 0.46
+    },
+    {
+      "name": "Date",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 75.03,
+      "fats": 0.45,
+      "protein": 1.81
+    },
+    {
+      "name": "Fig",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 19.18,
+      "fats": 0.3,
+      "protein": 0.75
+    },
+    {
+      "name": "Grape (red)",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 18.1,
+      "fats": 0.16,
+      "protein": 0.72
+    },
+    {
+      "name": "Grape (green)",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 18.1,
+      "fats": 0.16,
+      "protein": 0.72
+    },
+    {
+      "name": "Grapefruit",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 8.08,
+      "fats": 0.1,
+      "protein": 0.63
+    },
+    {
+      "name": "Guava",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 14.32,
+      "fats": 1,
+      "protein": 2.55
+    },
+    {
+      "name": "Kiwi",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 14.66,
+      "fats": 0.52,
+      "protein": 1.14
+    },
+    {
+      "name": "Lemon",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 9.32,
+      "fats": 0.3,
+      "protein": 1.1
+    },
+    {
+      "name": "Lime",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 10.54,
+      "fats": 0.2,
+      "protein": 0.7
+    },
+    {
+      "name": "Mango",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 14.98,
+      "fats": 0.38,
+      "protein": 0.82
+    },
+    {
+      "name": "Cantaloupe",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 8.16,
+      "fats": 0.19,
+      "protein": 0.82
+    },
+    {
+      "name": "Honeydew",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 9.09,
+      "fats": 0.14,
+      "protein": 0.54
+    },
+    {
+      "name": "Watermelon",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 7.55,
+      "fats": 0.15,
+      "protein": 0.61
+    },
+    {
+      "name": "Nectarine",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 10.55,
+      "fats": 0.32,
+      "protein": 1.06
+    },
+    {
+      "name": "Orange",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 11.75,
+      "fats": 0.12,
+      "protein": 0.94
+    },
+    {
+      "name": "Papaya",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 10.82,
+      "fats": 0.26,
+      "protein": 0.47
+    },
+    {
+      "name": "Passion fruit",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 23.38,
+      "fats": 0.7,
+      "protein": 2.2
+    },
+    {
+      "name": "Peach",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 9.54,
+      "fats": 0.25,
+      "protein": 0.91
+    },
+    {
+      "name": "Pear",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 15.23,
+      "fats": 0.16,
+      "protein": 0.36
+    },
+    {
+      "name": "Pineapple",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 13.12,
+      "fats": 0.12,
+      "protein": 0.54
+    },
+    {
+      "name": "Plum",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 11.42,
+      "fats": 0.28,
+      "protein": 0.7
+    },
+    {
+      "name": "Pomegranate",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 18.7,
+      "fats": 1.2,
+      "protein": 1.67
+    },
+    {
+      "name": "Raspberry",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 11.94,
+      "fats": 0.65,
+      "protein": 1.2
+    },
+    {
+      "name": "Strawberry",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 7.68,
+      "fats": 0.3,
+      "protein": 0.67
+    },
+    {
+      "name": "Tangerine",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 13.34,
+      "fats": 0.31,
+      "protein": 0.81
+    },
+    {
+      "name": "Clementine",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 12.02,
+      "fats": 0.15,
+      "protein": 0.85
+    },
+    {
+      "name": "Persimmon",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 18.59,
+      "fats": 0.19,
+      "protein": 0.58
+    },
+    {
+      "name": "Dragon fruit",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 11,
+      "fats": 0.1,
+      "protein": 1.2
+    },
+    {
+      "name": "Lychee",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 16.53,
+      "fats": 0.44,
+      "protein": 0.83
+    },
+    {
+      "name": "Starfruit",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 7.64,
+      "fats": 0.33,
+      "protein": 1.04
+    },
+    {
+      "name": "Coconut meat",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 15.23,
+      "fats": 33.49,
+      "protein": 3.33
+    },
+    {
+      "name": "Plantain",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 31.89,
+      "fats": 0.15,
+      "protein": 1.3
+    },
+    {
+      "name": "Fruit salad",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 15,
+      "fats": 0.5,
+      "protein": 1
+    },
+    {
+      "name": "Boysenberry",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 12.5,
+      "fats": 0.5,
+      "protein": 1.4
+    },
+    {
+      "name": "Gooseberry",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 10.18,
+      "fats": 0.58,
+      "protein": 0.88
+    },
+    {
+      "name": "Currant",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 13.8,
+      "fats": 0.2,
+      "protein": 1.4
+    },
+    {
+      "name": "Kumquat",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 15.9,
+      "fats": 0.86,
+      "protein": 1.88
+    },
+    {
+      "name": "Pomelo",
+      "category": "Fruits",
+      "unit_kind": "mass",
+      "carbs": 9.62,
+      "fats": 0.04,
+      "protein": 0.76
+    }
+  ]
+}

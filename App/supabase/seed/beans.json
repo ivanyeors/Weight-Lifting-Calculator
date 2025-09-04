@@ -1,0 +1,404 @@
+{
+  "foods": [
+    {
+      "name": "Chickpeas (dry)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 61,
+      "fats": 6,
+      "protein": 19
+    },
+    {
+      "name": "Lentils (red, dry)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 60,
+      "fats": 1.1,
+      "protein": 25
+    },
+    {
+      "name": "Black beans (dry)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 63,
+      "fats": 1.4,
+      "protein": 21
+    },
+    {
+      "name": "Kidney beans (dry)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 60,
+      "fats": 0.8,
+      "protein": 24
+    },
+    {
+      "name": "Pinto beans (dry)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 63,
+      "fats": 1.2,
+      "protein": 21
+    },
+    {
+      "name": "Navy beans (dry)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 61,
+      "fats": 1.1,
+      "protein": 22
+    },
+    {
+      "name": "Cannellini beans (dry)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 62,
+      "fats": 0.9,
+      "protein": 22
+    },
+    {
+      "name": "Adzuki beans (dry)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 63,
+      "fats": 0.5,
+      "protein": 20
+    },
+    {
+      "name": "Mung beans (dry)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 63,
+      "fats": 1.2,
+      "protein": 24
+    },
+    {
+      "name": "Soybeans (dry)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 30,
+      "fats": 20,
+      "protein": 36
+    },
+    {
+      "name": "Split peas (dry)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 60,
+      "fats": 1.2,
+      "protein": 24
+    },
+    {
+      "name": "Lentils (cooked)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 19.5,
+      "fats": 0.4,
+      "protein": 9
+    },
+    {
+      "name": "Hummus",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 20,
+      "fats": 12,
+      "protein": 8
+    },
+    {
+      "name": "Garbanzo beans (dry)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 61,
+      "fats": 6,
+      "protein": 19
+    },
+    {
+      "name": "Lima beans (dry)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 63,
+      "fats": 1.6,
+      "protein": 21
+    },
+    {
+      "name": "Fava beans (dry)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 58,
+      "fats": 2.4,
+      "protein": 26
+    },
+    {
+      "name": "Green lentils (dry)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 60,
+      "fats": 1.1,
+      "protein": 25
+    },
+    {
+      "name": "Brown lentils (dry)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 63,
+      "fats": 1.1,
+      "protein": 26
+    },
+    {
+      "name": "Yellow lentils (dry)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 63,
+      "fats": 1.1,
+      "protein": 25
+    },
+    {
+      "name": "Pigeon peas (dry)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 62,
+      "fats": 1.5,
+      "protein": 21
+    },
+    {
+      "name": "Black-eyed peas (dry)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 61,
+      "fats": 1.3,
+      "protein": 23
+    },
+    {
+      "name": "Great northern beans (dry)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 62,
+      "fats": 0.9,
+      "protein": 22
+    },
+    {
+      "name": "Cranberry beans (dry)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 61,
+      "fats": 1.2,
+      "protein": 23
+    },
+    {
+      "name": "Edamame (shelled, cooked)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 9,
+      "fats": 6,
+      "protein": 11
+    },
+    {
+      "name": "Bean sprouts",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 6,
+      "fats": 0.1,
+      "protein": 3
+    },
+    {
+      "name": "Black beans (canned)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 22,
+      "fats": 0.5,
+      "protein": 8
+    },
+    {
+      "name": "Kidney beans (canned)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 20,
+      "fats": 0.7,
+      "protein": 8
+    },
+    {
+      "name": "Chickpeas (canned)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 19,
+      "fats": 2.6,
+      "protein": 7
+    },
+    {
+      "name": "Lentils (canned)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 16,
+      "fats": 0.4,
+      "protein": 8
+    },
+    {
+      "name": "Baked beans",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 22,
+      "fats": 0.4,
+      "protein": 6
+    },
+    {
+      "name": "Refried beans",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 19,
+      "fats": 2.1,
+      "protein": 6
+    },
+    {
+      "name": "Tempeh",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 8,
+      "fats": 11,
+      "protein": 19
+    },
+    {
+      "name": "Tofu (firm)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 2.3,
+      "fats": 8,
+      "protein": 8
+    },
+    {
+      "name": "Tofu (soft)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 1.8,
+      "fats": 2.7,
+      "protein": 7
+    },
+    {
+      "name": "Green peas (dry)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 60,
+      "fats": 2.9,
+      "protein": 23
+    },
+    {
+      "name": "Green peas (cooked)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 14,
+      "fats": 0.4,
+      "protein": 5
+    },
+    {
+      "name": "Moth beans (dry)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 63,
+      "fats": 1.6,
+      "protein": 24
+    },
+    {
+      "name": "Horse gram (dry)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 57,
+      "fats": 1.4,
+      "protein": 22
+    },
+    {
+      "name": "Chickpeas (sprouted)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 19,
+      "fats": 2.6,
+      "protein": 7
+    },
+    {
+      "name": "Lentils (sprouted)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 21,
+      "fats": 0.5,
+      "protein": 9
+    },
+    {
+      "name": "Black turtle beans (dry)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 63,
+      "fats": 1.4,
+      "protein": 21
+    },
+    {
+      "name": "Pinto beans (canned)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 21,
+      "fats": 0.9,
+      "protein": 7
+    },
+    {
+      "name": "Navy beans (canned)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 19,
+      "fats": 0.6,
+      "protein": 8
+    },
+    {
+      "name": "Cannellini beans (canned)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 18,
+      "fats": 0.7,
+      "protein": 7
+    },
+    {
+      "name": "Lima beans (canned)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 21,
+      "fats": 0.7,
+      "protein": 7
+    },
+    {
+      "name": "Fava beans (canned)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 14,
+      "fats": 0.7,
+      "protein": 7
+    },
+    {
+      "name": "Adzuki beans (cooked)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 17,
+      "fats": 0.1,
+      "protein": 5
+    },
+    {
+      "name": "Mung beans (cooked)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 19,
+      "fats": 0.4,
+      "protein": 7
+    },
+    {
+      "name": "Split peas (cooked)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 21,
+      "fats": 0.4,
+      "protein": 8
+    },
+    {
+      "name": "Soybeans (cooked)",
+      "category": "Beans",
+      "unit_kind": "mass",
+      "carbs": 11,
+      "fats": 10,
+      "protein": 16
+    }
+  ]
+}
