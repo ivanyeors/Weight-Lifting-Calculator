@@ -28,6 +28,7 @@ import { Badge } from "@/components/ui/badge"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { LoginForm } from "@/components/login-form"
+import { FlickeringGrid } from "@/components/ui/shadcn-io/flickering-grid"
 import { supabase } from '@/lib/supabaseClient'
 import { TeamSwitcher } from "@/components/ui/team-switcher"
 
@@ -384,8 +385,26 @@ export function AppSidebar() {
       )}
 
       <Sheet open={isLoginOpen} onOpenChange={setIsLoginOpen}>
-        <SheetContent side="bottom" animation="fade" className="p-0 inset-0 w-screen sm:h-dvh h-svh max-w-none rounded-none border-0">
-          <div className="bg-muted flex min-h-full flex-col items-center justify-center p-6 md:p-10">
+        <SheetContent
+          side="bottom"
+          animation="fade"
+          className="p-0 inset-0 w-screen sm:h-dvh h-svh max-w-none rounded-none border-0"
+          overlayClassName="!bg-transparent"
+        >
+          {/* Full-screen flickering grid background */}
+          <div className="absolute inset-0 z-0">
+            <FlickeringGrid
+              squareSize={4}
+              gridGap={6}
+              flickerChance={0.3}
+              color="#283DFF"
+              maxOpacity={0.6}
+              className="w-full h-full opacity-80"
+            />
+          </div>
+
+          {/* Content overlay */}
+          <div className="relative z-10 flex min-h-full flex-col items-center justify-center p-6 md:p-10">
             <div className="w-full max-w-sm md:max-w-3xl">
               <LoginForm onSuccess={() => setIsLoginOpen(false)} />
             </div>

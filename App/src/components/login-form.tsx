@@ -5,6 +5,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { supabase } from "@/lib/supabaseClient"
+import { TermsOfServiceDialog } from "@/components/terms-of-service-dialog"
+import { PrivacyPolicyDialog } from "@/components/privacy-policy-dialog"
 
 export function LoginForm({
   className,
@@ -219,7 +221,7 @@ export function LoginForm({
           <div
             className="relative hidden md:flex items-center justify-center p-8"
             style={{
-              background: 'radial-gradient(circle at center, #283DFF 0%, #060612 100%)'
+              background: 'radial-gradient(circle at center,rgb(6, 21, 160) 0%,rgb(7, 7, 27) 100%)'
             }}
           >
             <img
@@ -230,9 +232,19 @@ export function LoginForm({
           </div>
         </CardContent>
       </Card>
-      <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
-        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
-        and <a href="#">Privacy Policy</a>.
+      <div className="text-muted-foreground text-center text-xs text-balance">
+        By clicking continue, you agree to our{" "}
+        <TermsOfServiceDialog>
+          <button className="underline underline-offset-4 hover:text-primary cursor-pointer">
+            Terms of Service
+          </button>
+        </TermsOfServiceDialog>{" "}
+        and{" "}
+        <PrivacyPolicyDialog>
+          <button className="underline underline-offset-4 hover:text-primary cursor-pointer">
+            Privacy Policy
+          </button>
+        </PrivacyPolicyDialog>.
       </div>
     </div>
   )
