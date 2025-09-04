@@ -2,6 +2,7 @@
   "foods": [
     {
       "name": "Salmon fillet",
+      "aliases": ["Atlantic salmon", "Pacific salmon", "Sockeye salmon", "King salmon", "Salmon", "Salmo salar"],
       "category": "Seafood",
       "unit_kind": "mass",
       "carbs": 0,
@@ -10,6 +11,7 @@
     },
     {
       "name": "Barramundi (seabass) fillet",
+      "aliases": ["Asian seabass", "Giant perch", "Lates calcarifer", "Australian seabass"],
       "category": "Seafood",
       "unit_kind": "mass",
       "carbs": 0,
@@ -18,6 +20,7 @@
     },
     {
       "name": "Tilapia fillet",
+      "aliases": ["St. Peter's fish", "Nile perch", "Oreochromis niloticus", "Aquaculture tilapia"],
       "category": "Seafood",
       "unit_kind": "mass",
       "carbs": 0,
@@ -26,6 +29,7 @@
     },
     {
       "name": "Mackerel fillet",
+      "aliases": ["Atlantic mackerel", "Spanish mackerel", "Scomber scombrus", "King mackerel"],
       "category": "Seafood",
       "unit_kind": "mass",
       "carbs": 0,
@@ -34,6 +38,7 @@
     },
     {
       "name": "Tuna (yellowfin) loin",
+      "aliases": ["Yellowfin tuna", "Ahi tuna", "Thunnus albacares", "Hawaii tuna"],
       "category": "Seafood",
       "unit_kind": "mass",
       "carbs": 0,
@@ -42,6 +47,7 @@
     },
     {
       "name": "Red snapper fillet",
+      "aliases": ["Northern red snapper", "Lutjanus campechanus", "American red snapper", "Caribbean snapper"],
       "category": "Seafood",
       "unit_kind": "mass",
       "carbs": 0,
@@ -50,6 +56,7 @@
     },
     {
       "name": "Prawn (shrimp)",
+      "aliases": ["Shrimp", "Tiger prawns", "White shrimp", "Litopenaeus vannamei", "Giant prawns"],
       "category": "Seafood",
       "unit_kind": "mass",
       "carbs": 0.2,
@@ -58,6 +65,7 @@
     },
     {
       "name": "Squid",
+      "aliases": ["Calamari", "Loligo vulgaris", "European squid", "Atlantic squid"],
       "category": "Seafood",
       "unit_kind": "mass",
       "carbs": 3.1,
@@ -66,6 +74,7 @@
     },
     {
       "name": "Cuttlefish",
+      "aliases": ["Sepia officinalis", "Common cuttlefish", "Inkfish", "Sea squid"],
       "category": "Seafood",
       "unit_kind": "mass",
       "carbs": 1.9,
@@ -74,6 +83,7 @@
     },
     {
       "name": "Octopus",
+      "aliases": ["Common octopus", "Octopus vulgaris", "Devilfish", "Eight-armed cephalopod"],
       "category": "Seafood",
       "unit_kind": "mass",
       "carbs": 2.2,
@@ -82,6 +92,7 @@
     },
     {
       "name": "Clams",
+      "aliases": ["Hard clams", "Mercenaria mercenaria", "Quahogs", "Cherrystone clams"],
       "category": "Seafood",
       "unit_kind": "mass",
       "carbs": 5.1,
@@ -90,6 +101,7 @@
     },
     {
       "name": "Mussels",
+      "aliases": ["Blue mussels", "Mytilus edulis", "Sea mussels", "Common mussels"],
       "category": "Seafood",
       "unit_kind": "mass",
       "carbs": 3.7,
@@ -98,6 +110,7 @@
     },
     {
       "name": "Crab",
+      "aliases": ["Blue crab", "Callinectes sapidus", "Dungeness crab", "King crab"],
       "category": "Seafood",
       "unit_kind": "mass",
       "carbs": 0,
@@ -106,6 +119,7 @@
     },
     {
       "name": "Scallops",
+      "aliases": ["Sea scallops", "Placopecten magellanicus", "Bay scallops", "Diver scallops"],
       "category": "Seafood",
       "unit_kind": "mass",
       "carbs": 3.2,
@@ -114,6 +128,7 @@
     },
     {
       "name": "Anchovy",
+      "aliases": ["European anchovy", "Engraulis encrasicolus", "Norwegian anchovies", "Pilchard"],
       "category": "Seafood",
       "unit_kind": "mass",
       "carbs": 0,
@@ -122,6 +137,7 @@
     },
     {
       "name": "Sardine",
+      "aliases": ["Pilchard", "Sardina pilchardus", "European sardine", "Atlantic sardine"],
       "category": "Seafood",
       "unit_kind": "mass",
       "carbs": 0,
@@ -130,6 +146,7 @@
     },
     {
       "name": "Pomfret",
+      "aliases": ["Silver pomfret", "Pampus argenteus", "Butterfish", "White pomfret"],
       "category": "Seafood",
       "unit_kind": "mass",
       "carbs": 0,
@@ -138,6 +155,7 @@
     },
     {
       "name": "Stingray",
+      "aliases": ["Sting ray", "Dasyatis", "Ray fish", "Devil ray"],
       "category": "Seafood",
       "unit_kind": "mass",
       "carbs": 0,
@@ -146,6 +164,7 @@
     },
     {
       "name": "Grouper",
+      "aliases": ["Red grouper", "Epinephelus morio", "Goliath grouper", "Black grouper"],
       "category": "Seafood",
       "unit_kind": "mass",
       "carbs": 0,

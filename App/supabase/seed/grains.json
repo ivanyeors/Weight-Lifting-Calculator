@@ -2,6 +2,7 @@
   "foods": [
     {
       "name": "White rice (long grain)",
+      "aliases": ["Long grain white rice", "American rice", "Standard white rice"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 80,
@@ -10,6 +11,7 @@
     },
     {
       "name": "Jasmine rice",
+      "aliases": ["Thai jasmine rice", "Fragrant rice", "Hom Mali rice"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 80,
@@ -18,6 +20,7 @@
     },
     {
       "name": "Basmati rice",
+      "aliases": ["Indian basmati", "Aromatic rice", "Premium basmati"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 78,
@@ -26,6 +29,7 @@
     },
     {
       "name": "Brown rice",
+      "aliases": ["Whole grain rice", "Unpolished rice", "Natural rice"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 77,
@@ -34,6 +38,7 @@
     },
     {
       "name": "Red rice",
+      "aliases": ["Bhutanese red rice", "Wehani rice", "Cargo rice"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 76,
@@ -42,6 +47,7 @@
     },
     {
       "name": "Quinoa",
+      "aliases": ["White quinoa", "Red quinoa", "Black quinoa", "Super grain"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 64,
@@ -50,6 +56,7 @@
     },
     {
       "name": "Oats (rolled)",
+      "aliases": ["Rolled oats", "Old fashioned oats", "Irish oats"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 66,
@@ -58,6 +65,7 @@
     },
     {
       "name": "Barley (pearled)",
+      "aliases": ["Pearled barley", "Scotch barley", "Pot barley"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 73,
@@ -66,6 +74,7 @@
     },
     {
       "name": "Buckwheat groats",
+      "aliases": ["Buckwheat", "Kasha", "Soba base"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 71,
@@ -74,6 +83,7 @@
     },
     {
       "name": "Millet",
+      "aliases": ["Pearl millet", "Finger millet", "Proso millet"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 73,
@@ -82,6 +92,7 @@
     },
     {
       "name": "Couscous (durum)",
+      "aliases": ["Moroccan couscous", "Israeli couscous", "Semolina couscous"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 77,
@@ -90,6 +101,7 @@
     },
     {
       "name": "Bulgur",
+      "aliases": ["Bulgur wheat", "Cracked wheat", "Middle Eastern bulgur"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 76,
@@ -98,6 +110,7 @@
     },
     {
       "name": "Cornmeal (polenta)",
+      "aliases": ["Polenta", "Yellow cornmeal", "Coarse cornmeal"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 73,
@@ -106,6 +119,7 @@
     },
     {
       "name": "Rye grain",
+      "aliases": ["Whole rye", "Dark rye", "Rye berries"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 76,
@@ -114,6 +128,7 @@
     },
     {
       "name": "Sorghum",
+      "aliases": ["Milo", "Durra", "Jowar"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 72,
@@ -122,6 +137,7 @@
     },
     {
       "name": "Wild rice",
+      "aliases": ["Canadian wild rice", "Manoomin", "Indian rice"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 75,
@@ -130,6 +146,7 @@
     },
     {
       "name": "Quinoa",
+      "aliases": ["Cooked quinoa", "Prepared quinoa", "Quinoa grain"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 21.3,
@@ -138,6 +155,7 @@
     },
     {
       "name": "Avocado toast",
+      "aliases": ["Avocado on toast", "Mashed avocado toast", "California toast"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 30,
@@ -146,6 +164,7 @@
     },
     {
       "name": "Bagel (plain)",
+      "aliases": ["Plain bagel", "New York bagel", "Boiled bagel"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 53,
@@ -154,6 +173,7 @@
     },
     {
       "name": "Popcorn (plain)",
+      "aliases": ["Plain popcorn", "Air-popped popcorn", "Movie popcorn"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 77,
@@ -162,6 +182,7 @@
     },
     {
       "name": "Granola",
+      "aliases": ["Homemade granola", "Oat granola", "Breakfast granola"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 60,
@@ -170,6 +191,7 @@
     },
     {
       "name": "Black rice",
+      "aliases": ["Forbidden rice", "Purple rice", "Emperor's rice"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 75,
@@ -178,6 +200,7 @@
     },
     {
       "name": "Glutinous rice",
+      "aliases": ["Sticky rice", "Sweet rice", "Mochi rice"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 79,
@@ -186,6 +209,7 @@
     },
     {
       "name": "Parboiled rice",
+      "aliases": ["Converted rice", "Easy cook rice", "Pre-boiled rice"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 78,
@@ -194,6 +218,7 @@
     },
     {
       "name": "Farro",
+      "aliases": ["Italian farro", "Spelt farro", "Ancient wheat"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 75,
@@ -202,6 +227,7 @@
     },
     {
       "name": "Spelt",
+      "aliases": ["Whole spelt", "Spelt berries", "Dinkel wheat"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 70,
@@ -210,6 +236,7 @@
     },
     {
       "name": "Kamut",
+      "aliases": ["Khorasan wheat", "Ancient wheat", "King Tut's wheat"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 71,
@@ -218,6 +245,7 @@
     },
     {
       "name": "Amaranth",
+      "aliases": ["Amaranth grain", "Mexican grain", "Superfood grain"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 65,
@@ -226,6 +254,7 @@
     },
     {
       "name": "Teff",
+      "aliases": ["Ethiopian teff", "Tiny grain", "Nutritious grain"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 73,
@@ -234,6 +263,7 @@
     },
     {
       "name": "Freekeh",
+      "aliases": ["Smoked wheat", "Green wheat", "Middle Eastern grain"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 63,
@@ -242,6 +272,7 @@
     },
     {
       "name": "Einkorn",
+      "aliases": ["Ancient einkorn", "Wild wheat", "Original wheat"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 72,
@@ -250,6 +281,7 @@
     },
     {
       "name": "Emmer (farro)",
+      "aliases": ["Emmer wheat", "Farro piccolo", "Two-grain spelt"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 72,
@@ -258,6 +290,7 @@
     },
     {
       "name": "Durum wheat",
+      "aliases": ["Hard wheat", "Semolina wheat", "Pasta wheat"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 75,
@@ -266,6 +299,7 @@
     },
     {
       "name": "Semolina (durum)",
+      "aliases": ["Semolina flour", "Cream of wheat base", "Pasta flour"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 72,
@@ -274,6 +308,7 @@
     },
     {
       "name": "Wheat berries",
+      "aliases": ["Hard red wheat", "Whole wheat berries", "Wheat kernels"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 72,
@@ -282,6 +317,7 @@
     },
     {
       "name": "Pasta",
+      "aliases": ["Dry pasta", "Italian pasta", "Semolina pasta"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 75,
@@ -290,6 +326,7 @@
     },
     {
       "name": "Whole wheat pasta",
+      "aliases": ["Whole grain pasta", "Brown pasta", "Healthy pasta"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 75,
@@ -298,6 +335,7 @@
     },
     {
       "name": "Bread (whole wheat)",
+      "aliases": ["Whole grain bread", "Wheat bread", "Brown bread"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 41,
@@ -306,6 +344,7 @@
     },
     {
       "name": "Bread (white)",
+      "aliases": ["White bread", "Wonder bread", "Enriched bread"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 50,
@@ -314,6 +353,7 @@
     },
     {
       "name": "Bread (rye)",
+      "aliases": ["Rye bread", "Pumpernickel", "Marbled rye"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 48,
@@ -322,6 +362,7 @@
     },
     {
       "name": "Bread (sourdough)",
+      "aliases": ["Sourdough bread", "Artisan bread", "Natural yeast bread"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 48,
@@ -330,6 +371,7 @@
     },
     {
       "name": "Tortillas (corn)",
+      "aliases": ["Corn tortillas", "Maize tortillas", "Mexican tortillas"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 46,
@@ -338,6 +380,7 @@
     },
     {
       "name": "Tortillas (flour)",
+      "aliases": ["Flour tortillas", "Wheat tortillas", "Burrito wraps"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 53,
@@ -346,6 +389,7 @@
     },
     {
       "name": "Crackers (whole wheat)",
+      "aliases": ["Whole grain crackers", "Wheat crackers", "Healthy crackers"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 67,
@@ -354,6 +398,7 @@
     },
     {
       "name": "Oatmeal",
+      "aliases": ["Cooked oats", "Oat porridge", "Breakfast oats"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 12,
@@ -362,6 +407,7 @@
     },
     {
       "name": "Brown rice",
+      "aliases": ["Cooked brown rice", "Steamed brown rice", "Prepared brown rice"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 23,
@@ -370,6 +416,7 @@
     },
     {
       "name": "White rice",
+      "aliases": ["Cooked white rice", "Steamed white rice", "Prepared white rice"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 25,
@@ -378,6 +425,7 @@
     },
     {
       "name": "Cream of wheat",
+      "aliases": ["Cream of wheat", "Wheat cereal", "Farina"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 11,
@@ -386,6 +434,7 @@
     },
     {
       "name": "Grits",
+      "aliases": ["Cooked grits", "Polenta grits", "Hominy grits"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 12,
@@ -394,6 +443,7 @@
     },
     {
       "name": "Rice noodles",
+      "aliases": ["Rice vermicelli", "Asian noodles", "Cellophane noodles"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 79,
@@ -402,6 +452,7 @@
     },
     {
       "name": "Soba noodles",
+      "aliases": ["Buckwheat noodles", "Japanese noodles", "Buckwheat soba"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 75,
@@ -410,6 +461,7 @@
     },
     {
       "name": "Udon noodles",
+      "aliases": ["Thick noodles", "Japanese udon", "Wheat udon"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 75,
@@ -418,6 +470,7 @@
     },
     {
       "name": "Ramen noodles",
+      "aliases": ["Instant ramen", "Japanese ramen", "Wheat ramen"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 75,
@@ -426,6 +479,7 @@
     },
     {
       "name": "Pita bread",
+      "aliases": ["Pita pocket", "Greek pita", "Middle Eastern bread"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 56,
@@ -434,6 +488,7 @@
     },
     {
       "name": "Naan bread",
+      "aliases": ["Indian naan", "Tandoori bread", "Leavened flatbread"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 53,
@@ -442,6 +497,7 @@
     },
     {
       "name": "English muffin",
+      "aliases": ["Toasted muffin", "Breakfast muffin", "Split muffin"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 51,
@@ -450,6 +506,7 @@
     },
     {
       "name": "Muffin (bran)",
+      "aliases": ["Bran muffin", "Whole grain muffin", "Fiber muffin"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 45,
@@ -458,6 +515,7 @@
     },
     {
       "name": "Cereal (corn flakes)",
+      "aliases": ["Corn flakes", "Breakfast cereal", "Flaked corn"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 84,
@@ -466,6 +524,7 @@
     },
     {
       "name": "Cereal (bran flakes)",
+      "aliases": ["Bran cereal", "Fiber flakes", "All-Bran"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 75,
@@ -474,6 +533,7 @@
     },
     {
       "name": "Cereal (oat flakes)",
+      "aliases": ["Oat cereal", "Flaked oats", "Oatmeal cereal"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 66,
@@ -482,6 +542,7 @@
     },
     {
       "name": "Rice cakes",
+      "aliases": ["Puffed rice", "Rice crackers", "Diet crackers"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 81,
@@ -490,6 +551,7 @@
     },
     {
       "name": "Corn chips",
+      "aliases": ["Tortilla chips", "Corn crisps", "Mexican chips"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 65,
@@ -498,6 +560,7 @@
     },
     {
       "name": "Pretzels",
+      "aliases": ["Salted pretzels", "German pretzels", "Twisted pretzels"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 80,
@@ -506,6 +569,7 @@
     },
     {
       "name": "Pita chips",
+      "aliases": ["Baked pita chips", "Pita crisps", "Middle Eastern chips"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 68,
@@ -514,11 +578,75 @@
     },
     {
       "name": "Bagel chips",
+      "aliases": ["Baked bagel chips", "Bagel crisps", "New York chips"],
       "category": "Grains",
       "unit_kind": "mass",
       "carbs": 68,
       "fats": 2.5,
       "protein": 12
+    },
+    {
+      "name": "Croutons",
+      "aliases": ["Seasoned croutons", "Salad croutons", "Garlic croutons", "Bread croutons"],
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 74,
+      "fats": 4,
+      "protein": 11
+    },
+    {
+      "name": "Sushi rice",
+      "aliases": ["Sushi rice", "Japanese rice", "Short grain rice"],
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 79,
+      "fats": 0.3,
+      "protein": 6.6
+    },
+    {
+      "name": "Couscous",
+      "aliases": ["Moroccan couscous", "Israeli couscous", "Pearl couscous"],
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 77,
+      "fats": 0.2,
+      "protein": 13
+    },
+    {
+      "name": "Ramen noodles",
+      "aliases": ["Ramen", "Instant noodles", "Japanese noodles"],
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 60,
+      "fats": 2,
+      "protein": 10
+    },
+    {
+      "name": "Macaroni noodles",
+      "aliases": ["Macaroni", "Elbow macaroni", "Pasta tubes"],
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 75,
+      "fats": 0.9,
+      "protein": 13
+    },
+    {
+      "name": "Panko breadcrumbs",
+      "aliases": ["Panko", "Japanese breadcrumbs", "Flaky breadcrumbs"],
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 70,
+      "fats": 1.4,
+      "protein": 13
+    },
+    {
+      "name": "Spaghetti",
+      "aliases": ["Spaghetti pasta", "Italian spaghetti", "Long pasta"],
+      "category": "Grains",
+      "unit_kind": "mass",
+      "carbs": 75,
+      "fats": 0.9,
+      "protein": 13
     }
   ]
 }

@@ -2,6 +2,7 @@
   "foods": [
     {
       "name": "Almonds",
+      "aliases": ["Whole almonds", "Raw almonds", "California almonds", "Prunus dulcis"],
       "category": "Nuts & Seeds",
       "unit_kind": "mass",
       "carbs": 21.6,
@@ -10,6 +11,7 @@
     },
     {
       "name": "Walnuts",
+      "aliases": ["English walnuts", "Persian walnuts", "Juglans regia", "Black walnuts"],
       "category": "Nuts & Seeds",
       "unit_kind": "mass",
       "carbs": 13.7,
@@ -18,11 +20,39 @@
     },
     {
       "name": "Trail mix",
+      "aliases": ["Gorp", "Student mix", "Hiking mix", "Energy mix"],
       "category": "Nuts & Seeds",
       "unit_kind": "mass",
       "carbs": 30,
       "fats": 45,
       "protein": 15
+    },
+    {
+      "name": "Sesame seeds",
+      "aliases": ["Sesame", "Simsim", "Beniseed", "Gingelly seeds"],
+      "category": "Nuts & Seeds",
+      "unit_kind": "mass",
+      "carbs": 23.4,
+      "fats": 49.7,
+      "protein": 17.7
+    },
+    {
+      "name": "Sesame oil",
+      "aliases": ["Sesame seed oil", "Gingelly oil", "Til oil"],
+      "category": "Nuts & Seeds",
+      "unit_kind": "volume",
+      "carbs": 0,
+      "fats": 100,
+      "protein": 0
+    },
+    {
+      "name": "Flaxseed",
+      "aliases": ["Flax seeds", "Linseed", "Linseeds"],
+      "category": "Nuts & Seeds",
+      "unit_kind": "mass",
+      "carbs": 29,
+      "fats": 42,
+      "protein": 18
     }
   ]
 }

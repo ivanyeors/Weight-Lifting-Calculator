@@ -15,7 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 type BarDatum = { name: string; value: number; unit?: string }
 import { useNutrition } from '@/lib/nutrition/store'
 import { calculateRecipeForPax, feasibilityForRecipe } from '@/lib/nutrition/calc'
-import { HEALTHY_RECIPES, filterRecipes, type HealthyFilter } from '@/lib/nutrition/recipes'
+import { HEALTHY_RECIPES, filterRecipes } from '@/lib/nutrition/recipes'
 import { fetchAllRecipes } from '@/lib/nutrition/db'
 import type { Recipe } from '@/lib/nutrition/types'
 import { CalendarView } from '@/components/workout-plans/calendar-view'
@@ -30,10 +30,10 @@ import type { Ingredient, NutrientsPer100 } from '@/lib/nutrition/types'
 export function RecipeCards() {
   const { state, dispatch } = useNutrition()
   const [pax, setPax] = useState(state.paxProfile.pax)
-  const [filters, setFilters] = useState<HealthyFilter[]>([])
   const [search, setSearch] = useState('')
   const [onlyFeasible, setOnlyFeasible] = useState(false)
   const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({})
+  const [selectedCuisines, setSelectedCuisines] = useState<Record<string, boolean>>({})
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null)
   const [selectedDays, setSelectedDays] = useState<string[]>([])
@@ -66,9 +66,12 @@ export function RecipeCards() {
   const [dbRecipes, setDbRecipes] = useState<Recipe[]>([])
   useEffect(() => {
     let mounted = true
-    fetchAllRecipes().then(list => { if (mounted) setDbRecipes(list) }).catch(() => {})
+    fetchAllRecipes().then(list => {
+      if (mounted) setDbRecipes(list)
+    }).catch(() => {})
     return () => { mounted = false }
   }, [])
+
   const recipes = dbRecipes.length ? dbRecipes : (state.recipes.length ? state.recipes : HEALTHY_RECIPES)
 
   // Build a live inventory-backed ingredient index by name (merge remote DB with local store)
@@ -96,9 +99,9 @@ export function RecipeCards() {
 
     // Add remote-only foods as pseudo-ingredients
     for (const f of foods) {
-      if (!remoteByName.has(f.name)) continue
       const name = f.name
       if (byName.has(name)) continue
+
       const nutrients: NutrientsPer100 = {
         macros: {
           carbs: f.carbs_per_100 || 0,
@@ -107,50 +110,100 @@ export function RecipeCards() {
         },
         micros: f.micros || {}
       }
+
+      // Use remote amount if available, otherwise 0 (making it available for feasibility checks)
+      const amount = remoteByName.get(name) || 0
+
       const pseudo: Ingredient = {
         id: `food:${f.id}`,
         name,
         available: { amount: 0, unit: 'g' },
-        stdGramsOrMl: remoteByName.get(name) || 0,
+        stdGramsOrMl: amount,
         pricePerBase: 0,
         nutrientsPer100: nutrients,
         category: f.category || undefined
       }
       byName.set(name, pseudo)
+
+      // Also create mappings for all aliases of this food
+      for (const alias of f.aliases || []) {
+        if (!byName.has(alias)) {
+          byName.set(alias, pseudo)
+        }
+      }
     }
 
     return byName
   }, [state.ingredients, state.inventory, foods, remoteInv])
 
-  // Build available diet tags from recipes
+  // Build available diet tags and cuisine tags from recipes
   const dietTags = useMemo(() => {
     const s = new Set<string>()
+    const cuisineTypes = new Set(['chinese', 'indian', 'japanese', 'korean', 'thai', 'italian', 'french', 'mexican', 'spanish', 'greek', 'lebanese', 'turkish', 'vietnamese', 'malaysian', 'indonesian', 'filipino', 'american', 'canadian', 'british', 'german', 'russian', 'brazilian', 'peruvian', 'moroccan', 'egyptian', 'ethiopian', 'south african'])
+
     recipes.forEach(r => {
-      if (Array.isArray(r.diets)) r.diets.forEach(d => s.add(d))
+      if (Array.isArray(r.diets)) {
+        r.diets.forEach(d => {
+          const normalized = d.toLowerCase().trim()
+          if (!cuisineTypes.has(normalized)) {
+            s.add(d)
+          }
+        })
+      }
+    })
+    return Array.from(s).sort()
+  }, [recipes])
+
+  const cuisineTags = useMemo(() => {
+    const s = new Set<string>()
+    const cuisineTypes = new Set(['chinese', 'indian', 'japanese', 'korean', 'thai', 'italian', 'french', 'mexican', 'spanish', 'greek', 'lebanese', 'turkish', 'vietnamese', 'malaysian', 'indonesian', 'filipino', 'american', 'canadian', 'british', 'german', 'russian', 'brazilian', 'peruvian', 'moroccan', 'egyptian', 'ethiopian', 'south african'])
+
+    recipes.forEach(r => {
+      if (Array.isArray(r.diets)) {
+        r.diets.forEach(d => {
+          const normalized = d.toLowerCase().trim()
+          if (cuisineTypes.has(normalized)) {
+            s.add(d)
+          }
+        })
+      }
     })
     return Array.from(s).sort()
   }, [recipes])
 
   const filtered = useMemo(() => {
     // base filter using existing healthy filters
-    let base = filterRecipes(recipes, filters)
+    let base = filterRecipes(recipes, [])
     const q = search.trim().toLowerCase()
     if (q) {
       base = base.filter(r => r.name.toLowerCase().includes(q) || r.ingredients.some(i => i.name.toLowerCase().includes(q)))
     }
-    const hasCats = Object.values(selectedCategories).some(Boolean)
-    if (hasCats) {
+
+    // Filter by diet types
+    const hasDietFilters = Object.values(selectedCategories).some(Boolean)
+    if (hasDietFilters) {
       base = base.filter(r => {
         const ds = Array.isArray(r.diets) ? r.diets : []
         if (ds.length === 0) return false
         return ds.some(d => selectedCategories[d])
       })
     }
+
+    // Filter by cuisine types
+    const hasCuisineFilters = Object.values(selectedCuisines).some(Boolean)
+    if (hasCuisineFilters) {
+      base = base.filter(r => {
+        const ds = Array.isArray(r.diets) ? r.diets : []
+        if (ds.length === 0) return false
+        return ds.some(d => selectedCuisines[d])
+      })
+    }
+
     if (onlyFeasible) {
       base = base.filter(r => feasibilityForRecipe(r, pax, invIndex).canMake)
     }
     return base
-  }, [recipes, filters, search, selectedCategories, onlyFeasible, pax, invIndex])
+  }, [recipes, search, selectedCategories, selectedCuisines, onlyFeasible, pax, invIndex])
 
   // Name normalization and mapping to inventory/database names
   const normalize = (s: string) => {
@@ -176,10 +229,16 @@ export function RecipeCards() {
     for (const ing of state.ingredients) {
       map.set(normalize(ing.name), ing.name)
     }
-    // Then supplement with foods database
+    // Then supplement with foods database (including aliases)
     for (const f of foods) {
       const key = normalize(f.name)
       if (!map.has(key)) map.set(key, f.name)
+
+      // Also map aliases to the canonical name
+      for (const alias of f.aliases || []) {
+        const aliasKey = normalize(alias)
+        if (!map.has(aliasKey)) map.set(aliasKey, f.name)
+      }
     }
     return map
   }, [state.ingredients, foods])
@@ -346,19 +405,11 @@ export function RecipeCards() {
               <Label className="text-xs text-muted-foreground">Search recipes</Label>
               <Input placeholder="e.g., chicken, pasta" value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
-            <Separator />
-            <div className="grid gap-2">
-              <div className="text-xs font-medium">Quick filters</div>
-              <div className="flex flex-wrap gap-2">
-                <Button size="sm" variant={filters.includes('protein-load') ? 'default' : 'outline'} onClick={() => setFilters(f => f.includes('protein-load') ? f.filter(x => x !== 'protein-load') : [...f, 'protein-load'])}>Protein load</Button>
-                <Button size="sm" variant={filters.includes('under-500kcals') ? 'default' : 'outline'} onClick={() => setFilters(f => f.includes('under-500kcals') ? f.filter(x => x !== 'under-500kcals') : [...f, 'under-500kcals'])}>Under 500 kcals</Button>
-              </div>
-            </div>
             {!!dietTags.length && (
               <div className="grid gap-2">
                 <Separator />
                 <div className="text-xs font-medium">Diet types</div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 max-h-64 overflow-auto pr-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
                   {dietTags.map((c) => (
                     <Checkbox
                       key={c}
@@ -366,6 +417,25 @@ export function RecipeCards() {
                       variant="chip"
                       checked={!!selectedCategories[c]}
                       onCheckedChange={(v) => setSelectedCategories((prev) => ({ ...prev, [c]: Boolean(v) }))}
+                    >
+                      <span className="text-xs">{c}</span>
+                    </Checkbox>
+                  ))}
+                </div>
+              </div>
+            )}
+            {!!cuisineTags.length && (
+              <div className="grid gap-2">
+                <Separator />
+                <div className="text-xs font-medium">Cuisine</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+                  {cuisineTags.map((c) => (
+                    <Checkbox
+                      key={c}
+                      id={`cuisine-${c}`}
+                      variant="chip"
+                      checked={!!selectedCuisines[c]}
+                      onCheckedChange={(v) => setSelectedCuisines((prev) => ({ ...prev, [c]: Boolean(v) }))}
                     >
                       <span className="text-xs">{c}</span>
                     </Checkbox>
@@ -385,7 +455,7 @@ export function RecipeCards() {
               </div>
             </div>
             <div className="flex justify-end">
-              <Button variant="outline" size="sm" onClick={() => { setSearch(''); setFilters([]); setSelectedCategories({}); setOnlyFeasible(false); }}>Reset filters</Button>
+              <Button variant="outline" size="sm" onClick={() => { setSearch(''); setSelectedCategories({}); setSelectedCuisines({}); setOnlyFeasible(false); }}>Reset filters</Button>
             </div>
           </div>
         </Card>

@@ -2,6 +2,7 @@
   "foods": [
     {
       "name": "Egg",
+      "aliases": ["Chicken egg", "Whole egg", "Grade A egg"],
       "category": "Dairy & Eggs",
       "unit_kind": "count",
       "carbs": 0.36,
@@ -10,6 +11,7 @@
     },
     {
       "name": "Cheddar cheese",
+      "aliases": ["Sharp cheddar", "Mild cheddar", "American cheese"],
       "category": "Dairy & Eggs",
       "unit_kind": "mass",
       "carbs": 1.3,
@@ -18,6 +20,7 @@
     },
     {
       "name": "Mozzarella cheese",
+      "aliases": ["Fresh mozzarella", "Low-moisture mozzarella", "Pizza cheese"],
       "category": "Dairy & Eggs",
       "unit_kind": "mass",
       "carbs": 3.1,
@@ -26,6 +29,7 @@
     },
     {
       "name": "Greek yogurt (plain)",
+      "aliases": ["Greek style yogurt", "Strained yogurt", "Thick yogurt"],
       "category": "Dairy & Eggs",
       "unit_kind": "mass",
       "carbs": 4,
@@ -34,6 +38,7 @@
     },
     {
       "name": "Ice cream (vanilla)",
+      "aliases": ["Vanilla ice cream", "French vanilla", "Premium ice cream"],
       "category": "Dairy & Eggs",
       "unit_kind": "mass",
       "carbs": 24,
@@ -42,6 +47,7 @@
     },
     {
       "name": "Whole milk",
+      "aliases": ["Full fat milk", "Regular milk", "Vitamin D milk"],
       "category": "Dairy & Eggs",
       "unit_kind": "volume",
       "carbs": 4.8,
@@ -50,6 +56,7 @@
     },
     {
       "name": "Skim milk",
+      "aliases": ["Fat-free milk", "Nonfat milk", "0% milk"],
       "category": "Dairy & Eggs",
       "unit_kind": "volume",
       "carbs": 4.96,
@@ -58,6 +65,7 @@
     },
     {
       "name": "Butter",
+      "aliases": ["Salted butter", "Unsalted butter", "Sweet cream butter"],
       "category": "Dairy & Eggs",
       "unit_kind": "mass",
       "carbs": 0.06,
@@ -66,6 +74,7 @@
     },
     {
       "name": "Cream cheese",
+      "aliases": ["Philadelphia cream cheese", "Soft cheese", "Schmear"],
       "category": "Dairy & Eggs",
       "unit_kind": "mass",
       "carbs": 3.76,
@@ -74,6 +83,7 @@
     },
     {
       "name": "Cottage cheese",
+      "aliases": ["Small curd cottage cheese", "Large curd cottage cheese", "Farmer's cheese"],
       "category": "Dairy & Eggs",
       "unit_kind": "mass",
       "carbs": 2.67,
@@ -82,6 +92,7 @@
     },
     {
       "name": "Parmesan cheese",
+      "aliases": ["Parmigiano-Reggiano", "Grana Padano", "Italian hard cheese"],
       "category": "Dairy & Eggs",
       "unit_kind": "mass",
       "carbs": 3.22,
@@ -90,6 +101,7 @@
     },
     {
       "name": "Feta cheese",
+      "aliases": ["Greek feta", "Bulgarian feta", "Sheep's milk feta"],
       "category": "Dairy & Eggs",
       "unit_kind": "mass",
       "carbs": 4.09,
@@ -98,6 +110,7 @@
     },
     {
       "name": "Sour cream",
+      "aliases": ["Cultured sour cream", "Light sour cream", "Mexican crema"],
       "category": "Dairy & Eggs",
       "unit_kind": "mass",
       "carbs": 4.07,
@@ -106,6 +119,7 @@
     },
     {
       "name": "Heavy cream",
+      "aliases": ["Heavy whipping cream", "Double cream", "Whipping cream"],
       "category": "Dairy & Eggs",
       "unit_kind": "volume",
       "carbs": 2.79,
@@ -114,6 +128,7 @@
     },
     {
       "name": "Egg whites",
+      "aliases": ["Albumen", "Liquid egg whites", "Pasteurized egg whites"],
       "category": "Dairy & Eggs",
       "unit_kind": "volume",
       "carbs": 0.73,
@@ -122,6 +137,7 @@
     },
     {
       "name": "Egg yolks",
+      "aliases": ["Yolks", "Separated yolks", "Fresh egg yolks"],
       "category": "Dairy & Eggs",
       "unit_kind": "count",
       "carbs": 0.56,
@@ -130,6 +146,7 @@
     },
     {
       "name": "Hard-boiled egg",
+      "aliases": ["Boiled egg", "Cooked egg", "Deviled egg base"],
       "category": "Dairy & Eggs",
       "unit_kind": "count",
       "carbs": 0.56,
@@ -138,6 +155,7 @@
     },
     {
       "name": "Swiss cheese",
+      "aliases": ["Emmental", "Baby Swiss", "Swiss Emmental"],
       "category": "Dairy & Eggs",
       "unit_kind": "mass",
       "carbs": 1.44,
@@ -146,6 +164,7 @@
     },
     {
       "name": "Ricotta cheese",
+      "aliases": ["Italian ricotta", "Fresh ricotta", "Whey cheese"],
       "category": "Dairy & Eggs",
       "unit_kind": "mass",
       "carbs": 3.04,
@@ -154,6 +173,7 @@
     },
     {
       "name": "Goat cheese",
+      "aliases": ["Chèvre", "French goat cheese", "Caprino"],
       "category": "Dairy & Eggs",
       "unit_kind": "mass",
       "carbs": 0.12,
@@ -162,6 +182,7 @@
     },
     {
       "name": "Blue cheese",
+      "aliases": ["Roquefort", "Gorgonzola", "Stilton"],
       "category": "Dairy & Eggs",
       "unit_kind": "mass",
       "carbs": 2.34,
@@ -170,6 +191,7 @@
     },
     {
       "name": "Gouda cheese",
+      "aliases": ["Dutch Gouda", "Smoked Gouda", "Baby Gouda"],
       "category": "Dairy & Eggs",
       "unit_kind": "mass",
       "carbs": 2.22,
@@ -178,11 +200,84 @@
     },
     {
       "name": "Brie cheese",
+      "aliases": ["French Brie", "Triple cream Brie", "Camembert"],
       "category": "Dairy & Eggs",
       "unit_kind": "mass",
       "carbs": 0.45,
       "fats": 27.68,
       "protein": 20.75
+    },
+    {
+      "name": "Vegan butter",
+      "aliases": ["Plant-based butter", "Vegan margarine", "Dairy-free butter"],
+      "category": "Dairy & Eggs",
+      "unit_kind": "mass",
+      "carbs": 0.1,
+      "fats": 81,
+      "protein": 0.3
+    },
+    {
+      "name": "Vegan parmesan cheese",
+      "aliases": ["Vegan parm", "Plant-based parmesan", "Nutritional yeast cheese"],
+      "category": "Dairy & Eggs",
+      "unit_kind": "mass",
+      "carbs": 40,
+      "fats": 8,
+      "protein": 35
+    },
+    {
+      "name": "Vegan chocolate",
+      "aliases": ["Dark chocolate (vegan)", "Plant-based chocolate", "Dairy-free chocolate"],
+      "category": "Dairy & Eggs",
+      "unit_kind": "mass",
+      "carbs": 61,
+      "fats": 31,
+      "protein": 5.5
+    },
+    {
+      "name": "Plant-based milk",
+      "aliases": ["Almond milk", "Soy milk", "Oat milk", "Plant milk"],
+      "category": "Dairy & Eggs",
+      "unit_kind": "volume",
+      "carbs": 1.2,
+      "fats": 1.1,
+      "protein": 0.7
+    },
+    {
+      "name": "Dairy-free milk",
+      "aliases": ["Non-dairy milk", "Plant milk", "Alternative milk"],
+      "category": "Dairy & Eggs",
+      "unit_kind": "volume",
+      "carbs": 1.2,
+      "fats": 1.1,
+      "protein": 0.7
+    },
+    {
+      "name": "Non-dairy milk",
+      "aliases": ["Plant-based milk", "Vegan milk", "Alternative milk"],
+      "category": "Dairy & Eggs",
+      "unit_kind": "volume",
+      "carbs": 1.2,
+      "fats": 1.1,
+      "protein": 0.7
+    },
+    {
+      "name": "Vegan shredded cheddar cheese",
+      "aliases": ["Vegan cheddar", "Plant-based cheddar", "Dairy-free cheddar"],
+      "category": "Dairy & Eggs",
+      "unit_kind": "mass",
+      "carbs": 10,
+      "fats": 20,
+      "protein": 5
+    },
+    {
+      "name": "Cheddar cheese",
+      "aliases": ["Sharp cheddar", "Mild cheddar", "American cheddar"],
+      "category": "Dairy & Eggs",
+      "unit_kind": "mass",
+      "carbs": 1.3,
+      "fats": 33,
+      "protein": 7
     }
   ]
 }
