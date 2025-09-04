@@ -65,7 +65,13 @@ export class SyncService {
       this.emit('fitness-logs-synced')
       return true
     } catch (error) {
-      console.error('Failed to sync fitness logs:', error)
+      console.error('Failed to sync fitness logs:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        planId,
+        userId,
+        error
+      })
       return false
     }
   }
@@ -78,17 +84,17 @@ export class SyncService {
   }) {
     try {
       // Update localStorage
-      const exerciseMap = this.getLocalStorageMap('fitspo:exercise_kcals_by_day')
+      const exerciseMap = this.getLocalStorageMap('fitspo:exercise_kcals_by_day') as Record<string, number>
       exerciseMap[sessionData.date] = (exerciseMap[sessionData.date] || 0) + sessionData.calories
       localStorage.setItem('fitspo:exercise_kcals_by_day', JSON.stringify(exerciseMap))
 
       // Update plan logs
       const planLogsKey = `fitspo:plan_logs:${planId}`
-      const planLogs = this.getLocalStorageMap(planLogsKey)
+      const planLogs = this.getLocalStorageMap(planLogsKey) as Record<string, { exercise?: number; date?: string }>
       const existing = planLogs[sessionData.date] || {}
       planLogs[sessionData.date] = {
         ...existing,
-        exercise: (existing.exercise || 0) + sessionData.calories,
+        exercise: ((existing as { exercise?: number }).exercise || 0) + sessionData.calories,
         date: sessionData.date
       }
       localStorage.setItem(planLogsKey, JSON.stringify(planLogs))
@@ -102,7 +108,13 @@ export class SyncService {
 
       return true
     } catch (error) {
-      console.error('Failed to sync workout completion:', error)
+      console.error('Failed to sync workout completion:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        planId,
+        userId,
+        error
+      })
       return false
     }
   }
@@ -192,7 +204,13 @@ export class SyncService {
       this.emit('fitness-reminders-created')
       return true
     } catch (error) {
-      console.error('Failed to create fitness reminders:', error)
+      console.error('Failed to create fitness reminders:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        planId: plan.id,
+        userId,
+        error
+      })
       return false
     }
   }
@@ -233,7 +251,12 @@ export class SyncService {
       this.emit('active-plans-synced')
       return true
     } catch (error) {
-      console.error('Failed to sync active plans:', error)
+      console.error('Failed to sync active plans:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        userId,
+        error
+      })
       return false
     }
   }
@@ -260,7 +283,12 @@ export class SyncService {
         createdAt: row.created_at
       }))
     } catch (error) {
-      console.error('Failed to get active plans from DB:', error)
+      console.error('Failed to get active plans from DB:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        userId,
+        error
+      })
       return []
     }
   }
@@ -303,7 +331,12 @@ export class SyncService {
 
       return true
     } catch (error) {
-      console.error('Failed to sync completed workouts:', error)
+      console.error('Failed to sync completed workouts:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        userId,
+        error
+      })
       return false
     }
   }
@@ -320,7 +353,7 @@ export class SyncService {
     }
   }
 
-  private getLocalStorageMap(key: string): Record<string, any> {
+  private getLocalStorageMap(key: string): Record<string, unknown> {
     try {
       const raw = localStorage.getItem(key)
       return raw ? JSON.parse(raw) : {}

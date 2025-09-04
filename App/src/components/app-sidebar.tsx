@@ -267,14 +267,6 @@ export function AppSidebar() {
           <SidebarGroupContent className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
             <SidebarMenu className="group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:w-full">
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/onboard'}>
-                  <a href="/onboard" className={`flex items-center gap-2 ${pathname === '/onboard' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
-                    <CheckCircle />
-                    <span className="group-data-[collapsible=icon]:hidden">Onboarding</span>
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === '/exercise-library'}>
                   <a href="/exercise-library" className={`flex items-center gap-2 ${pathname === '/exercise-library' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
                     <Dumbbell />
