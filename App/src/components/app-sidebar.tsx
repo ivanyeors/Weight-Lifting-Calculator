@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Sheet, SheetContent } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { LoginForm } from "@/components/login-form"
 import { FlickeringGrid } from "@/components/ui/shadcn-io/flickering-grid"
@@ -422,8 +422,11 @@ export function AppSidebar() {
           className="p-0 inset-0 w-screen sm:h-dvh h-svh max-w-none rounded-none border-0 [&_[data-slot=sheet-close]]:z-[60]"
           overlayClassName="!bg-transparent"
         >
+          <SheetHeader className="sr-only">
+            <SheetTitle>Sign In</SheetTitle>
+          </SheetHeader>
           {/* Full-screen flickering grid background */}
-          <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 z-0 pointer-events-none">
             <FlickeringGrid
               squareSize={4}
               gridGap={6}
@@ -435,7 +438,7 @@ export function AppSidebar() {
           </div>
 
           {/* Content overlay */}
-          <div className="relative z-10 flex min-h-full flex-col items-center justify-center p-6 md:p-10">
+          <div className="absolute inset-x-0 top-16 bottom-0 z-10 flex min-h-full flex-col items-center justify-center p-6 md:p-10">
             <div className="w-full max-w-sm md:max-w-3xl">
               <LoginForm onSuccess={() => setIsLoginOpen(false)} />
             </div>
