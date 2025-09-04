@@ -32,7 +32,7 @@ import { FlickeringGrid } from "@/components/ui/shadcn-io/flickering-grid"
 import { supabase } from '@/lib/supabaseClient'
 import { TeamSwitcher } from "@/components/ui/team-switcher"
 
-import { Calculator, MapPin, ClipboardList, Dumbbell, AppWindow, ChevronDown, Flame, Users as UsersIcon, UtensilsCrossed, Building2 } from "lucide-react"
+import { Calculator, MapPin, ClipboardList, Dumbbell, AppWindow, ChevronDown, Flame, Users as UsersIcon, UtensilsCrossed, Building2, CheckCircle } from "lucide-react"
 import { useTheme } from "next-themes"
 
 type UserInfo = { id: string; email: string | null; name: string | null; avatarUrl: string | null }
@@ -213,6 +213,24 @@ export function AppSidebar() {
 
         <SidebarGroup className="group-data-[collapsible=icon]:items-center">
           <SidebarGroupLabel className="group-data-[collapsible=icon]:justify-center">
+            Quick Start
+          </SidebarGroupLabel>
+          <SidebarGroupContent className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+            <SidebarMenu className="group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:w-full">
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/onboard'}>
+                  <a href="/onboard" className={`flex items-center gap-2 ${pathname === '/onboard' ? 'bg-accent text-accent-foreground border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
+                    <CheckCircle />
+                    <span className="group-data-[collapsible=icon]:hidden">Get Started</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup className="group-data-[collapsible=icon]:items-center">
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:justify-center">
             Calculations
           </SidebarGroupLabel>
           <SidebarGroupContent className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
@@ -248,6 +266,14 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
             <SidebarMenu className="group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:w-full">
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/onboard'}>
+                  <a href="/onboard" className={`flex items-center gap-2 ${pathname === '/onboard' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
+                    <CheckCircle />
+                    <span className="group-data-[collapsible=icon]:hidden">Onboarding</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === '/exercise-library'}>
                   <a href="/exercise-library" className={`flex items-center gap-2 ${pathname === '/exercise-library' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
@@ -361,13 +387,18 @@ export function AppSidebar() {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onSelect={async (e) => {
+                                      onSelect={async (e) => {
                     e.preventDefault();
                     try {
                       await supabase.auth.signOut();
+                      // Clear onboarding status on logout
+                      if (typeof window !== 'undefined') {
+                        localStorage.removeItem('fitspo:onboarding_complete');
+                        localStorage.removeItem('fitspo:onboarding_completed_at');
+                      }
                     } finally {
                       const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/');
-                      window.location.replace(`${base}ideal-exercise-weight`);
+                      window.location.replace(`${base}`);
                     }
                   }}
                   className="cursor-pointer text-red-600 focus:text-red-600"

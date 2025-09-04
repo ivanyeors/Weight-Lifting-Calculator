@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import type { Plan } from './plan-types'
+import { syncService } from '@/lib/sync-service'
 
 const STORAGE_KEY = 'fitspo:plans'
 
@@ -65,8 +66,15 @@ export function usePlans(userId: string | null) {
   }, [plans, persist])
 
   const update = useCallback((id: string, partial: Partial<Plan>) => {
-    persist(plans.map(p => p.id === id ? { ...p, ...partial } : p))
-  }, [plans, persist])
+    const updatedPlans = plans.map(p => p.id === id ? { ...p, ...partial } : p)
+    persist(updatedPlans)
+
+    // Sync active plan changes to database
+    const updatedPlan = updatedPlans.find(p => p.id === id)
+    if (updatedPlan && updatedPlan.status === 'active' && userId) {
+      syncService.syncActivePlansToDb(userId).catch(console.error)
+    }
+  }, [plans, persist, userId])
 
   return { plans, add, remove, update }
 }

@@ -25,6 +25,7 @@ import { CalendarEventDrawer } from './calendar-event-drawer'
 import { CalendarSidebar } from './calendar-sidebar'
 import { useGoogleCalendar } from '@/hooks/useGoogleCalendar'
 import { supabase } from '@/lib/supabaseClient'
+import { syncService } from '@/lib/sync-service'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 import { HEALTHY_RECIPES } from '@/lib/nutrition/recipes'
@@ -1871,6 +1872,26 @@ export function CalendarView({
       setEvents(prev => [...prev, platformEvent])
     }
 
+    // Sync workout completion to fitness logs for active plans
+    try {
+      const userId = (await supabase.auth.getUser()).data.user?.id
+      if (userId && platformEvent.extendedProps?.workoutTemplate) {
+        const sessionDate = platformEvent.start.split('T')[0]
+        const calories = platformEvent.extendedProps.workoutTemplate.estimatedCalories || 300
+        await syncService.syncWorkoutCompletionToFitness(
+          createdSessionId || platformEvent.id,
+          userId,
+          {
+            calories,
+            date: sessionDate,
+            templateId: platformEvent.extendedProps.workoutTemplate.id
+          }
+        )
+      }
+    } catch (error) {
+      console.error('Failed to sync workout to fitness logs:', error)
+    }
+
     if (isGoogleCalendarConnected && googleCalendarAccounts.length > 0) {
       try {
         const scheduleXEvent = {
@@ -1965,6 +1986,26 @@ export function CalendarView({
       }
     } catch (e) {
       console.error('Failed to persist session update', e)
+    }
+
+    // Sync workout completion/status changes to fitness logs for active plans
+    try {
+      const userId = (await supabase.auth.getUser()).data.user?.id
+      if (userId && partial.extendedProps?.workoutTemplate) {
+        const sessionDate = existing.start.split('T')[0]
+        const calories = partial.extendedProps.workoutTemplate.estimatedCalories || 300
+        await syncService.syncWorkoutCompletionToFitness(
+          eventId,
+          userId,
+          {
+            calories,
+            date: sessionDate,
+            templateId: partial.extendedProps.workoutTemplate.id
+          }
+        )
+      }
+    } catch (error) {
+      console.error('Failed to sync updated workout to fitness logs:', error)
     }
 
     // Sync to Google for selected targets

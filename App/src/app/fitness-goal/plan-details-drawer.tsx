@@ -13,6 +13,7 @@ import { usePlans } from './plan-store'
 import { useMemo, useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { toast } from 'sonner'
+import { syncService } from '@/lib/sync-service'
 
 export function PlanDetailsDrawer({
   open,
@@ -209,6 +210,8 @@ export function PlanDetailsDrawer({
                         if (typeof window !== 'undefined') localStorage.setItem('fitspo:recipes_by_day', JSON.stringify(byDay))
                       } catch { /* ignore */ }
                       try { if (typeof window !== 'undefined') window.dispatchEvent(new Event('fitspo:logs_changed')) } catch {}
+                      // Emit sync event
+                      syncService.emit('fitness-logs-changed')
                       try { toast.success(`Food saved: ${Math.max(0, Math.round(sum))} kcal`) } catch {}
                     } catch { /* ignore */ }
                   }}>Save</Button>
@@ -224,6 +227,8 @@ export function PlanDetailsDrawer({
                     const v = Math.max(0, Number.isFinite(val) ? val : 0)
                     persistDayValue('fitspo:water_liters_by_day', day, v)
                     persistPlanLog(plan.id, day, { water: v })
+                    // Emit sync event
+                    syncService.emit('fitness-logs-changed')
                     try { toast.success(`Water saved: ${v} L`) } catch {}
                     setTodayWater('')
                   }}>Save</Button>
@@ -239,6 +244,8 @@ export function PlanDetailsDrawer({
                     const v = Math.max(0, Number.isFinite(val) ? val : 0)
                     persistDayValue('fitspo:sleep_hours_by_day', day, v)
                     persistPlanLog(plan.id, day, { sleep: v })
+                    // Emit sync event
+                    syncService.emit('fitness-logs-changed')
                     try { toast.success(`Sleep saved: ${v} h`) } catch {}
                     setTodaySleep('')
                   }}>Save</Button>
@@ -270,6 +277,8 @@ export function PlanDetailsDrawer({
                     persistDayValue('fitspo:exercise_kcals_by_day', day, kcals)
                     persistPlanLog(plan.id, day, { exercise: kcals })
                     try { if (typeof window !== 'undefined') window.dispatchEvent(new Event('fitspo:logs_changed')) } catch {}
+                    // Emit sync event
+                    syncService.emit('fitness-logs-changed')
                     try { toast.success(`Exercise saved: ${kcals} kcal (${t?.name || 'Template'})`) } catch {}
                     setSelectedTemplateId('')
                   }} disabled={!selectedTemplateId}>Save</Button>
