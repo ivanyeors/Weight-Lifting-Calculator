@@ -419,7 +419,7 @@ export function AppSidebar() {
         <SheetContent
           side="bottom"
           animation="fade"
-          className="p-0 inset-0 w-screen sm:h-dvh h-svh max-w-none rounded-none border-0 [&_[data-slot=sheet-close]]:z-30"
+          className="p-0 inset-0 w-screen sm:h-dvh h-svh max-w-none rounded-none border-0 [&_[data-slot=sheet-close]]:z-[60]"
           overlayClassName="!bg-transparent"
         >
           {/* Full-screen flickering grid background */}
