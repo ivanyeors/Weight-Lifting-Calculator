@@ -11,7 +11,7 @@
     },
     {
       "name": "Dark soy sauce",
-      "aliases": ["Koikuchi soy sauce", "Regular soy sauce", "Shoyu (dark)"],
+      "aliases": ["Koikuchi soy sauce", "Regular soy sauce", "Shoyu (dark)", "Soy sauce"],
       "category": "Condiments",
       "unit_kind": "volume",
       "carbs": 15,
@@ -233,15 +233,6 @@
       "carbs": 26,
       "fats": 6,
       "protein": 12
-    },
-    {
-      "name": "Peanut butter",
-      "aliases": ["PB", "Groundnut butter", "Monkey butter"],
-      "category": "Condiments",
-      "unit_kind": "mass",
-      "carbs": 20,
-      "fats": 50,
-      "protein": 25
     },
     {
       "name": "Honey",

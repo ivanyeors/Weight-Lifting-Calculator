@@ -2,7 +2,7 @@
   "foods": [
     {
       "name": "Egg",
-      "aliases": ["Chicken egg", "Whole egg", "Grade A egg"],
+      "aliases": ["Chicken egg", "Whole egg", "Grade A egg", "Eggs"],
       "category": "Dairy & Eggs",
       "unit_kind": "count",
       "carbs": 0.36,

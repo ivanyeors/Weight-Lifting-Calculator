@@ -11,7 +11,7 @@
     },
     {
       "name": "Onion",
-      "aliases": ["Yellow onion", "Red onion", "Sweet onion"],
+      "aliases": ["Yellow onion", "Red onion", "Sweet onion", "Onions"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 9.34,
@@ -20,7 +20,7 @@
     },
     {
       "name": "Potato",
-      "aliases": ["White potato", "Russet potato", "Yukon gold"],
+      "aliases": ["White potato", "Russet potato", "Yukon gold", "Potatoes"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 17,
@@ -29,7 +29,7 @@
     },
     {
       "name": "Artichoke",
-      "aliases": ["Globe artichoke", "French artichoke", "Cynara scolymus"],
+      "aliases": ["Globe artichoke", "French artichoke", "Cynara scolymus", "Artichokes"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 10.51,
@@ -47,7 +47,7 @@
     },
     {
       "name": "Eggplant",
-      "aliases": ["Aubergine", "Purple eggplant", "Asian eggplant"],
+      "aliases": ["Aubergine", "Purple eggplant", "Asian eggplant", "Eggplants"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 5.88,
@@ -56,7 +56,7 @@
     },
     {
       "name": "Beetroot",
-      "aliases": ["Beet", "Red beet", "Golden beet"],
+      "aliases": ["Beet", "Red beet", "Golden beet", "Beetroots", "Beets"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 9.56,
@@ -65,7 +65,7 @@
     },
     {
       "name": "Bell pepper (red)",
-      "aliases": ["Red bell pepper", "Sweet pepper", "Capsicum annuum"],
+      "aliases": ["Red bell pepper", "Sweet pepper", "Capsicum annuum", "Bell peppers"],
       "category": "Vegetables",
       "unit_kind": "count",
       "carbs": 7.236,
@@ -74,7 +74,7 @@
     },
     {
       "name": "Bell pepper (green)",
-      "aliases": ["Green bell pepper", "Sweet pepper", "Capsicum annuum"],
+      "aliases": ["Green bell pepper", "Sweet pepper", "Capsicum annuum", "Bell peppers"],
       "category": "Vegetables",
       "unit_kind": "count",
       "carbs": 5.568,
@@ -128,7 +128,7 @@
     },
     {
       "name": "Carrot",
-      "aliases": ["Orange carrot", "Baby carrot", "Daucus carota"],
+      "aliases": ["Orange carrot", "Baby carrot", "Daucus carota", "Carrots"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 9.58,
@@ -137,7 +137,7 @@
     },
     {
       "name": "Cauliflower",
-      "aliases": ["White cauliflower", "Romanesco", "Brassica oleracea"],
+      "aliases": ["White cauliflower", "Romanesco", "Brassica oleracea", "Cauliflowers"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 4.97,
@@ -182,7 +182,7 @@
     },
     {
       "name": "Cucumber",
-      "aliases": ["English cucumber", "Seedless cucumber", "Cucumis sativus"],
+      "aliases": ["English cucumber", "Seedless cucumber", "Cucumis sativus", "Cucumbers"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 3.63,
@@ -326,7 +326,7 @@
     },
     {
       "name": "Radish",
-      "aliases": ["Red radish", "White radish", "Raphanus sativus"],
+      "aliases": ["Red radish", "White radish", "Raphanus sativus", "Radishes"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 3.4,
@@ -380,7 +380,7 @@
     },
     {
       "name": "Tomato",
-      "aliases": ["Red tomato", "Cherry tomato", "Solanum lycopersicum"],
+      "aliases": ["Red tomato", "Cherry tomato", "Solanum lycopersicum", "Tomatoes"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 3.89,
@@ -389,7 +389,7 @@
     },
     {
       "name": "Turnip",
-      "aliases": ["White turnip", "Brassica rapa", "Rapini"],
+      "aliases": ["White turnip", "Brassica rapa", "Rapini", "Turnips"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 6.43,
@@ -398,7 +398,7 @@
     },
     {
       "name": "Yam",
-      "aliases": ["African yam", "Dioscorea", "Sweet yam"],
+      "aliases": ["African yam", "Dioscorea", "Sweet yam", "Yams"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 27.9,
@@ -416,7 +416,7 @@
     },
     {
       "name": "Jalapeño",
-      "aliases": ["Jalapeno pepper", "Capsicum annuum", "Hot pepper"],
+      "aliases": ["Jalapeno pepper", "Capsicum annuum", "Hot pepper", "Jalapeños"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 6.5,
@@ -425,7 +425,7 @@
     },
     {
       "name": "Chili pepper (red)",
-      "aliases": ["Red chili", "Capsicum", "Hot pepper"],
+      "aliases": ["Red chili", "Capsicum", "Hot pepper", "Chili peppers"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 8.8,
@@ -434,7 +434,7 @@
     },
     {
       "name": "Shallot",
-      "aliases": ["French shallot", "Allium cepa", "Pearl onion"],
+      "aliases": ["French shallot", "Allium cepa", "Pearl onion", "Shallots"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 16.8,
@@ -1541,7 +1541,7 @@
     },
     {
       "name": "Corn",
-      "aliases": ["Sweet corn", "Maize", "Fresh corn"],
+      "aliases": ["Sweet corn", "Maize", "Fresh corn", "Corns"],
       "category": "Vegetables",
       "unit_kind": "mass",
       "carbs": 18.7,

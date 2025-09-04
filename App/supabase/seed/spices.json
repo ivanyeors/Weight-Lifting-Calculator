@@ -154,15 +154,6 @@
       "protein": 14
     },
     {
-      "name": "Black pepper (ground)",
-      "aliases": ["Black pepper", "Pepper", "Piper nigrum", "Tellicherry pepper"],
-      "category": "Spices",
-      "unit_kind": "mass",
-      "carbs": 64,
-      "fats": 3.3,
-      "protein": 10.9
-    },
-    {
       "name": "Cinnamon (ground)",
       "aliases": ["Cinnamon", "Ceylon cinnamon", "Cassia cinnamon", "Cinnamomum"],
       "category": "Spices",
