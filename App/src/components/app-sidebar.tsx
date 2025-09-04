@@ -185,7 +185,7 @@ export function AppSidebar() {
               </div>
               <SidebarTrigger className="h-8 w-8 p-0" />
             </div>
-            <div className="mt-2">
+            <div className="mt-2 hidden">
               <TeamSwitcher teams={teams} />
             </div>
           </div>
@@ -260,7 +260,7 @@ export function AppSidebar() {
                 <SidebarMenuButton asChild isActive={pathname === '/plans/nutrition'}>
                   <a href="/plans/nutrition" className={`flex items-center gap-2 ${pathname === '/plans/nutrition' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
                     <UtensilsCrossed />
-                    <span className="group-data-[collapsible=icon]:hidden">Recipes</span>
+                    <span className="group-data-[collapsible=icon]:hidden">Nutrition</span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
