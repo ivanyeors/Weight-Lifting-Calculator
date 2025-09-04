@@ -193,12 +193,12 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel className="flex items-center">
+        <SidebarGroup className="group-data-[collapsible=icon]:items-center">
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:justify-center">
             App
           </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
+          <SidebarGroupContent className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+            <SidebarMenu className="group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:w-full">
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === '/fitspo-app'}>
                   <a href="/fitspo-app" className={`flex items-center gap-2 ${pathname === '/fitspo-app' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
@@ -211,12 +211,12 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel className="flex items-center">
+        <SidebarGroup className="group-data-[collapsible=icon]:items-center">
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:justify-center">
             Calculations
           </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
+          <SidebarGroupContent className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+            <SidebarMenu className="group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:w-full">
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === '/ideal-exercise-weight'}>
                   <a href="/ideal-exercise-weight" className={`flex items-center gap-2 ${pathname === '/ideal-exercise-weight' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
@@ -242,12 +242,12 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel className="flex items-center">
+        <SidebarGroup className="group-data-[collapsible=icon]:items-center">
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:justify-center">
             Database
           </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
+          <SidebarGroupContent className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+            <SidebarMenu className="group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:w-full">
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === '/exercise-library'}>
                   <a href="/exercise-library" className={`flex items-center gap-2 ${pathname === '/exercise-library' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
@@ -276,12 +276,12 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel className="flex items-center">
+        <SidebarGroup className="group-data-[collapsible=icon]:items-center">
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:justify-center">
             Plans
           </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
+          <SidebarGroupContent className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+            <SidebarMenu className="group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:w-full">
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === '/plans/users'}>
                   <a href="/plans/users" className={`flex items-center gap-2 ${pathname === '/plans/users' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
