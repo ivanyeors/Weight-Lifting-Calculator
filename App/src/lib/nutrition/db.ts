@@ -205,3 +205,50 @@ export async function upsertRecipeWithIngredients(params: {
   }
   return recipe_id
 }
+
+export async function fetchAllRecipes(): Promise<Array<import('./types').Recipe>> {
+  const { data: recipesRows, error: recErr } = await supabase
+    .from('nutrition_recipes')
+    .select('id, recipe_key, name, base_servings, diets, category, calories_per_serving, macros_per_serving, micros_per_serving')
+  if (recErr) throw recErr
+  const recipeUuidByKey = new Map<string, string>()
+  for (const r of recipesRows ?? []) {
+    if (r.recipe_key) recipeUuidByKey.set(r.recipe_key as string, r.id as string)
+  }
+  const ids = (recipesRows ?? []).map(r => r.id as string)
+  let ingredientsByRecipeId = new Map<string, Array<{ name: string; quantity_amount: number; quantity_unit: import('./types').Unit }>>()
+  if (ids.length > 0) {
+    const { data: ingRows, error: ingErr } = await supabase
+      .from('nutrition_recipe_ingredients')
+      .select('recipe_id, name, quantity_amount, quantity_unit')
+      .in('recipe_id', ids)
+    if (ingErr) throw ingErr
+    ingredientsByRecipeId = ingRows?.reduce((acc, row) => {
+      const rid = row.recipe_id as string
+      const arr = acc.get(rid) || []
+      arr.push({ name: row.name as string, quantity_amount: Number(row.quantity_amount), quantity_unit: row.quantity_unit as import('./types').Unit })
+      acc.set(rid, arr)
+      return acc
+    }, new Map<string, Array<{ name: string; quantity_amount: number; quantity_unit: import('./types').Unit }>>()) ?? new Map()
+  }
+
+  const out: Array<import('./types').Recipe> = (recipesRows ?? []).map(r => {
+    const rid = r.id as string
+    const ingredients = (ingredientsByRecipeId.get(rid) || []).map(ing => ({
+      name: ing.name,
+      quantity: { amount: ing.quantity_amount, unit: ing.quantity_unit }
+    }))
+    return {
+      id: (r.recipe_key as string) || (r.id as string),
+      name: r.name as string,
+      category: (r.category as import('./types').RecipeCategory) || 'Dinner',
+      baseServings: Number(r.base_servings),
+      ingredients,
+      diets: Array.isArray(r.diets) ? (r.diets as string[]) as import('./types').DietType[] : [],
+      caloriesPerServing: r.calories_per_serving != null ? Number(r.calories_per_serving) : undefined,
+      macrosPerServing: (r.macros_per_serving as any) || undefined,
+      microsPerServing: (r.micros_per_serving as Record<string, number>) || undefined
+    }
+  })
+  return out
+}

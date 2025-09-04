@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { NutritionProvider } from '@/lib/nutrition/store'
 import { IngredientList } from '@/components/nutrition/IngredientList'
 import { RecipeCards } from '@/components/nutrition/RecipeCards'
-import { WeeklyPlanner } from '@/components/nutrition/WeeklyPlanner'
+// import removed: WeeklyPlanner was deleted
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { IngredientForm } from '@/components/nutrition/IngredientForm'
 import { useState } from 'react'
@@ -51,7 +51,7 @@ export default function PlansNutritionPage() {
           <TabsList>
             <TabsTrigger value="macro-builder">Ingredients</TabsTrigger>
             <TabsTrigger value="recipes">Recipes</TabsTrigger>
-            <TabsTrigger value="planner">Weekly Planner</TabsTrigger>
+            {/* <TabsTrigger value="planner">Weekly Planner</TabsTrigger> */}
           </TabsList>
           <TabsContent value="macro-builder" className="mt-3">
             <IngredientList />
@@ -59,9 +59,9 @@ export default function PlansNutritionPage() {
           <TabsContent value="recipes" className="mt-3">
             <RecipeCards />
           </TabsContent>
-          <TabsContent value="planner" className="mt-3">
-            <WeeklyPlanner />
-          </TabsContent>
+          {/* <TabsContent value="planner" className="mt-3">
+            <div className="text-sm text-muted-foreground">Weekly Planner has been removed.</div>
+          </TabsContent> */}
         </Tabs>
       </div>
     </NutritionProvider>

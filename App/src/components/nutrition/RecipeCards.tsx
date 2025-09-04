@@ -11,9 +11,13 @@ import { Separator } from '@/components/ui/separator'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+type BarDatum = { name: string; value: number; unit?: string }
 import { useNutrition } from '@/lib/nutrition/store'
 import { calculateRecipeForPax, feasibilityForRecipe } from '@/lib/nutrition/calc'
 import { HEALTHY_RECIPES, filterRecipes, type HealthyFilter } from '@/lib/nutrition/recipes'
+import { fetchAllRecipes } from '@/lib/nutrition/db'
+import type { Recipe } from '@/lib/nutrition/types'
 import { CalendarView } from '@/components/workout-plans/calendar-view'
 import { convertToBase, formatQuantityBase, getUnitKind } from '@/lib/nutrition/convert'
 import { Copy } from 'lucide-react'
@@ -35,6 +39,7 @@ export function RecipeCards() {
   const [selectedDays, setSelectedDays] = useState<string[]>([])
   const [foods, setFoods] = useState<Food[]>([])
   const [remoteInv, setRemoteInv] = useState<Record<string, number>>({})
+  const [microsExpanded, setMicrosExpanded] = useState<Record<string, boolean>>({})
 
   // Load canonical foods from DB for name alignment
   useEffect(() => { fetchFoods().then(setFoods).catch(() => setFoods([])) }, [])
@@ -57,8 +62,14 @@ export function RecipeCards() {
     }
   }, [])
 
-  // Seed healthy recipes into state if empty
-  const recipes = state.recipes.length ? state.recipes : HEALTHY_RECIPES
+  // Load recipes from DB, fallback to static if empty
+  const [dbRecipes, setDbRecipes] = useState<Recipe[]>([])
+  useEffect(() => {
+    let mounted = true
+    fetchAllRecipes().then(list => { if (mounted) setDbRecipes(list) }).catch(() => {})
+    return () => { mounted = false }
+  }, [])
+  const recipes = dbRecipes.length ? dbRecipes : (state.recipes.length ? state.recipes : HEALTHY_RECIPES)
 
   // Build a live inventory-backed ingredient index by name (merge remote DB with local store)
   const invIndex = useMemo(() => {
@@ -384,13 +395,31 @@ export function RecipeCards() {
       {filtered.map(r0 => {
         const r = syncRecipeNames(r0)
         const feas = feasibilityForRecipe(r, pax, invIndex)
-        const res = (() => { try { return calculateRecipeForPax(r, pax, invIndex) } catch { return null } })()
+        const res = (() => {
+          try {
+            if (r.caloriesPerServing != null || r.macrosPerServing != null || r.microsPerServing != null) {
+              const perPerson = {
+                macros: {
+                  carbs: Number(r.macrosPerServing?.carbs ?? 0),
+                  protein: Number(r.macrosPerServing?.protein ?? 0),
+                  fats: Number(r.macrosPerServing?.fats ?? 0)
+                },
+                micros: (r.microsPerServing as Record<string, number>) || {},
+                calories: Number(r.caloriesPerServing ?? ((Number(r.macrosPerServing?.carbs ?? 0) * 4) + (Number(r.macrosPerServing?.protein ?? 0) * 4) + (Number(r.macrosPerServing?.fats ?? 0) * 9))),
+                cost: 0
+              }
+              return { perPerson, totals: { macros: perPerson.macros, micros: perPerson.micros, calories: perPerson.calories, cost: 0 } }
+            }
+            return calculateRecipeForPax(r, pax, invIndex)
+          } catch { return null }
+        })()
         const macros = res?.perPerson?.macros
         const data = macros ? [
-          { name: 'Carbs', value: Math.round(macros.carbs) },
-          { name: 'Protein', value: Math.round(macros.protein) },
-          { name: 'Fats', value: Math.round(macros.fats) }
+          { name: 'Carbs', value: Math.round(macros.carbs), unit: 'g' },
+          { name: 'Protein', value: Math.round(macros.protein), unit: 'g' },
+          { name: 'Fats', value: Math.round(macros.fats), unit: 'g' }
         ] : []
+        const gradId = `macroGradient-${r.id}`
         return (
           <Card key={r.id} className="p-3 flex flex-col gap-3">
             <div className={!feas.canMake ? 'opacity-60' : ''}>
@@ -409,25 +438,117 @@ export function RecipeCards() {
               </div>
               <div className="text-[10px] text-muted-foreground border rounded px-1.5 py-0.5">{r.baseServings}</div>
             </div>
-            {/* Pax slider managed in sidebar */}
-            <ChartContainer config={{ value: { label: 'g' } }} className="w-full h-40 aspect-auto px-0">
-              <BarChart data={data} layout="vertical" margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" tickLine={false} axisLine={false} tickMargin={0} domain={[0, 'dataMax']} />
-                <YAxis
-                  type="category"
-                  dataKey="name"
-                  mirror
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={0}
-                  width={0}
-                />
-                <Bar dataKey="value" fill="hsl(var(--primary))" radius={4} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-              </BarChart>
-            </ChartContainer>
+            {/* Macros, Charts, and Micronutrients */}
+            {res && (
+              <div className="grid gap-1 text-[11px]">
+                <div className="flex flex-wrap gap-1 items-center">
+                  <span className="text-foreground/80 mr-1">Per person:</span>
+                  <span className="px-1.5 py-0.5 rounded border bg-muted/40">{Math.round(res.perPerson.calories)} kcal</span>
+                  <span className="px-1.5 py-0.5 rounded border bg-muted/40">C {Math.round(res.perPerson.macros.carbs)}g</span>
+                  <span className="px-1.5 py-0.5 rounded border bg-muted/40">P {Math.round(res.perPerson.macros.protein)}g</span>
+                  <span className="px-1.5 py-0.5 rounded border bg-muted/40">F {Math.round(res.perPerson.macros.fats)}g</span>
+                </div>
+                <ChartContainer config={{ value: { label: '' } }} className="w-full h-24 aspect-auto px-0">
+                  <BarChart data={data} layout="vertical" margin={{ top: 0, right: 0, bottom: 0, left: 0 }} barCategoryGap="5%" barGap={0}>
+                    <defs>
+                      <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#060612" />
+                        <stop offset="100%" stopColor="#283DFF" />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" tickLine={false} axisLine={false} tickMargin={0} domain={[0, 'dataMax']} />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      mirror
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={0}
+                      width={0}
+                    />
+                    <Bar dataKey="value" fill={`url(#${gradId})`} radius={3} barSize={7} />
+                    <ChartTooltip content={
+                      <ChartTooltipContent
+                        className="text-left"
+                        formatter={(value: number | string | Array<number | string>, name: string | number, item: { payload?: BarDatum }) => {
+                          try {
+                            const unit = item?.payload?.unit ? String(item.payload.unit) : ''
+                            const label = name ? `${String(name)}${unit ? ` (${unit})` : ''}` : ''
+                            const valueStr = Array.isArray(value) ? value.join(', ') : String(value ?? '')
+                            return (
+                              <div className="text-left">
+                                <div className="font-medium">{label}</div>
+                                <div>{`${valueStr}${unit ? ` ${unit}` : ''}`}</div>
+                              </div>
+                            )
+                          } catch {
+                            return String((Array.isArray(value) ? value.join(', ') : value) ?? '')
+                          }
+                        }}
+                      />
+                    } />
+                  </BarChart>
+                </ChartContainer>
+                {(() => {
+                  try {
+                    const entries = Object.entries(res.perPerson.micros || {})
+                      .filter(([, v]) => typeof v === 'number' && isFinite(v))
+                      .sort((a, b) => (b[1] as number) - (a[1] as number))
+                    if (entries.length === 0) return null
+                    const expanded = !!microsExpanded[r.id]
+                    const visible = expanded ? entries : entries.slice(0, 3)
+                    const inferUnit = (key: string): string => {
+                      if (/_mg$/i.test(key)) return 'mg'
+                      if (/_mcg$/i.test(key)) return 'mcg'
+                      if (/_iu$/i.test(key)) return 'IU'
+                      if (/_g$/i.test(key)) return 'g'
+                      const k = key.toLowerCase()
+                      if (k.includes('sodium') || k.includes('potassium') || k.includes('calcium') || k.includes('iron')) return 'mg'
+                      if (k.includes('vitaminc')) return 'mg'
+                      if (k.includes('vitamina')) return 'IU'
+                      if (k.includes('fiber') || k.includes('sugar')) return 'g'
+                      return ''
+                    }
+                    const displayName = (key: string): string => key.replace(/_(mg|mcg|iu|g)$/i, '')
+                    return (
+                      <div className="grid gap-1 text-[11px]">
+                        <Table className="text-[11px]">
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="h-7 px-1 text-[11px]">Micronutrients</TableHead>
+                              <TableHead className="h-7 px-1 text-[11px] text-right">Amount</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {visible.map(([k, v]) => {
+                              const unit = inferUnit(k)
+                              const value = Math.round(Number(v) * 10) / 10
+                              return (
+                                <TableRow key={k}>
+                                  <TableCell className="px-1 py-1">{displayName(k)}</TableCell>
+                                  <TableCell className="px-1 py-1 text-right">{`${value}${unit ? ` ${unit}` : ''}`}</TableCell>
+                                </TableRow>
+                              )
+                            })}
+                          </TableBody>
+                        </Table>
+                        {entries.length > 3 && (
+                          <div className="flex justify-end">
+                            <Button size="sm" variant="ghost" onClick={() => setMicrosExpanded(prev => ({ ...prev, [r.id]: !expanded }))}>
+                              {expanded ? 'Show less' : 'Show more'}
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  } catch { return null }
+                })()}
+              </div>
+            )}
+
             {/* Ingredients & shortages for current pax */}
+            <Separator className="my-1" />
             <div className="grid gap-1 text-xs">
               {r.ingredients.map((ri) => {
                 const scale = pax / r.baseServings
@@ -460,43 +581,6 @@ export function RecipeCards() {
                 )
               })}
             </div>
-
-            {/* Macros & Micronutrients */}
-            {res && (
-              <div className="grid gap-1 text-[11px]">
-                <div className="flex flex-wrap gap-1 items-center">
-                  <span className="text-foreground/80 mr-1">Macros (per person):</span>
-                  <span className="px-1.5 py-0.5 rounded border bg-muted/40">C {Math.round(res.perPerson.macros.carbs)}g</span>
-                  <span className="px-1.5 py-0.5 rounded border bg-muted/40">F {Math.round(res.perPerson.macros.fats)}g</span>
-                  <span className="px-1.5 py-0.5 rounded border bg-muted/40">P {Math.round(res.perPerson.macros.protein)}g</span>
-                  <span className="px-1.5 py-0.5 rounded border bg-muted/40">{Math.round(res.perPerson.calories)} kcal</span>
-                </div>
-                <div className="flex flex-wrap gap-1 items-center text-muted-foreground">
-                  <span className="text-foreground/80 mr-1">Totals (pax):</span>
-                  <span className="px-1.5 py-0.5 rounded border">C {Math.round((res.perPerson.macros.carbs || 0) * pax)}g</span>
-                  <span className="px-1.5 py-0.5 rounded border">F {Math.round((res.perPerson.macros.fats || 0) * pax)}g</span>
-                  <span className="px-1.5 py-0.5 rounded border">P {Math.round((res.perPerson.macros.protein || 0) * pax)}g</span>
-                  <span className="px-1.5 py-0.5 rounded border">{Math.round((res.perPerson.calories || 0) * pax)} kcal</span>
-                </div>
-                {(() => {
-                  try {
-                    const entries = Object.entries(res.perPerson.micros || {})
-                      .filter(([, v]) => typeof v === 'number' && isFinite(v))
-                      .sort((a, b) => (b[1] as number) - (a[1] as number))
-                      .slice(0, 6)
-                    if (entries.length === 0) return null
-                    return (
-                      <div className="flex flex-wrap gap-1 items-center text-muted-foreground">
-                        <span className="text-foreground/80 mr-1">Micros (per person):</span>
-                        {entries.map(([k, v]) => (
-                          <span key={k} className="px-1.5 py-0.5 rounded border">{k} {Math.round(Number(v) * 10) / 10}</span>
-                        ))}
-                      </div>
-                    )
-                  } catch { return null }
-                })()}
-              </div>
-            )}
             </div>
             <div className="flex gap-2 mt-auto">
               {!feas.canMake && (
