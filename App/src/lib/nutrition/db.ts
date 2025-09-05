@@ -64,6 +64,7 @@ export async function upsertUserInventoryByFoodId(food_id: string, values: {
   package_size_base?: number | null
   package_price?: number | null
   note?: string | null
+  expiry_date?: Date | null
 }) {
   const user_id = await getUserId()
   const row = {
@@ -73,7 +74,8 @@ export async function upsertUserInventoryByFoodId(food_id: string, values: {
     price_per_base: values.price_per_base ?? null,
     package_size_base: values.package_size_base ?? null,
     package_price: values.package_price ?? null,
-    note: values.note ?? null
+    note: values.note ?? null,
+    expiry_date: values.expiry_date ?? null
   }
   const { error } = await supabase
     .from('user_food_inventory')
@@ -99,16 +101,24 @@ export async function adjustInventory(food_id: string, deltaStd: number) {
   return next
 }
 
-export async function fetchUserInventory(): Promise<Record<string, number>> {
+export type InventoryItem = {
+  amount: number
+  expiry_date?: Date | null
+}
+
+export async function fetchUserInventory(): Promise<Record<string, InventoryItem>> {
   const user_id = await getUserId()
   const { data, error } = await supabase
     .from('user_food_inventory')
-    .select('food_id, std_remaining')
+    .select('food_id, std_remaining, expiry_date')
     .eq('user_id', user_id)
   if (error) throw error
-  const out: Record<string, number> = {}
+  const out: Record<string, InventoryItem> = {}
   for (const row of data ?? []) {
-    out[row.food_id as string] = Number(row.std_remaining)
+    out[row.food_id as string] = {
+      amount: Number(row.std_remaining),
+      expiry_date: row.expiry_date ? new Date(row.expiry_date as string) : null
+    }
   }
   return out
 }

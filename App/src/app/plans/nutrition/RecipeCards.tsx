@@ -76,7 +76,7 @@ export function RecipeCards() {
 
   // Build a live inventory-backed ingredient index by name (merge remote DB with local store)
   const invIndex = useMemo(() => {
-    const byName = new Map<string, Ingredient>()
+    const byName = new Map<string, Ingredient & { expiryDate?: Date | null }>()
 
     // Map food_id -> name
     const foodIdToName = new Map<string, string>()
@@ -84,9 +84,13 @@ export function RecipeCards() {
 
     // Remote amounts keyed by food name
     const remoteByName = new Map<string, number>()
-    for (const [foodId, amt] of Object.entries(remoteInv || {})) {
+    const remoteExpiryByName = new Map<string, Date | null>()
+    for (const [foodId, item] of Object.entries(remoteInv || {})) {
       const nm = foodIdToName.get(foodId)
-      if (nm) remoteByName.set(nm, Number(amt) || 0)
+      if (nm) {
+        remoteByName.set(nm, item.amount || 0)
+        remoteExpiryByName.set(nm, item.expiry_date || null)
+      }
     }
 
     // Prime with local ingredients
@@ -94,7 +98,8 @@ export function RecipeCards() {
       const entry = state.inventory[ing.id]
       const localAmount = entry ? entry.stdRemaining : ing.stdGramsOrMl
       const amount = remoteByName.has(ing.name) ? (remoteByName.get(ing.name) as number) : localAmount
-      byName.set(ing.name, { ...ing, stdGramsOrMl: amount })
+      const expiryDate = remoteExpiryByName.get(ing.name)
+      byName.set(ing.name, { ...ing, stdGramsOrMl: amount, expiryDate })
     }
 
     // Add remote-only foods as pseudo-ingredients
@@ -113,6 +118,7 @@ export function RecipeCards() {
 
       // Use remote amount if available, otherwise 0 (making it available for feasibility checks)
       const amount = remoteByName.get(name) || 0
+      const expiryDate = remoteExpiryByName.get(name)
 
       const pseudo: Ingredient = {
         id: `food:${f.id}`,
@@ -123,12 +129,13 @@ export function RecipeCards() {
         nutrientsPer100: nutrients,
         category: f.category || undefined
       }
-      byName.set(name, pseudo)
+      const pseudoWithExpiry = { ...pseudo, expiryDate }
+      byName.set(name, pseudoWithExpiry)
 
       // Also create mappings for all aliases of this food
       for (const alias of f.aliases || []) {
         if (!byName.has(alias)) {
-          byName.set(alias, pseudo)
+          byName.set(alias, pseudoWithExpiry)
         }
       }
     }
@@ -626,6 +633,9 @@ export function RecipeCards() {
                 const ing = invIndex.get(ri.name)
                 const available = ing ? ing.stdGramsOrMl : 0
                 const missingBase = Math.max(0, need.value - available)
+                // Check if ingredient is expired
+                const expiryDate = ing?.expiryDate
+                const isExpired = expiryDate && expiryDate < new Date()
                 // Format needed amount in the recipe's unit for clarity
                 const needDisplay = (() => {
                   const kind = need.kind
@@ -639,11 +649,13 @@ export function RecipeCards() {
                 return (
                   <div key={ri.name} className="flex items-center justify-between">
                     <div className="truncate">
-                      <span className={`font-medium ${missingDisplay ? 'text-amber-400' : ''}`}>{ri.name}</span>
+                      <span className={`font-medium ${missingDisplay ? 'text-amber-400' : ''} ${isExpired ? 'line-through' : ''}`}>{ri.name}</span>
                       <span className="text-muted-foreground"> — {needDisplay}</span>
                     </div>
                     {missingDisplay ? (
                       <span className="text-amber-400 whitespace-nowrap">{missingDisplay}</span>
+                    ) : isExpired ? (
+                      <span className="text-red-400 whitespace-nowrap">EXPIRED</span>
                     ) : (
                       <span className="text-emerald-400 whitespace-nowrap">OK</span>
                     )}
