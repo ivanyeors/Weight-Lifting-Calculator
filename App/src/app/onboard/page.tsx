@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { AnimatedBeam } from '@/components/ui/shadcn-io/animated-beam'
 import {
   CheckCircle,
   Circle,
@@ -50,6 +51,13 @@ export default function OnboardingPage() {
   const router = useRouter()
   const { user: selectedUser } = useSelectedUser()
   const { isAuthenticated: isGoogleCalendarConnected } = useGoogleCalendar()
+
+  // Refs for animated beam
+  const containerRef = useRef<HTMLDivElement>(null)
+  const usersRef = useRef<HTMLDivElement>(null)
+  const exercisesRef = useRef<HTMLDivElement>(null)
+  const nutritionRef = useRef<HTMLDivElement>(null)
+  const goalsRef = useRef<HTMLDivElement>(null)
 
   const [steps, setSteps] = useState<OnboardingStep[]>([
     // Users section
@@ -392,14 +400,23 @@ export default function OnboardingPage() {
         </div>
 
         {/* Steps by Category */}
-        <div className="max-w-6xl mx-auto space-y-8">
-          {Object.entries(stepsByCategory).map(([category, categorySteps]) => (
+        <div ref={containerRef} className="max-w-6xl mx-auto space-y-8 relative overflow-visible min-h-[600px] px-4 sm:px-8 md:px-12 lg:px-16">
+          {Object.entries(stepsByCategory).map(([category, categorySteps], index) => (
             <Collapsible
               key={category}
               open={expandedSections[category]}
               onOpenChange={() => toggleSection(category)}
             >
-              <Card className="overflow-hidden">
+              <div
+                ref={
+                  category === 'users' ? usersRef :
+                  category === 'exercises' ? exercisesRef :
+                  category === 'nutrition' ? nutritionRef :
+                  category === 'goals' ? goalsRef : undefined
+                }
+                className="relative z-20"
+              >
+                <Card className="overflow-hidden">
                 <CollapsibleTrigger asChild>
                   <CardHeader className="bg-card border-b cursor-pointer hover:bg-accent/30 transition-colors">
                     <div className="flex items-center justify-between">
@@ -487,9 +504,62 @@ export default function OnboardingPage() {
                     </div>
                   </CardContent>
                 </CollapsibleContent>
-              </Card>
+                </Card>
+              </div>
             </Collapsible>
           ))}
+
+          {/* Animated Beams */}
+          <AnimatedBeam
+            containerRef={containerRef}
+            fromRef={usersRef}
+            toRef={exercisesRef}
+            curvature={-25}
+            startXOffset={0}
+            startYOffset={12}
+            endXOffset={0}
+            endYOffset={-12}
+            gradientStartColor="#3b82f6"
+            gradientStopColor="#8b5cf6"
+            speed={40}
+            pathWidth={3.5}
+            pathOpacity={0.7}
+            gradientDirection="vertical"
+          />
+          <AnimatedBeam
+            containerRef={containerRef}
+            fromRef={exercisesRef}
+            toRef={nutritionRef}
+            curvature={-25}
+            startXOffset={0}
+            startYOffset={8}
+            endXOffset={0}
+            endYOffset={-8}
+            gradientStartColor="#8b5cf6"
+            gradientStopColor="#10b981"
+            speed={60}
+            delay={1}
+            pathWidth={3.5}
+            pathOpacity={0.7}
+            gradientDirection="vertical"
+          />
+          <AnimatedBeam
+            containerRef={containerRef}
+            fromRef={nutritionRef}
+            toRef={goalsRef}
+            curvature={-25}
+            startXOffset={0}
+            startYOffset={6}
+            endXOffset={0}
+            endYOffset={-6}
+            gradientStartColor="#10b981"
+            gradientStopColor="#f59e0b"
+            speed={100}
+            delay={2}
+            pathWidth={3.5}
+            pathOpacity={0.7}
+            gradientDirection="vertical"
+          />
         </div>
 
         {/* Footer */}
