@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -10,9 +10,12 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination'
 import type { Food } from '@/lib/nutrition/foods'
 import { fetchFoods } from '@/lib/nutrition/foods'
-import { fetchUserInventory, upsertUserInventoryByFoodId } from '@/lib/nutrition/db'
+import { fetchUserInventory, upsertUserInventoryByFoodId, type InventoryItem } from '@/lib/nutrition/db'
 import { HEALTHY_RECIPES } from '@/lib/nutrition/recipes'
 import { feasibilityForRecipe } from '@/lib/nutrition/calc'
 import type { Ingredient, NutrientsPer100 } from '@/lib/nutrition/types'
@@ -22,17 +25,25 @@ function round(n: number, d = 2) { return Math.round(n * Math.pow(10, d)) / Math
 export function IngredientList() {
   const [foods, setFoods] = useState<Food[]>([])
   const [filter, setFilter] = useState('')
-  const [selection, setSelection] = useState<Record<string, number>>({}) // foodId -> base amount (g/ml or pieces)
+  const [selection, setSelection] = useState<Record<string, InventoryItem>>({}) // foodId -> inventory item with amount and expiry date
   const [generated, setGenerated] = useState<null | Array<{ food: Food; total: number; perPerson: number }>>(null)
   const [showResetDialog, setShowResetDialog] = useState(false)
 
   // Sidebar filter state
   const [onlySelected, setOnlySelected] = useState(false)
+  const [expiringSoon, setExpiringSoon] = useState(false)
   const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({})
+
+  // Date picker popover state
+  const [openDatePicker, setOpenDatePicker] = useState<Record<string, boolean>>({})
 
   // Recipe feasibility state
   const [recipePax] = useState<number>(1)
-  const [remoteInv, setRemoteInv] = useState<Record<string, number>>({})
+  const [remoteInv, setRemoteInv] = useState<Record<string, InventoryItem>>({})
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 50
 
   useEffect(() => { fetchFoods().then(setFoods).catch(() => setFoods([])) }, [])
   useEffect(() => {
@@ -42,6 +53,7 @@ export function IngredientList() {
         setSelection(inv)
       } catch (e) {
         console.warn('Failed to load inventory', e)
+        setSelection({})
       }
     })()
   }, [])
@@ -115,9 +127,9 @@ export function IngredientList() {
 
     // Remote amounts keyed by food name
     const remoteByName = new Map<string, number>()
-    for (const [foodId, amt] of Object.entries(remoteInv || {})) {
+    for (const [foodId, item] of Object.entries(remoteInv || {})) {
       const nm = foodIdToName.get(foodId)
-      if (nm) remoteByName.set(nm, Number(amt) || 0)
+      if (nm) remoteByName.set(nm, item.amount || 0)
     }
 
     // Add foods from inventory
@@ -160,21 +172,45 @@ export function IngredientList() {
   const filteredFoods = useMemo(() => {
     const q = filter.trim().toLowerCase()
     const hasCategoryFilters = Object.values(selectedCategories).some(Boolean)
-    return foods.filter((f) => {
+    const now = new Date()
+    const twentyDaysFromNow = new Date(now.getTime() + 20 * 24 * 60 * 60 * 1000)
+
+    const filtered = foods.filter((f) => {
       if (q && !(f.name.toLowerCase().includes(q) || (f.category?.toLowerCase().includes(q) ?? false))) return false
       if (hasCategoryFilters) {
         if (!f.category || !selectedCategories[f.category]) return false
       }
-      if (onlySelected && !(selection[f.id] > 0)) return false
+      if (onlySelected && !(selection[f.id]?.amount > 0)) return false
+
+      // Apply expiring soon filter
+      if (onlySelected && expiringSoon) {
+        const item = selection[f.id]
+        if (!item || !item.expiry_date) return false
+        const expiryDate = new Date(item.expiry_date)
+        if (expiryDate > twentyDaysFromNow) return false
+      }
+
       return true
     })
-  }, [foods, filter, selectedCategories, onlySelected, selection])
 
+    // Reset to page 1 when filters change
+    setCurrentPage(1)
 
+    return filtered
+  }, [foods, filter, selectedCategories, onlySelected, expiringSoon, selection])
+
+  // Pagination logic
+  const paginatedFoods = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const endIndex = startIndex + itemsPerPage
+    return filteredFoods.slice(startIndex, endIndex)
+  }, [filteredFoods, currentPage, itemsPerPage])
+
+  const totalPages = Math.ceil(filteredFoods.length / itemsPerPage)
 
   // Calculate inventory and available recipes counts
   const inventoryCount = useMemo(() => {
-    return Object.values(selection).filter(amount => amount > 0).length
+    return Object.values(selection).filter(item => item.amount > 0).length
   }, [selection])
 
   const availableRecipesCount = useMemo(() => {
@@ -228,13 +264,49 @@ export function IngredientList() {
   }, [recipePax, invIndex, canonicalNameMap])
 
   const saveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
+
+  const handleExpiryDateChange = (id: string, date: Date | undefined) => {
+    setSelection((prev) => ({
+      ...prev,
+      [id]: {
+        amount: prev[id]?.amount || 0,
+        expiry_date: date || null
+      }
+    }))
+    setGenerated(null)
+    // Close the popover immediately after selection
+    setOpenDatePicker((prev) => ({ ...prev, [id]: false }))
+    if (saveTimers.current[id]) clearTimeout(saveTimers.current[id])
+    saveTimers.current[id] = setTimeout(async () => {
+      try {
+        const currentItem = selection[id]
+        await upsertUserInventoryByFoodId(id, {
+          std_remaining: currentItem?.amount || 0,
+          expiry_date: date || null
+        })
+        try { if (typeof window !== 'undefined') window.dispatchEvent(new Event('fitspo:inventory_changed')) } catch { /* ignore */ }
+      } catch (e) {
+        console.warn('Failed to save expiry date', e)
+      }
+    }, 500)
+  }
   const handleAmountChange = (id: string, value: number) => {
-    setSelection((prev) => ({ ...prev, [id]: value }))
+    setSelection((prev) => ({
+      ...prev,
+      [id]: {
+        amount: value,
+        expiry_date: prev[id]?.expiry_date || null
+      }
+    }))
     setGenerated(null)
     if (saveTimers.current[id]) clearTimeout(saveTimers.current[id])
     saveTimers.current[id] = setTimeout(async () => {
       try {
-        await upsertUserInventoryByFoodId(id, { std_remaining: value })
+        const currentItem = selection[id]
+        await upsertUserInventoryByFoodId(id, {
+          std_remaining: value,
+          expiry_date: currentItem?.expiry_date || null
+        })
         try { if (typeof window !== 'undefined') window.dispatchEvent(new Event('fitspo:inventory_changed')) } catch { /* ignore */ }
       } catch (e) {
         console.warn('Failed to save inventory', e)
@@ -290,6 +362,17 @@ export function IngredientList() {
                 <span className="text-xs">Available stock</span>
               </Checkbox>
             </div>
+            <div className="flex items-center gap-2 ml-4">
+              <Checkbox
+                id="expiring-soon"
+                variant="chip"
+                checked={expiringSoon}
+                disabled={!onlySelected}
+                onCheckedChange={(v) => setExpiringSoon(Boolean(v))}
+              >
+                <span className="text-xs">Expiring soon</span>
+              </Checkbox>
+            </div>
             {!!categories.length && (
               <div className="grid gap-2">
                 <Separator />
@@ -311,7 +394,7 @@ export function IngredientList() {
             )}
             <Separator />
             <div className="flex justify-end">
-              <Button variant="outline" size="sm" onClick={() => { setFilter(''); setSelectedCategories({}); setOnlySelected(false) }}>Reset filters</Button>
+              <Button variant="outline" size="sm" onClick={() => { setFilter(''); setSelectedCategories({}); setOnlySelected(false); setExpiringSoon(false); setOpenDatePicker({}); setCurrentPage(1) }}>Reset filters</Button>
             </div>
           </div>
         </Card>
@@ -325,10 +408,11 @@ export function IngredientList() {
                   <TableHead>Food</TableHead>
                   <TableHead>Carbs, Fats, Protein</TableHead>
                   <TableHead className="min-w-48">Inventory</TableHead>
+                  <TableHead className="min-w-32">Expiry Date</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredFoods.map(f => (
+                {paginatedFoods.map(f => (
                   <TableRow key={f.id}>
                     <TableCell>
                       <div className="font-medium text-sm">{f.name}</div>
@@ -360,7 +444,7 @@ export function IngredientList() {
                             type="number"
                             min={0}
                             step={f.unit_kind === 'count' ? 1 : 10}
-                            value={selection[f.id] || ''}
+                            value={selection[f.id]?.amount || ''}
                             onChange={(e) => handleAmountChange(f.id, parseFloat(e.target.value) || 0)}
                             placeholder={f.unit_kind === 'mass' ? 'grams' : f.unit_kind === 'volume' ? 'ml' : 'pieces'}
                             aria-label={`Amount in ${f.unit_kind === 'mass' ? 'grams' : f.unit_kind === 'volume' ? 'milliliters' : 'pieces'}`}
@@ -371,12 +455,49 @@ export function IngredientList() {
                         </div>
                         <Slider
                           className="mt-1"
-                          value={[Math.min(f.unit_kind === 'count' ? 50 : (f.unit_kind === 'volume' ? 2000 : 1000), selection[f.id] || 0)]}
+                          value={[Math.min(f.unit_kind === 'count' ? 50 : (f.unit_kind === 'volume' ? 2000 : 1000), selection[f.id]?.amount || 0)]}
                           min={0}
                           max={f.unit_kind === 'count' ? 50 : (f.unit_kind === 'volume' ? 2000 : 1000)}
                           step={f.unit_kind === 'count' ? 1 : 10}
                           onValueChange={(v) => handleAmountChange(f.id, v[0])}
                         />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Popover
+                          open={openDatePicker[f.id] || false}
+                          onOpenChange={(open) => {
+                            // Only allow opening if there's inventory
+                            if (open && (!selection[f.id] || selection[f.id].amount <= 0)) {
+                              return; // Don't open if no inventory
+                            }
+                            setOpenDatePicker((prev) => ({ ...prev, [f.id]: open }));
+                          }}
+                        >
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-28 justify-start text-left font-normal"
+                              disabled={!selection[f.id] || selection[f.id].amount <= 0}
+                            >
+                              {selection[f.id]?.expiry_date ? (
+                                new Date(selection[f.id].expiry_date!).toLocaleDateString()
+                              ) : (
+                                <span className="text-muted-foreground">Set date</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={selection[f.id]?.expiry_date ? new Date(selection[f.id].expiry_date!) : undefined}
+                              onSelect={(date) => handleExpiryDateChange(f.id, date)}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -414,6 +535,63 @@ export function IngredientList() {
           )}
         </div>
       </div>
+
+      {/* Sticky Pagination */}
+      {totalPages > 1 && (
+        <div className="sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t mt-4">
+          <div className="flex items-center justify-between p-4">
+            <div className="text-sm text-muted-foreground">
+              Showing {paginatedFoods.length} of {filteredFoods.length} ingredients
+            </div>
+            <div className="flex items-center gap-2">
+              <Pagination>
+                <PaginationContent className="gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(page => {
+                      // Show first page, last page, current page, and pages around current page
+                      return page === 1 ||
+                             page === totalPages ||
+                             (page >= currentPage - 1 && page <= currentPage + 1)
+                    })
+                    .map((page, index, array) => {
+                      const prevPage = array[index - 1]
+                      const showEllipsis = prevPage && page - prevPage > 1
+
+                      return (
+                        <React.Fragment key={page}>
+                          {showEllipsis && (
+                            <PaginationItem>
+                              <PaginationEllipsis />
+                            </PaginationItem>
+                          )}
+                          <PaginationItem>
+                            <PaginationLink
+                              onClick={() => setCurrentPage(page)}
+                              isActive={currentPage === page}
+                              className="cursor-pointer"
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        </React.Fragment>
+                      )
+                    })}
+                </PaginationContent>
+              </Pagination>
+              <div className="flex items-center gap-1 ml-4">
+                <PaginationPrevious
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+                <PaginationNext
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
         <DialogContent>
