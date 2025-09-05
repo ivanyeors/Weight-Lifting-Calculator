@@ -1,10 +1,10 @@
 "use client"
 
-import { UserSwitcher } from '@/components/user-switcher'
+import { UserSwitcher } from '@/components/ui/user-switcher'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { NutritionProvider } from '@/lib/nutrition/store'
-import { IngredientList } from '@/components/nutrition/IngredientList'
-import { RecipeCards } from '@/components/nutrition/RecipeCards'
+import { IngredientList } from './IngredientList'
+import { RecipeCards } from './RecipeCards'
 // import removed: WeeklyPlanner was deleted
 
 export default function PlansNutritionPage() {

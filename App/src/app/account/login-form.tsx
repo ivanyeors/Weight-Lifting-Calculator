@@ -5,8 +5,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { supabase } from "@/lib/supabaseClient"
-import { TermsOfServiceDialog } from "@/components/terms-of-service-dialog"
-import { PrivacyPolicyDialog } from "@/components/privacy-policy-dialog"
+import { TermsOfServiceDialog } from "@/app/account/terms-of-service-dialog"
+import { PrivacyPolicyDialog } from "@/app/account/privacy-policy-dialog"
 
 export function LoginForm({
   className,

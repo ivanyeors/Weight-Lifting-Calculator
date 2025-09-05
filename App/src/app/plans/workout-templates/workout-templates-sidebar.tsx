@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { UserSwitcher } from '@/components/user-switcher'
+import { UserSwitcher } from '@/components/ui/user-switcher'
 import { Search, RefreshCw, CheckCircle, AlertCircle, Cloud } from "lucide-react"
 
 type SyncState = 'idle' | 'syncing' | 'success' | 'error'

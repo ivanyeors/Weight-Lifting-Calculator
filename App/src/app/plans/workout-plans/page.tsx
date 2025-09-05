@@ -1,6 +1,6 @@
 "use client"
 
-import { CalendarView } from '@/components/workout-plans/calendar-view'
+import { CalendarView } from '@/app/plans/workout-plans/calendar-view'
 import { NutritionProvider } from '@/lib/nutrition/store'
 
 export default function WorkoutPlansPage() {

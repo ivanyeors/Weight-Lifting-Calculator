@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
-import { UserSwitcher } from '@/components/user-switcher'
+import { UserSwitcher } from '@/components/ui/user-switcher'
 import { Filter, Dumbbell, Cloud, CloudOff, RefreshCw, CheckCircle, AlertCircle, Clock } from "lucide-react"
 
 interface ExerciseLibrarySidebarProps {

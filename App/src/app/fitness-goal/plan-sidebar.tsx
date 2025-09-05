@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { UserSwitcher } from '@/components/user-switcher'
+import { UserSwitcher } from '@/components/ui/user-switcher'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { Plan } from './plan-types'
 import { Label as UILabel } from '@/components/ui/label'

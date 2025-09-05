@@ -84,6 +84,8 @@ interface CalendarEvent {
     attendance: Record<string, 'present' | 'absent' | 'late' | 'cancelled'>
     // Optional: associated workout template card data (no Google sync)
     workoutTemplate?: WorkoutTemplateCardData
+    kind?: 'water' | 'sleep' | 'workout'
+    status?: 'pending' | 'complete' | 'missed'
   }
 }
 

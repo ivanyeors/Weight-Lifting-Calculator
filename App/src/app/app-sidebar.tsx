@@ -27,7 +27,17 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { LoginForm } from "@/components/login-form"
+import { LoginForm } from "@/app/account/login-form"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { FlickeringGrid } from "@/components/ui/shadcn-io/flickering-grid"
 import { supabase } from '@/lib/supabaseClient'
 import { TeamSwitcher } from "@/components/ui/team-switcher"
@@ -40,6 +50,7 @@ type UserInfo = { id: string; email: string | null; name: string | null; avatarU
 export function AppSidebar() {
   const [user, setUser] = useState<UserInfo | null>(null)
   const [isLoginOpen, setIsLoginOpen] = useState(false)
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false)
   const [currentPlan, setCurrentPlan] = useState<string>('Free')
   const { theme, resolvedTheme } = useTheme()
   const { state } = useSidebar()
@@ -95,6 +106,20 @@ export function AppSidebar() {
   }, [])
 
   useEffect(() => { if (user && isLoginOpen) setIsLoginOpen(false) }, [user, isLoginOpen])
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      // Clear onboarding status on logout
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('fitspo:onboarding_complete');
+        localStorage.removeItem('fitspo:onboarding_completed_at');
+      }
+    } finally {
+      const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/');
+      window.location.replace(`${base}`);
+    }
+  }
 
   // Compute Fitness Goal label from stored plans
   useEffect(() => {
@@ -379,19 +404,9 @@ export function AppSidebar() {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                                      onSelect={async (e) => {
+                  onSelect={(e) => {
                     e.preventDefault();
-                    try {
-                      await supabase.auth.signOut();
-                      // Clear onboarding status on logout
-                      if (typeof window !== 'undefined') {
-                        localStorage.removeItem('fitspo:onboarding_complete');
-                        localStorage.removeItem('fitspo:onboarding_completed_at');
-                      }
-                    } finally {
-                      const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/');
-                      window.location.replace(`${base}`);
-                    }
+                    setIsLogoutConfirmOpen(true);
                   }}
                   className="cursor-pointer text-red-600 focus:text-red-600"
                 >
@@ -437,6 +452,21 @@ export function AppSidebar() {
           </div>
         </SheetContent>
       </Sheet>
+
+      <AlertDialog open={isLogoutConfirmOpen} onOpenChange={setIsLogoutConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to sign out? You will need to log in again to access your account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleLogout}>Sign Out</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Sidebar>
   )
 }

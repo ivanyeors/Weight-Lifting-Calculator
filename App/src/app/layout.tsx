@@ -3,10 +3,10 @@ import { type CSSProperties } from 'react'
 import { Inter } from 'next/font/google'
 import { Analytics } from "@vercel/analytics/next"
 import '../index.css'
-import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeProvider } from "@/app/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
-import { AppSidebar } from "@/components/app-sidebar"
+import { AppSidebar } from "@/app/app-sidebar"
 
 const inter = Inter({ subsets: ['latin'] })
 
