@@ -11,12 +11,13 @@ import { useRouter } from 'next/navigation'
 
 
 import { PlanSidebar } from './plan-sidebar'
-import { ParticlesCard } from './particles/ParticlesCard'
+import { Orb } from '@/components/ui/shadcn-io/orb'
 import { CreatePlanDrawer } from './plan-create-drawer'
 import { PlanDetailsDrawer } from './plan-details-drawer'
 import { usePlans } from './plan-store'
 import { fetchPlans } from './plan-api'
 import { syncService } from '@/lib/sync-service'
+import { useOrbProgress } from './orb-progress-hooks'
  
 // (kept for potential future use)
 
@@ -52,6 +53,9 @@ export default function FitnessGoalPage() {
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
   const [detailsOpen, setDetailsOpen] = useState(false)
   const activePlan = useMemo(() => plans.find(p => p.id === selectedPlanId) || null, [plans, selectedPlanId])
+
+  // Calculate dynamic orb values based on fitness progress
+  const { hue, hoverIntensity } = useOrbProgress(activePlan)
 
   // Auto-select first active plan (or first plan) when none selected
   useEffect(() => {
@@ -207,7 +211,12 @@ export default function FitnessGoalPage() {
 
         <div className="flex-1 flex flex-col">
           <div className="relative flex-1">
-            <ParticlesCard plan={activePlan} />
+            <Orb
+              className="w-full h-full"
+              hue={hue}
+              hoverIntensity={hoverIntensity}
+              rotateOnHover={true}
+            />
           </div>
 
           <div className="p-4">
