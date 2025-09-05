@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
 
 import { PricingPlansClient } from "@/app/billing/pricing-plans-client"
 import { ThemeSelectionCard } from "@/app/account/theme-selection-card"
@@ -460,69 +461,132 @@ export default function AccountPage() {
               </div>
 
               {/* Connected Accounts List */}
-              {googleCalendarAccounts.length > 0 && (
-                <div className="space-y-3">
-                  <h4 className="font-medium">Connected Accounts:</h4>
-                  {googleCalendarAccounts.map((account) => (
-                    <div key={account.id} className="p-4 border rounded-lg space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="color"
-                            value={account.color}
-                            onChange={(e) => setAccountColor(account.id, e.target.value)}
-                            className="w-6 h-6 rounded-full p-0 border-0 bg-transparent cursor-pointer"
-                            aria-label={`Set color for ${account.email}`}
-                            title={`Set color for ${account.email}`}
-                          />
-                          <div>
-                            <div className="font-medium">{account.customName || account.name}</div>
-                            <div className="text-sm text-muted-foreground">{account.email}</div>
-                            <div className="text-xs text-muted-foreground">Connected {new Date(account.connectedAt).toLocaleDateString()}</div>
-                          </div>
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removeGoogleCalendarAccount(account.id)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          Remove
-                        </Button>
-                      </div>
+              {googleCalendarAccounts.length > 0 ? (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium">Connected Accounts:</h4>
+                  </div>
 
-                      <div className="grid gap-3 md:grid-cols-2">
-                        <div className="flex flex-col gap-1">
-                          <Label htmlFor={`customName-${account.id}`}>Display name</Label>
-                          <div className="flex gap-2">
-                            <Input
-                              id={`customName-${account.id}`}
-                              defaultValue={account.customName || ''}
-                              placeholder={account.name}
-                              onBlur={(e) => setAccountName(account.id, e.target.value)}
-                            />
+                  {/* Carousel/Gallery Layout */}
+                  <div className="overflow-x-auto">
+                    <div className={`flex gap-4 ${googleCalendarAccounts.length === 1 ? '' : 'pb-2'}`}>
+                      {googleCalendarAccounts.map((account) => (
+                        <div key={account.id} className="flex-shrink-0 w-80 p-4 border rounded-lg space-y-4 bg-card">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-3 flex-1">
+                              <input
+                                type="color"
+                                value={account.color}
+                                onChange={(e) => setAccountColor(account.id, e.target.value)}
+                                className="w-8 h-8 rounded-full p-0 border-0 bg-transparent cursor-pointer"
+                                aria-label={`Set color for ${account.email}`}
+                                title={`Set color for ${account.email}`}
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium truncate">{account.customName || account.name}</div>
+                                <div className="text-sm text-muted-foreground truncate">{account.email}</div>
+                                <div className="text-xs text-muted-foreground">Connected {new Date(account.connectedAt).toLocaleDateString()}</div>
+                              </div>
+                            </div>
                             <Button
-                              variant="secondary"
-                              onClick={() => {
-                                const el = document.getElementById(`customName-${account.id}`) as HTMLInputElement | null
-                                if (el) setAccountName(account.id, el.value)
-                              }}
+                              variant="outline"
+                              size="sm"
+                              onClick={() => removeGoogleCalendarAccount(account.id)}
+                              className="text-red-600 hover:text-red-700 ml-2 flex-shrink-0"
                             >
-                              Save
+                              Remove
                             </Button>
                           </div>
+
+                          <div className="space-y-3">
+                            <div className="flex flex-col gap-1">
+                              <Label htmlFor={`customName-${account.id}`}>Display name</Label>
+                              <div className="flex gap-2">
+                                <Input
+                                  id={`customName-${account.id}`}
+                                  defaultValue={account.customName || ''}
+                                  placeholder={account.name}
+                                  onBlur={(e) => setAccountName(account.id, e.target.value)}
+                                />
+                                <Button
+                                  variant="secondary"
+                                  onClick={() => {
+                                    const el = document.getElementById(`customName-${account.id}`) as HTMLInputElement | null
+                                    if (el) setAccountName(account.id, el.value)
+                                  }}
+                                >
+                                  Save
+                                </Button>
+                              </div>
+                            </div>
+                            <Checkbox
+                              variant="chip"
+                              checked={!!account.hideDetails}
+                              onCheckedChange={(checked) => setAccountHideDetails(account.id, checked as boolean)}
+                              className="text-sm"
+                            >
+                              Hide details for this account
+                            </Checkbox>
+                          </div>
                         </div>
-                        <label className="flex items-center gap-2 text-sm pt-6 md:pt-0">
-                          <input
-                            type="checkbox"
-                            checked={!!account.hideDetails}
-                            onChange={(e) => setAccountHideDetails(account.id, e.target.checked)}
-                          />
-                          <span>Hide details for this account</span>
-                        </label>
-                      </div>
+                      ))}
+
+                      {/* Add Account Card */}
+                      {googleCalendarAccounts.length === 1 && (
+                        <div className="flex-shrink-0 w-80 p-4 border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center bg-muted/20 hover:bg-muted/30 transition-colors">
+                          <Button
+                            variant="ghost"
+                            size="lg"
+                            onClick={() => {
+                              const accountUrl = '/account?tab=calendar'
+                              const authUrl = getAuthUrl(accountUrl)
+                              if (typeof window !== 'undefined') window.location.href = authUrl
+                            }}
+                            className="flex flex-col items-center gap-3 h-auto py-8 px-6"
+                          >
+                            <div className="w-12 h-12 rounded-full border-2 border-muted-foreground/30 flex items-center justify-center">
+                              <span className="text-2xl text-muted-foreground">+</span>
+                            </div>
+                            <span className="text-sm font-medium">Add Account</span>
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                  ))}
+                  </div>
+
+                  {/* Add Account Button for Multiple Accounts */}
+                  {googleCalendarAccounts.length > 1 && (
+                    <div className="flex justify-center">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          const accountUrl = '/account?tab=calendar'
+                          const authUrl = getAuthUrl(accountUrl)
+                          if (typeof window !== 'undefined') window.location.href = authUrl
+                        }}
+                        className="flex items-center gap-2"
+                      >
+                        <span className="text-lg">+</span>
+                        Add account
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => {
+                      const accountUrl = '/account?tab=calendar'
+                      const authUrl = getAuthUrl(accountUrl)
+                      if (typeof window !== 'undefined') window.location.href = authUrl
+                    }}
+                    className="flex items-center gap-2 mx-auto"
+                  >
+                    <span className="text-lg">+</span>
+                    Add account
+                  </Button>
                 </div>
               )}
 
@@ -553,30 +617,17 @@ export default function AccountPage() {
                     {isGoogleCalendarLoading ? 'Connecting...' : 'Connect Google Calendar'}
                   </Button>
                 ) : (
-                  <>
-                    <Button
-                      onClick={() => {
-                        const accountUrl = '/account?tab=calendar'
-                        const authUrl = getAuthUrl(accountUrl)
-                        if (typeof window !== 'undefined') window.location.href = authUrl
-                      }}
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      Manage Connection
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        const accountUrl = '/account?tab=calendar'
-                        const authUrl = getAuthUrl(accountUrl)
-                        if (typeof window !== 'undefined') window.location.href = authUrl
-                      }}
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      Add account
-                    </Button>
-                  </>
+                  <Button
+                    onClick={() => {
+                      const accountUrl = '/account?tab=calendar'
+                      const authUrl = getAuthUrl(accountUrl)
+                      if (typeof window !== 'undefined') window.location.href = authUrl
+                    }}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    Manage Connection
+                  </Button>
                 )}
               </div>
 
