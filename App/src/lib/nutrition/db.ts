@@ -65,6 +65,7 @@ export async function upsertUserInventoryByFoodId(food_id: string, values: {
   package_price?: number | null
   note?: string | null
   expiry_date?: Date | null
+  include_cost?: boolean
 }) {
   const user_id = await getUserId()
   const row = {
@@ -75,7 +76,8 @@ export async function upsertUserInventoryByFoodId(food_id: string, values: {
     package_size_base: values.package_size_base ?? null,
     package_price: values.package_price ?? null,
     note: values.note ?? null,
-    expiry_date: values.expiry_date ?? null
+    expiry_date: values.expiry_date ?? null,
+    include_cost: values.include_cost ?? true
   }
   const { error } = await supabase
     .from('user_food_inventory')
@@ -104,20 +106,28 @@ export async function adjustInventory(food_id: string, deltaStd: number) {
 export type InventoryItem = {
   amount: number
   expiry_date?: Date | null
+  price_per_base?: number | null
+  package_size_base?: number | null
+  package_price?: number | null
+  include_cost?: boolean
 }
 
 export async function fetchUserInventory(): Promise<Record<string, InventoryItem>> {
   const user_id = await getUserId()
   const { data, error } = await supabase
     .from('user_food_inventory')
-    .select('food_id, std_remaining, expiry_date')
+    .select('food_id, std_remaining, expiry_date, price_per_base, package_size_base, package_price, include_cost')
     .eq('user_id', user_id)
   if (error) throw error
   const out: Record<string, InventoryItem> = {}
   for (const row of data ?? []) {
     out[row.food_id as string] = {
       amount: Number(row.std_remaining),
-      expiry_date: row.expiry_date ? new Date(row.expiry_date as string) : null
+      expiry_date: row.expiry_date ? new Date(row.expiry_date as string) : null,
+      price_per_base: row.price_per_base ? Number(row.price_per_base) : null,
+      package_size_base: row.package_size_base ? Number(row.package_size_base) : null,
+      package_price: row.package_price ? Number(row.package_price) : null,
+      include_cost: row.include_cost ?? true // Use database value or default to true
     }
   }
   return out
