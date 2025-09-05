@@ -104,29 +104,45 @@ export const AnimatedBeam: React.FC<AnimatedBeamProps> = ({
 
         // Calculate beam length for consistent speed
         if (speed && speed > 0) {
-          const beamLength = Math.sqrt(
-            Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2)
-          );
+          // For vertical beams, use Y distance (since X is constant)
+          const beamLength = Math.abs(endY - startY);
           const newDuration = beamLength / speed;
-          setCalculatedDuration(Math.max(0.5, Math.min(10, newDuration))); // Clamp between 0.5-10 seconds
+          setCalculatedDuration(Math.max(0.5, Math.min(20, newDuration))); // Clamp between 0.5-20 seconds
         } else if (duration) {
           setCalculatedDuration(duration);
         }
 
+        const controlX = (startX + endX) / 2;
         const controlY = startY - curvature;
-        const d = `M ${startX},${startY} Q ${
-          (startX + endX) / 2
-        },${controlY} ${endX},${endY}`;
+        const d = `M ${startX},${startY} Q ${controlX},${controlY} ${endX},${endY}`;
         setPathD(d);
+
+        // If speed-based duration is requested, approximate quadratic Bezier length
+        if (speed && speed > 0) {
+          const sampleCount = 20; // more samples = better accuracy
+          let length = 0;
+          let prevX = startX;
+          let prevY = startY;
+          for (let i = 1; i <= sampleCount; i++) {
+            const t = i / sampleCount;
+            // Quadratic Bezier interpolation
+            const x = (1 - t) * (1 - t) * startX + 2 * (1 - t) * t * controlX + t * t * endX;
+            const y = (1 - t) * (1 - t) * startY + 2 * (1 - t) * t * controlY + t * t * endY;
+            const dx = x - prevX;
+            const dy = y - prevY;
+            length += Math.sqrt(dx * dx + dy * dy);
+            prevX = x;
+            prevY = y;
+          }
+          const newDuration = length / speed;
+          setCalculatedDuration(Math.max(0.5, Math.min(20, newDuration)));
+        }
       }
     };
 
     // Initialize ResizeObserver
-    const resizeObserver = new ResizeObserver((entries) => {
-      // For all entries, recalculate the path
-      for (let entry of entries) {
-        updatePath();
-      }
+    const resizeObserver = new ResizeObserver(() => {
+      updatePath();
     });
 
     // Observe the container element

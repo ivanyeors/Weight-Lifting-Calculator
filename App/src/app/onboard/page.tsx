@@ -400,7 +400,7 @@ export default function OnboardingPage() {
         </div>
 
         {/* Steps by Category */}
-        <div ref={containerRef} className="max-w-6xl mx-auto space-y-8 relative overflow-visible min-h-[600px] px-4 sm:px-8 md:px-12 lg:px-16">
+        <div ref={containerRef} className="max-w-6xl mx-auto relative overflow-visible min-h-[600px] px-4 sm:px-8 md:px-12 lg:px-16 space-y-16">
           {Object.entries(stepsByCategory).map(([category, categorySteps], index) => (
             <Collapsible
               key={category}
@@ -414,9 +414,9 @@ export default function OnboardingPage() {
                   category === 'nutrition' ? nutritionRef :
                   category === 'goals' ? goalsRef : undefined
                 }
-                className="relative z-20"
+                className="relative z-30"
               >
-                <Card className="overflow-hidden">
+                <Card className="overflow-hidden relative z-30">
                 <CollapsibleTrigger asChild>
                   <CardHeader className="bg-card border-b cursor-pointer hover:bg-accent/30 transition-colors">
                     <div className="flex items-center justify-between">
@@ -514,50 +514,50 @@ export default function OnboardingPage() {
             containerRef={containerRef}
             fromRef={usersRef}
             toRef={exercisesRef}
-            curvature={-25}
+            curvature={-30}
             startXOffset={0}
-            startYOffset={12}
+            startYOffset={10}
             endXOffset={0}
-            endYOffset={-12}
+            endYOffset={-10}
             gradientStartColor="#3b82f6"
             gradientStopColor="#8b5cf6"
-            speed={40}
-            pathWidth={3.5}
-            pathOpacity={0.7}
+            speed={1.2}
+            pathWidth={4}
+            pathOpacity={0.8}
             gradientDirection="vertical"
           />
           <AnimatedBeam
             containerRef={containerRef}
             fromRef={exercisesRef}
             toRef={nutritionRef}
-            curvature={-25}
+            curvature={-30}
             startXOffset={0}
             startYOffset={8}
             endXOffset={0}
             endYOffset={-8}
             gradientStartColor="#8b5cf6"
             gradientStopColor="#10b981"
-            speed={60}
+            speed={1.6}
             delay={1}
-            pathWidth={3.5}
-            pathOpacity={0.7}
+            pathWidth={4}
+            pathOpacity={0.8}
             gradientDirection="vertical"
           />
           <AnimatedBeam
             containerRef={containerRef}
             fromRef={nutritionRef}
             toRef={goalsRef}
-            curvature={-25}
+            curvature={-30}
             startXOffset={0}
             startYOffset={6}
             endXOffset={0}
             endYOffset={-6}
             gradientStartColor="#10b981"
             gradientStopColor="#f59e0b"
-            speed={100}
+            speed={2.2}
             delay={2}
-            pathWidth={3.5}
-            pathOpacity={0.7}
+            pathWidth={4}
+            pathOpacity={0.8}
             gradientDirection="vertical"
           />
         </div>
