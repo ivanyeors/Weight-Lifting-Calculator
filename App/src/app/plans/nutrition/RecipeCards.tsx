@@ -630,8 +630,8 @@ export function RecipeCards() {
                 const needDisplay = (() => {
                   const kind = need.kind
                   if (kind === 'mass' || kind === 'volume') {
-                    // show both in unit and base compact
-                    return `${Math.round(ri.quantity.amount * scale * 100) / 100} ${ri.quantity.unit} (${formatQuantityBase(need.value, kind)})`
+                    // show only the recipe unit for clarity
+                    return `${Math.round(ri.quantity.amount * scale * 100) / 100} ${ri.quantity.unit}`
                   }
                   return `${Math.round(ri.quantity.amount * scale)} pcs`
                 })()
@@ -639,11 +639,11 @@ export function RecipeCards() {
                 return (
                   <div key={ri.name} className="flex items-center justify-between">
                     <div className="truncate">
-                      <span className="font-medium">{ri.name}</span>
+                      <span className={`font-medium ${missingDisplay ? 'text-amber-400' : ''}`}>{ri.name}</span>
                       <span className="text-muted-foreground"> — {needDisplay}</span>
                     </div>
                     {missingDisplay ? (
-                      <span className="text-amber-400 whitespace-nowrap">Missing {missingDisplay}</span>
+                      <span className="text-amber-400 whitespace-nowrap">{missingDisplay}</span>
                     ) : (
                       <span className="text-emerald-400 whitespace-nowrap">OK</span>
                     )}
