@@ -18,7 +18,7 @@ import { calculateRecipeForPax, feasibilityForRecipe } from '@/lib/nutrition/cal
 import { HEALTHY_RECIPES, filterRecipes } from '@/lib/nutrition/recipes'
 import { fetchAllRecipes } from '@/lib/nutrition/db'
 import type { Recipe } from '@/lib/nutrition/types'
-import { CalendarView } from '@/components/workout-plans/calendar-view'
+import { CalendarView } from '@/app/plans/workout-plans/calendar-view'
 import { convertToBase, formatQuantityBase, getUnitKind } from '@/lib/nutrition/convert'
 import { Copy } from 'lucide-react'
 import type { Food } from '@/lib/nutrition/foods'

@@ -1,4 +1,4 @@
-import { PricingPlansClient } from '@/components/pricing-plans-client'
+import { PricingPlansClient } from '@/app/billing/pricing-plans-client'
 import { plans } from '@/lib/plans'
 
 export default function BillingPage() {

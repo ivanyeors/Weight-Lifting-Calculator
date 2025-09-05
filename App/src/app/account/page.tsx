@@ -14,10 +14,9 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 
- 
-import { PricingPlansClient } from "@/components/pricing-plans-client"
-import { ThemeSelectionCard } from "@/components/theme-selection-card"
- 
+import { PricingPlansClient } from "@/app/billing/pricing-plans-client"
+import { ThemeSelectionCard } from "@/app/account/theme-selection-card"
+
 import { useGoogleCalendar } from "@/hooks/useGoogleCalendar"
 import { plans } from "@/lib/plans"
 import { toast } from "sonner"
@@ -61,7 +60,7 @@ export default function AccountPage() {
   } = useGoogleCalendar({ autoSync: true })
 
   const canChangePassword = useMemo(() => identities.some(i => i.provider === "email"), [identities])
-  
+
   const hasPaidPlan = useMemo(() => {
     return currentPlan === 'Personal' || currentPlan === 'Trainer'
   }, [currentPlan])
@@ -254,7 +253,6 @@ export default function AccountPage() {
     }
   }
 
-  
 
   if (loading) {
     return (
@@ -426,7 +424,7 @@ export default function AccountPage() {
                 </CardDescription>
               </div>
               {isGoogleCalendarConnected && (
-                <Button 
+                <Button
                   onClick={() => { void fetchEvents() }}
                   variant="outline"
                   size="icon"
@@ -447,7 +445,7 @@ export default function AccountPage() {
                       {isGoogleCalendarConnected ? `${googleCalendarAccounts.length} Google Calendar(s) Connected` : 'Not connected'}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {isGoogleCalendarConnected 
+                      {isGoogleCalendarConnected
                         ? `${googleCalendarEvents.length} events synced across ${googleCalendarAccounts.length} account(s)`
                         : 'Connect to sync your workout sessions with Google Calendar'
                       }
@@ -543,7 +541,7 @@ export default function AccountPage() {
               {/* Connection Actions */}
               <div className="flex gap-3">
                 {!isGoogleCalendarConnected ? (
-                  <Button 
+                  <Button
                     onClick={() => {
                       const accountUrl = '/account?tab=calendar'
                       const authUrl = getAuthUrl(accountUrl)
@@ -556,7 +554,7 @@ export default function AccountPage() {
                   </Button>
                 ) : (
                   <>
-                    <Button 
+                    <Button
                       onClick={() => {
                         const accountUrl = '/account?tab=calendar'
                         const authUrl = getAuthUrl(accountUrl)
@@ -567,7 +565,7 @@ export default function AccountPage() {
                     >
                       Manage Connection
                     </Button>
-                    <Button 
+                    <Button
                       onClick={() => {
                         const accountUrl = '/account?tab=calendar'
                         const authUrl = getAuthUrl(accountUrl)
@@ -616,15 +614,15 @@ export default function AccountPage() {
             <CardContent className="space-y-3">
               <div className="text-sm text-muted-foreground space-y-2">
                 <p>
-                  <strong>Data Access:</strong> We only request access to view and edit your calendar events. 
+                  <strong>Data Access:</strong> We only request access to view and edit your calendar events.
                   We cannot access your emails, contacts, or other Google data.
                 </p>
                 <p>
-                  <strong>Data Storage:</strong> Your calendar data is not stored on our servers. 
+                  <strong>Data Storage:</strong> Your calendar data is not stored on our servers.
                   We only sync events in real-time and store authentication tokens locally.
                 </p>
                 <p>
-                  <strong>Revoke Access:</strong> You can disconnect your Google Calendar at any time 
+                  <strong>Revoke Access:</strong> You can disconnect your Google Calendar at any time
                   using the disconnect button above, or revoke access directly in your Google Account settings.
                 </p>
               </div>
@@ -644,7 +642,7 @@ export default function AccountPage() {
               <PricingPlansClient plans={plans} />
             </CardContent>
             <CardFooter className="flex gap-3">
-              <Button 
+              <Button
                 disabled={!hasPaidPlan}
                 onClick={async () => {
                   if (!hasPaidPlan) return
@@ -725,9 +723,7 @@ export default function AccountPage() {
         </TabsContent>
       </Tabs>
 
-      
+
     </div>
   )
 }
-
-

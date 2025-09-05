@@ -44,7 +44,7 @@ export async function POST(request: Request) {
   // As a fallback, try to find by email if not stored
   if (!stripeCustomerId && user.email) {
     try {
-      const stripe = new Stripe(stripeSecret, { apiVersion: '2024-06-20' })
+      const stripe = new Stripe(stripeSecret, { apiVersion: '2025-08-27.basil' })
       const customers = await stripe.customers.list({ email: user.email, limit: 1 })
       if (customers.data.length > 0) stripeCustomerId = customers.data[0].id
     } catch {
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: 'No Stripe customer found' }, { status: 404 })
   }
 
-  const stripe = new Stripe(stripeSecret, { apiVersion: '2024-06-20' })
+  const stripe = new Stripe(stripeSecret, { apiVersion: '2025-08-27.basil' })
   const origin = (() => {
     try { return new URL(request.url).origin } catch { return request.headers.get('origin') || '' }
   })()

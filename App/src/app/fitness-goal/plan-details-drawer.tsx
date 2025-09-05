@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
-import type { Plan } from './plan-types'
+import type { Plan, PlanStatus } from './plan-types'
 import { StackedPillarChart } from './StackedPillarChart'
 import { savePlan } from './plan-api'
 import { usePlans } from './plan-store'
@@ -119,7 +119,7 @@ export function PlanDetailsDrawer({
       const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:plans') : null
       const all: Record<string, Plan[]> = raw ? JSON.parse(raw) : {}
       const list = all[userId] || []
-      const next = list.map((p) => ({ ...p, status: p.id === plan.id ? 'active' : (p.status === 'completed' ? 'completed' : 'paused') }))
+      const next = list.map((p) => ({ ...p, status: (p.id === plan.id ? 'active' : (p.status === 'completed' ? 'completed' : 'paused')) as PlanStatus }))
       all[userId] = next
       if (typeof window !== 'undefined') localStorage.setItem('fitspo:plans', JSON.stringify(all))
       update(plan.id, { status: 'active' })
@@ -139,7 +139,6 @@ export function PlanDetailsDrawer({
         side="right"
         animation="slide"
         overlayClassName="bg-transparent pointer-events-none"
-        trapFocus={false}
         className="w-[60vw] sm:w-[60vw] lg:w-[60vw] max-w-none sm:max-w-none"
       >
         <SheetHeader className="p-4">

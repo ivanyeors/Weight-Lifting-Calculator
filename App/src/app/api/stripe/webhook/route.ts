@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     return new NextResponse('Missing environment configuration', { status: 500 })
   }
 
-  const stripe = new Stripe(stripeSecret, { apiVersion: '2024-06-20' })
+  const stripe = new Stripe(stripeSecret, { apiVersion: '2025-08-27.basil' })
 
   let event: Stripe.Event
   let rawBody: string
@@ -101,7 +101,7 @@ export async function POST(request: Request) {
             const sub = await stripe.subscriptions.retrieve(session.subscription)
             stripeSubscriptionId = sub.id
             status = sub.status
-            currentPeriodEnd = sub.current_period_end || null
+            currentPeriodEnd = (sub as any).current_period_end || null
             cancelAtPeriodEnd = sub.cancel_at_period_end || false
           } catch {
             // ignore subscription fetch errors
@@ -110,7 +110,7 @@ export async function POST(request: Request) {
           const sub = session.subscription as Stripe.Subscription
           stripeSubscriptionId = sub.id
           status = sub.status
-          currentPeriodEnd = sub.current_period_end || null
+          currentPeriodEnd = (sub as any).current_period_end || null
           cancelAtPeriodEnd = sub.cancel_at_period_end || false
         }
 
@@ -157,7 +157,7 @@ export async function POST(request: Request) {
           stripeCustomerId: subscription.customer as string,
           stripeSubscriptionId: subscription.id,
           status: subscription.status,
-          currentPeriodEnd: subscription.current_period_end || null,
+          currentPeriodEnd: (subscription as any).current_period_end || null,
           cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
         })
       }
@@ -185,7 +185,7 @@ export async function POST(request: Request) {
           stripeCustomerId: subscription.customer as string,
           stripeSubscriptionId: subscription.id,
           status: subscription.status,
-          currentPeriodEnd: subscription.current_period_end || null,
+          currentPeriodEnd: (subscription as any).current_period_end || null,
           cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
         })
       }

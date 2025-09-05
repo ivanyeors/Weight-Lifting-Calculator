@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     
     const response = await calendar.events.insert({
       calendarId,
-      resource: event
+      requestBody: event
     })
 
     return NextResponse.json({ 
@@ -99,7 +99,7 @@ export async function PUT(request: NextRequest) {
     const response = await calendar.events.update({
       calendarId,
       eventId,
-      resource: event
+      requestBody: event
     })
 
     return NextResponse.json({ 

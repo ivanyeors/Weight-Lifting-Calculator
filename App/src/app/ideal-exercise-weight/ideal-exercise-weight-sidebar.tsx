@@ -10,7 +10,7 @@ import { Slider } from "@/components/ui/slider"
 import { Separator } from "@/components/ui/separator"
 import { supabase } from '@/lib/supabaseClient'
 import { Cloud, RefreshCw, CheckCircle, AlertCircle, Pencil } from "lucide-react"
-import { UserSwitcher } from '@/components/user-switcher'
+import { UserSwitcher } from '@/components/ui/user-switcher'
 import { useSelectedUser } from '@/hooks/use-selected-user'
 
 interface IdealExerciseWeightSidebarProps {
