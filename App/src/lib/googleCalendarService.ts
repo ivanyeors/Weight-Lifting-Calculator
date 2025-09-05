@@ -52,8 +52,17 @@ class GoogleCalendarService {
   private accounts: Map<string, GoogleCalendarAccount> = new Map()
 
   constructor(config: GoogleCalendarConfig) {
+    // Dynamically determine redirect URI based on environment
+    const isProduction = typeof window !== 'undefined' &&
+      (process.env.NODE_ENV === 'production' || window.location.hostname !== 'localhost');
+    const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/');
+    const redirectUri = isProduction
+      ? `https://fitspo.space${base}auth/callback`
+      : (config.redirectUri || (typeof window !== 'undefined' ? `${window.location.origin}${base}auth/callback` : ''));
+
     this.config = {
       ...config,
+      redirectUri,
       scopes: [
         'https://www.googleapis.com/auth/calendar',
         'https://www.googleapis.com/auth/calendar.events',
