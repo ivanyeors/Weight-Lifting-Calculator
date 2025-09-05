@@ -13,6 +13,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination'
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu'
+import { Switch } from '@/components/ui/switch'
 import type { Food } from '@/lib/nutrition/foods'
 import { fetchFoods } from '@/lib/nutrition/foods'
 import { fetchUserInventory, upsertUserInventoryByFoodId, type InventoryItem } from '@/lib/nutrition/db'
@@ -21,6 +23,7 @@ import { feasibilityForRecipe } from '@/lib/nutrition/calc'
 import type { Ingredient, NutrientsPer100 } from '@/lib/nutrition/types'
 
 function round(n: number, d = 2) { return Math.round(n * Math.pow(10, d)) / Math.pow(10, d) }
+function roundToTwo(n: number) { return Math.round((n + Number.EPSILON) * 100) / 100 }
 
 export function IngredientList() {
   const [foods, setFoods] = useState<Food[]>([])
@@ -269,8 +272,9 @@ export function IngredientList() {
     setSelection((prev) => ({
       ...prev,
       [id]: {
-        amount: prev[id]?.amount || 0,
-        expiry_date: date || null
+        ...prev[id],
+        expiry_date: date || null,
+        include_cost: prev[id]?.include_cost ?? true
       }
     }))
     setGenerated(null)
@@ -282,6 +286,7 @@ export function IngredientList() {
         const currentItem = selection[id]
         await upsertUserInventoryByFoodId(id, {
           std_remaining: currentItem?.amount || 0,
+          price_per_base: currentItem?.price_per_base || null,
           expiry_date: date || null
         })
         try { if (typeof window !== 'undefined') window.dispatchEvent(new Event('fitspo:inventory_changed')) } catch { /* ignore */ }
@@ -290,12 +295,41 @@ export function IngredientList() {
       }
     }, 500)
   }
+  const handleCostChange = (id: string, value: number) => {
+    const normalized = roundToTwo(value)
+    const pricePerBase = normalized / 100 // Convert from cost per 100 units to cost per unit
+    setSelection((prev) => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        price_per_base: pricePerBase,
+        include_cost: prev[id]?.include_cost ?? true
+      }
+    }))
+    setGenerated(null)
+    if (saveTimers.current[id]) clearTimeout(saveTimers.current[id])
+    saveTimers.current[id] = setTimeout(async () => {
+      try {
+        const currentItem = selection[id]
+        await upsertUserInventoryByFoodId(id, {
+          std_remaining: currentItem?.amount || 0,
+          price_per_base: pricePerBase,
+          expiry_date: currentItem?.expiry_date || null
+        })
+        try { if (typeof window !== 'undefined') window.dispatchEvent(new Event('fitspo:inventory_changed')) } catch { /* ignore */ }
+      } catch (e) {
+        console.warn('Failed to save cost', e)
+      }
+    }, 500)
+  }
+
   const handleAmountChange = (id: string, value: number) => {
     setSelection((prev) => ({
       ...prev,
       [id]: {
+        ...prev[id],
         amount: value,
-        expiry_date: prev[id]?.expiry_date || null
+        include_cost: prev[id]?.include_cost ?? true
       }
     }))
     setGenerated(null)
@@ -305,6 +339,7 @@ export function IngredientList() {
         const currentItem = selection[id]
         await upsertUserInventoryByFoodId(id, {
           std_remaining: value,
+          price_per_base: currentItem?.price_per_base || null,
           expiry_date: currentItem?.expiry_date || null
         })
         try { if (typeof window !== 'undefined') window.dispatchEvent(new Event('fitspo:inventory_changed')) } catch { /* ignore */ }
@@ -314,6 +349,31 @@ export function IngredientList() {
     }, 500)
   }
 
+
+  const handleCostToggle = (id: string, excludeCost: boolean) => {
+    setSelection((prev) => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        include_cost: !excludeCost
+      }
+    }))
+    setGenerated(null)
+    if (saveTimers.current[id]) clearTimeout(saveTimers.current[id])
+    saveTimers.current[id] = setTimeout(async () => {
+      try {
+        const currentItem = selection[id]
+        await upsertUserInventoryByFoodId(id, {
+          std_remaining: currentItem?.amount || 0,
+          price_per_base: currentItem?.price_per_base || null,
+          expiry_date: currentItem?.expiry_date || null
+        })
+        try { if (typeof window !== 'undefined') window.dispatchEvent(new Event('fitspo:inventory_changed')) } catch { /* ignore */ }
+      } catch (e) {
+        console.warn('Failed to save cost toggle', e)
+      }
+    }, 500)
+  }
 
   const handleResetInventory = async () => {
     setSelection({})
@@ -407,17 +467,20 @@ export function IngredientList() {
                 <TableRow>
                   <TableHead>Food</TableHead>
                   <TableHead>Carbs, Fats, Protein</TableHead>
+                  <TableHead className="min-w-40">Cost</TableHead>
                   <TableHead className="min-w-48">Inventory</TableHead>
                   <TableHead className="min-w-32">Expiry Date</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedFoods.map(f => (
-                  <TableRow key={f.id}>
-                    <TableCell>
-                      <div className="font-medium text-sm">{f.name}</div>
-                      <div className="text-xs text-muted-foreground">{f.category ?? '—'}</div>
-                    </TableCell>
+                  <ContextMenu key={f.id}>
+                    <ContextMenuTrigger asChild>
+                      <TableRow className="cursor-context-menu">
+                        <TableCell>
+                          <div className="font-medium text-sm">{f.name}</div>
+                          <div className="text-xs text-muted-foreground">{f.category ?? '—'}</div>
+                        </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <div className="h-2 w-32 md:w-48 bg-muted rounded-full flex gap-[1px]">
@@ -439,6 +502,37 @@ export function IngredientList() {
                     <TableCell>
                       <div className="grid gap-2">
                         <div className="flex items-center gap-2">
+                          <div className="relative">
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs">$</span>
+                            <Input
+                              className="h-8 w-24 pl-4 pr-2 text-xs text-right"
+                              inputMode="decimal"
+                              type="text"
+                              value={selection[f.id]?.price_per_base ? (selection[f.id].price_per_base! * 100).toFixed(2) : '0.00'}
+                              onChange={(e) => {
+                                const cleaned = e.target.value.replace(/[^0-9.]/g, '')
+                                const num = cleaned === '' ? 0 : Number(cleaned)
+                                if (!Number.isNaN(num)) handleCostChange(f.id, roundToTwo(num))
+                              }}
+                              onBlur={(e) => {
+                                const cleaned = e.target.value.replace(/[^0-9.]/g, '')
+                                const num = cleaned === '' ? 0 : Number(cleaned)
+                                e.target.value = roundToTwo(num).toFixed(2)
+                              }}
+                              placeholder="0.00"
+                            />
+                          </div>
+                        </div>
+                        {selection[f.id]?.package_price && selection[f.id]?.package_size_base && (
+                          <div className="text-xs text-muted-foreground">
+                            Package: ${selection[f.id].package_price!.toFixed(2)} for {selection[f.id].package_size_base}{f.unit_kind === 'mass' ? 'g' : f.unit_kind === 'volume' ? 'ml' : 'pcs'}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="grid gap-2">
+                        <div className="flex items-center gap-2">
                           <Input
                             className="h-8 w-24 text-xs text-center"
                             type="number"
@@ -448,6 +542,7 @@ export function IngredientList() {
                             onChange={(e) => handleAmountChange(f.id, parseFloat(e.target.value) || 0)}
                             placeholder={f.unit_kind === 'mass' ? 'grams' : f.unit_kind === 'volume' ? 'ml' : 'pieces'}
                             aria-label={`Amount in ${f.unit_kind === 'mass' ? 'grams' : f.unit_kind === 'volume' ? 'milliliters' : 'pieces'}`}
+                            disabled={(selection[f.id]?.include_cost ?? true) ? !(selection[f.id]?.price_per_base != null && (selection[f.id]?.price_per_base as number) > 0) : false}
                           />
                           <span className="text-[10px] uppercase text-muted-foreground">
                             {f.unit_kind === 'mass' ? 'g' : f.unit_kind === 'volume' ? 'ml' : 'pcs'}
@@ -460,6 +555,7 @@ export function IngredientList() {
                           max={f.unit_kind === 'count' ? 50 : (f.unit_kind === 'volume' ? 2000 : 1000)}
                           step={f.unit_kind === 'count' ? 1 : 10}
                           onValueChange={(v) => handleAmountChange(f.id, v[0])}
+                          disabled={(selection[f.id]?.include_cost ?? true) ? !(selection[f.id]?.price_per_base != null && (selection[f.id]?.price_per_base as number) > 0) : false}
                         />
                       </div>
                     </TableCell>
@@ -500,7 +596,18 @@ export function IngredientList() {
                         </Popover>
                       </div>
                     </TableCell>
-                  </TableRow>
+                      </TableRow>
+                    </ContextMenuTrigger>
+                    <ContextMenuContent>
+                      <ContextMenuItem className="flex items-center justify-between gap-2">
+                        <span className="text-sm">Exclude cost</span>
+                        <Switch
+                          checked={!(selection[f.id]?.include_cost ?? true)}
+                          onCheckedChange={(checked) => handleCostToggle(f.id, checked)}
+                        />
+                      </ContextMenuItem>
+                    </ContextMenuContent>
+                  </ContextMenu>
                 ))}
               </TableBody>
             </Table>
