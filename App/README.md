@@ -1,8 +1,16 @@
-# Fitspo — Fitness Calculator
+# Fitspo — Complete Fitness Platform
 
-A comprehensive fitness platform that provides personalized exercise recommendations, workout planning, and nutrition tracking based on your unique body composition and fitness goals.
+A comprehensive fitness ecosystem that provides personalized exercise recommendations, intelligent workout planning, nutrition tracking, progress visualization, and multi-user management based on each user's unique body composition and fitness goals.
 
 ## 🚀 Features
+
+### 📱 Fitspo App (Coming Soon)
+- **iOS Mobile App**: Comprehensive fitness companion coming soon to iOS
+- **Personalized Workout Plans**: AI-powered workout plans tailored to your fitness level and available equipment
+- **Smart Progress Tracking**: Advanced analytics and visualizations for tracking your fitness journey
+- **Community Features**: Connect with like-minded fitness enthusiasts and stay motivated
+- **Offline Support**: Full functionality even without internet connection
+- **Seamless Sync**: Automatic synchronization with your web account
 
 ### 💪 Ideal Exercise Weight Calculator
 - **Personalized Calculations**: Get precise ideal weights for exercises based on your:
@@ -22,21 +30,57 @@ A comprehensive fitness platform that provides personalized exercise recommendat
 - **Usage Analytics**: Track which exercises you use most and view workout statistics
 
 ### 📅 Workout Planning & Calendar
-- **Calendar Integration**: Sync workouts with Google Calendar
-- **Template System**: Create reusable workout templates
-- **Workout Spaces**: Organize exercises by equipment or location availability
-- **Progress Logging**: Record completed workouts and track completion rates
+- **Advanced Calendar Integration**: Full two-way sync with Google Calendar including events, reminders, and fitness tracking
+- **Interactive Calendar View**: Schedule-X powered calendar with drag-and-drop workout planning
+- **Smart Reminders**: Automatic fitness reminders and workout notifications in Google Calendar
+- **Template System**: Create reusable workout templates with customizable sets, reps, and rest times
+- **Workout Spaces**: Organize exercises by equipment availability and location (see below)
+- **Progress Logging**: Comprehensive workout tracking with completion rates and performance analytics
+- **Cross-Platform Sync**: Seamless synchronization across web and mobile platforms
+
+### 🏭 Workout Spaces Management
+- **Equipment Organization**: Create and manage workout spaces based on available equipment
+- **Location-Based Planning**: Organize exercises by gym location, home setup, or travel equipment
+- **Smart Equipment Mapping**: Associate specific exercises with available equipment in each space
+- **Space Templates**: Save and reuse equipment configurations across different locations
+- **Availability Tracking**: Real-time tracking of equipment availability and usage
+- **Cross-Space Sync**: Automatic synchronization of spaces across devices (Premium feature)
+- **Equipment Categories**: Organize equipment by type, muscle group, and exercise compatibility
+
+### 🎯 Fitness Goal Tracking
+- **Interactive Progress Visualization**: Dynamic 3D orb that changes color and intensity based on goal progress
+- **Multi-Pillar Tracking**: Monitor food intake, water consumption, sleep quality, and exercise performance
+- **Personalized Fitness Plans**: Create and manage comprehensive fitness goals with automatic progress calculation
+- **Real-time Sync**: Automatic synchronization of fitness logs and progress data
+- **Goal Achievement Milestones**: Visual progress tracking with achievement celebrations
+- **Cross-Device Continuity**: Seamless progress tracking across all your devices
 
 ### 🥗 Nutrition Management
-- **Ingredient Database**: Track macronutrients and calories for various foods
-- **Recipe Builder**: Create custom recipes with nutritional calculations
-- **Meal Planning**: Organize meals and track nutritional intake
-- **Macro Tracking**: Monitor protein, carbs, and fat consumption
+- **Comprehensive Ingredient Database**: Extensive food database with macronutrients, micronutrients, and caloric information
+- **Advanced Recipe Builder**: Create custom recipes with automatic nutritional calculations and portion scaling
+- **Ingredient Multi-Add System**: Efficient bulk ingredient addition for recipe creation
+- **Recipe Cards Interface**: Beautiful, organized display of recipes with nutritional breakdowns
+- **Meal Planning & Tracking**: Organize meals and monitor nutritional intake throughout the day
+- **Macro & Micronutrient Tracking**: Detailed monitoring of protein, carbs, fat, vitamins, and minerals
+- **Recipe Management**: Browse, search, and organize personal and community recipes
+- **Nutritional Analytics**: Track dietary patterns and nutritional goals over time
 
 ### 👥 Multi-User Support
-- **User Switching**: Manage multiple users (family members, clients)
-- **Personalized Profiles**: Individual body metrics and preferences
-- **Tier Management**: Different access levels for various user types
+- **Managed User System**: Comprehensive client and family member management for trainers and households
+- **Individual Body Profiles**: Separate body metrics, fitness goals, and progress tracking for each user
+- **Seamless User Switching**: Instant switching between user profiles with preserved data integrity
+- **Role-Based Access**: Different permission levels for personal users, clients, and managed family members
+- **Personalized Recommendations**: AI-powered suggestions tailored to each user's unique profile
+- **Progress Analytics**: Individual progress tracking and comparative analytics across multiple users
+- **Data Privacy**: Secure isolation of user data with proper access controls
+
+### 🚀 Smart Onboarding System
+- **Guided Setup Process**: Step-by-step onboarding with visual progress tracking
+- **Dependency Management**: Intelligent step ordering based on feature dependencies
+- **Real-time Validation**: Automatic completion detection and status updates
+- **Interactive Visualizations**: Animated beams connecting related setup steps
+- **Progress Persistence**: Resume onboarding from where you left off
+- **Completion Rewards**: Achievement celebrations when setup is complete
 
 ### 💳 Subscription Tiers
 - **Free Tier**: Basic weight calculator and limited exercise library
@@ -46,13 +90,19 @@ A comprehensive fitness platform that provides personalized exercise recommendat
 ## 🛠️ Technology Stack
 
 - **Frontend**: Next.js 15, React 19, TypeScript
-- **UI Framework**: Tailwind CSS, shadcn/ui components
-- **Backend**: Supabase (PostgreSQL, Authentication, Storage)
-- **Payments**: Stripe integration
-- **Charts**: Recharts for data visualization
-- **3D Graphics**: React Three Fiber for body visualization
-- **Calendar**: Schedule-X for workout planning
-- **State Management**: React hooks and context
+- **UI Framework**: Tailwind CSS, shadcn/ui components, Radix UI primitives
+- **Backend**: Supabase (PostgreSQL, Authentication, Storage, Real-time subscriptions)
+- **Payments**: Stripe integration with webhooks
+- **Charts & Visualization**: Recharts for analytics, React Three Fiber for 3D graphics
+- **Calendar System**: Schedule-X with drag-and-drop, Google Calendar API integration
+- **State Management**: React hooks, context, and custom state management
+- **Animation & Motion**: Motion library for smooth animations and transitions
+- **Data Tables**: TanStack Table for advanced data manipulation
+- **Drag & Drop**: @dnd-kit for interactive workout planning
+- **Form Handling**: React Hook Form with Zod validation
+- **Authentication**: Supabase Auth with social login providers
+- **Real-time Sync**: Custom sync service for cross-device data synchronization
+- **Video Integration**: YouTube API for exercise tutorials
 
 ## 🎯 Core Algorithm
 
@@ -87,10 +137,14 @@ Ideal Weight = Skeletal Muscle Mass × Gender Factor × Age Factor × Experience
 ## 🚀 Getting Started
 
 1. **Sign Up**: Create your account and select your subscription tier
-2. **Body Metrics**: Input your height, weight, body fat percentage, and skeletal muscle mass
-3. **Experience Level**: Select your training experience category
-4. **Calculate**: Get personalized ideal weights for any exercise
-5. **Track Progress**: Log your workouts and monitor improvements
+2. **Guided Onboarding**: Follow our intelligent setup wizard that guides you through:
+   - Creating your user profile with body metrics
+   - Setting up workout spaces and equipment
+   - Building your first workout template
+   - Connecting Google Calendar (optional)
+   - Creating personalized fitness goals
+3. **Start Training**: Begin with personalized workout recommendations and progress tracking
+4. **Monitor Progress**: Use the interactive fitness orb and detailed analytics to track your journey
 
 ## 💡 Use Cases
 
