@@ -486,7 +486,7 @@ export default function OnboardingPage() {
         </div>
 
         {/* Steps by Category */}
-        <div ref={containerRef} className="max-w-6xl mx-auto relative overflow-visible min-h-[600px] px-0 space-y-16">
+        <div ref={containerRef} className="max-w-6xl mx-auto relative overflow-visible min-h-[600px] px-0 space-y-8 sm:space-y-16">
           {Object.entries(stepsByCategory).map(([category, categorySteps], index) => (
             <Collapsible
               key={category}
@@ -529,11 +529,11 @@ export default function OnboardingPage() {
                 </CollapsibleTrigger>
 
                 <CollapsibleContent>
-                  <CardContent className="p-6">
-                    <div className="grid gap-4">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="grid gap-3 sm:gap-4">
                       {categorySteps.map((step, index) => (
                         <div key={step.id}>
-                          <div className="flex items-start gap-4 p-4 rounded-lg border bg-card hover:bg-accent/30 transition-colors">
+                          <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg border bg-card hover:bg-accent/30 transition-colors">
                             <div className="flex-shrink-0 mt-1">
                               {getStatusIcon(step.status, step.isOptional)}
                             </div>

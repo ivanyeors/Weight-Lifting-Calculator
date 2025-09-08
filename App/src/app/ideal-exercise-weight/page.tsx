@@ -106,7 +106,7 @@ export default function HomePage() {
 
 
   // Sidebar collapsed state (moved toggle to header)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(true)
   
   // Sync status state (for display in header)
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle')

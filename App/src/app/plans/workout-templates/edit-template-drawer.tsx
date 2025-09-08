@@ -264,7 +264,7 @@ export function EditTemplateDrawer({ open, template, onOpenChange, onSave }: Edi
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange} direction="right">
-      <DrawerContent className="data-[vaul-drawer-direction=right]:!w-1/2 data-[vaul-drawer-direction=right]:!max-w-none">
+      <DrawerContent className="data-[vaul-drawer-direction=right]:!w-[80vw] data-[vaul-drawer-direction=right]:!max-w-none lg:data-[vaul-drawer-direction=right]:!w-1/2">
         <div className="flex flex-col h-full">
           <DrawerHeader className="pb-0">
             <DrawerTitle>Edit Workout Template</DrawerTitle>

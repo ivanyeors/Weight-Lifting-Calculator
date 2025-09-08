@@ -22,6 +22,7 @@ import { useGoogleCalendar } from "@/hooks/useGoogleCalendar"
 import { plans } from "@/lib/plans"
 import { toast } from "sonner"
 import { RefreshCw } from "lucide-react"
+import { ContOnboardAlert } from "@/components/cont-onboard"
 
 type SupabaseIdentity = { identity_id: string; provider: string; last_sign_in_at: string | null }
 
@@ -679,6 +680,9 @@ export default function AccountPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Continue Onboarding Alert */}
+          <ContOnboardAlert />
         </TabsContent>
 
         <TabsContent value="billing" className="space-y-6">

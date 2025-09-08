@@ -188,13 +188,13 @@ export function CreateTemplateDrawer({ open, onOpenChange, onSave }: CreateTempl
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange} direction="right">
-      <DrawerContent className="data-[vaul-drawer-direction=right]:!w-1/2 data-[vaul-drawer-direction=right]:!max-w-none">
+      <DrawerContent className="data-[vaul-drawer-direction=right]:!w-[80vw] data-[vaul-drawer-direction=right]:!max-w-none lg:data-[vaul-drawer-direction=right]:!w-1/2">
         <div className="flex flex-col h-full">
           <DrawerHeader className="pb-0">
             <DrawerTitle>Create Workout Template</DrawerTitle>
           </DrawerHeader>
 
-        <div className="px-6 space-y-6 flex-1 overflow-y-auto">
+        <div className="px-4 space-y-6 flex-1 overflow-y-auto">
           {/* Template Name */}
           <div className="space-y-2">
             <Label htmlFor="template-name">Template Name</Label>

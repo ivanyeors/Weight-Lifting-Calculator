@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { supabase } from '@/lib/supabaseClient'
+import { ContOnboardAlert } from '@/components/cont-onboard'
 
 type SyncState = 'idle' | 'syncing' | 'success' | 'error'
 
@@ -315,7 +316,7 @@ export default function PlansUsersPage() {
 
       {/* Create user drawer */}
       <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen} direction="right">
-        <DrawerContent className="data-[vaul-drawer-direction=right]:!w-1/2 data-[vaul-drawer-direction=right]:!max-w-none">
+        <DrawerContent className="data-[vaul-drawer-direction=right]:!w-[80vw] data-[vaul-drawer-direction=right]:!max-w-none lg:data-[vaul-drawer-direction=right]:!w-1/2">
           <div className="flex flex-col h-full">
             <DrawerHeader className="pb-0">
               <DrawerTitle className="text-xl">Create User</DrawerTitle>
@@ -375,7 +376,7 @@ export default function PlansUsersPage() {
                 </div>
                 <div className="space-y-2 sm:col-span-2">
                   <Label className="text-sm font-medium">Past Injuries (muscles)</Label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[520px] overflow-auto pr-0">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {muscles.map((m) => (
                       <Checkbox
                         key={m.id}
@@ -442,7 +443,7 @@ export default function PlansUsersPage() {
 
       {/* User Detail Drawer */}
       <Drawer open={isUserDetailDrawerOpen} onOpenChange={setIsUserDetailDrawerOpen} direction="right">
-        <DrawerContent className="data-[vaul-drawer-direction=right]:!w-1/2 data-[vaul-drawer-direction=right]:!max-w-none">
+        <DrawerContent className="data-[vaul-drawer-direction=right]:!w-[80vw] data-[vaul-drawer-direction=right]:!max-w-none lg:data-[vaul-drawer-direction=right]:!w-1/2">
           <div className="flex flex-col h-full">
             <DrawerHeader className="pb-0">
               <div className="flex items-center justify-between">
@@ -554,7 +555,7 @@ export default function PlansUsersPage() {
                   </div>
                   <div className="space-y-2 sm:col-span-2">
                     <Label className="text-sm font-medium">Past Injuries (muscles)</Label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pr-0">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {muscles.map((m) => (
                         <Checkbox
                           key={m.id}
@@ -563,7 +564,7 @@ export default function PlansUsersPage() {
                           onCheckedChange={(checked) => {
                             if (!isEditing) return
                             const currentInjuries = userInjuries[selectedUser.id] || []
-                            const newInjuries = checked 
+                            const newInjuries = checked
                               ? [...currentInjuries, m.id]
                               : currentInjuries.filter(id => id !== m.id)
                             setUserInjuries(prev => ({ ...prev, [selectedUser.id]: newInjuries }))
@@ -687,6 +688,9 @@ export default function PlansUsersPage() {
           </div>
         </DrawerContent>
       </Drawer>
+
+      {/* Continue Onboarding Alert */}
+      <ContOnboardAlert />
     </div>
   )
 }
