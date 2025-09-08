@@ -386,7 +386,7 @@ export function AppSidebar() {
                   <ChevronDown className="h-4 w-4 opacity-70" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] min-w-[260px]" align="end" side="right" sideOffset={4} alignOffset={0}>
+              <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] min-w-[260px]" align="center" side="top" sideOffset={8} alignOffset={0}>
                 <DropdownMenuLabel className="flex items-center justify-between gap-2">
                   <span className="truncate">{user?.name || user?.email || 'Account'}</span>
                   <Badge variant="secondary" className="ml-2 shrink-0">{currentPlan}</Badge>
@@ -447,7 +447,7 @@ export function AppSidebar() {
           </div>
 
           {/* Content overlay */}
-          <div className="absolute inset-x-0 top-16 bottom-0 z-10 flex min-h-full flex-col items-center justify-center p-6 md:p-10">
+          <div className="absolute inset-x-0 top-4 bottom-0 z-10 flex min-h-full flex-col items-center justify-center p-6 md:p-10">
             <div className="w-full max-w-sm md:max-w-3xl">
               <LoginForm onSuccess={() => setIsLoginOpen(false)} />
             </div>

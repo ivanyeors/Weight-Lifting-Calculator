@@ -37,7 +37,13 @@ export default function WorkoutTemplatesPage() {
   const { user: selectedUser } = useSelectedUser()
   const { userId } = useUserTier()
   
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    // Default to collapsed on mobile/tablet, expanded on desktop
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 1024; // lg breakpoint
+    }
+    return true; // Default to collapsed on server-side
+  })
   const [searchTerm, setSearchTerm] = useState('')
   const [templates, setTemplates] = useState<WorkoutTemplate[]>([])
   const [loading, setLoading] = useState(false)
