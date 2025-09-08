@@ -30,7 +30,7 @@ export function useSelectedUser() {
         .from('managed_users')
         .select('id, name, body_weight_kg, height_cm, age, skeletal_muscle_mass_kg, body_fat_mass_kg, gender, experience, medical_conditions, food_allergies, goals, note')
         .eq('id', selectedId)
-        .single()
+        .maybeSingle()
       if (muErr || !mu) { setUser(null); return }
       const { data: inj } = await supabase
         .from('managed_user_injuries')
