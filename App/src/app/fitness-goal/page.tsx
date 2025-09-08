@@ -18,6 +18,7 @@ import { usePlans } from './plan-store'
 import { fetchPlans } from './plan-api'
 import { syncService } from '@/lib/sync-service'
 import { useOrbProgress } from './orb-progress-hooks'
+import { useIsMobile } from '@/hooks/use-mobile'
  
 // (kept for potential future use)
 
@@ -26,6 +27,7 @@ export default function FitnessGoalPage() {
   const router = useRouter()
 
   // Plans integration
+  const isMobile = useIsMobile()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [userProfileDialogOpen, setUserProfileDialogOpen] = useState(false)
@@ -56,6 +58,11 @@ export default function FitnessGoalPage() {
 
   // Calculate dynamic orb values based on fitness progress
   const { hue, hoverIntensity } = useOrbProgress(activePlan)
+
+  // Hide sidebar by default on mobile, show on larger screens
+  useEffect(() => {
+    setSidebarOpen(!isMobile)
+  }, [isMobile])
 
   // Auto-select first active plan (or first plan) when none selected
   useEffect(() => {
@@ -155,13 +162,26 @@ export default function FitnessGoalPage() {
 
   // Removed unused calculator helpers and render-only helpers for this layout
 
-  // Handle create plan button click - check for user profile first
-  const handleCreatePlanClick = () => {
+  // Header: Create Plan click. On mobile with existing user, open sidebar instead of drawer
+  const handleCreatePlanFromHeader = () => {
     if (!user) {
       setUserProfileDialogOpen(true)
-    } else {
-      setDrawerOpen(true)
+      return
     }
+    if (isMobile) {
+      setSidebarOpen(true)
+      return
+    }
+    setDrawerOpen(true)
+  }
+
+  // Sidebar: Create Plan should always open drawer when user exists
+  const handleCreatePlanFromSidebar = () => {
+    if (!user) {
+      setUserProfileDialogOpen(true)
+      return
+    }
+    setDrawerOpen(true)
   }
 
   // Handle navigation to users page
@@ -171,19 +191,19 @@ export default function FitnessGoalPage() {
   }
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-full overflow-x-hidden">
       {sidebarOpen ? (
         <PlanSidebar
           selectedUserId={selectedUserId}
           onSelectUser={(id) => { setSelectedUserId(id); setSelectedPlanId(null) }}
-          onCreatePlan={handleCreatePlanClick}
+          onCreatePlan={handleCreatePlanFromSidebar}
           plans={plans}
           selectedPlanId={selectedPlanId}
           onSelectPlan={(id) => { setSelectedPlanId(id); setDetailsOpen(true) }}
         />
       ) : null}
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-hidden">
         <div className="flex items-center justify-between p-4 border-b bg-background">
           <div className="flex items-center gap-3">
             <Button
@@ -202,32 +222,34 @@ export default function FitnessGoalPage() {
             <div className="text-sm text-muted-foreground">{activePlan ? activePlan.title : 'Fitness Goals'}</div>
           </div>
           {activePlan ? null : (
-            <Button onClick={handleCreatePlanClick} className="bg-primary hover:bg-primary/90">
+            <Button onClick={handleCreatePlanFromHeader} className="bg-primary hover:bg-primary/90">
               <Plus className="mr-2 h-4 w-4" />
               Create Plan
             </Button>
           )}
         </div>
 
-        <div className="flex-1 flex flex-col">
-          <div className="relative flex-1">
-            <Orb
-              className="w-full h-full"
-              hue={hue}
-              hoverIntensity={hoverIntensity}
-              rotateOnHover={true}
-            />
+        <div className="flex-1 flex flex-col overflow-y-auto">
+          <div className="relative flex-1 flex items-center justify-center md:block min-h-[70vh] md:min-h-0 overflow-hidden">
+            <div className="w-full h-full scale-500 md:scale-100 overflow-hidden md:overflow-visible">
+              <Orb
+                className="w-full h-full"
+                hue={hue}
+                hoverIntensity={hoverIntensity}
+                rotateOnHover={true}
+              />
+            </div>
           </div>
 
-          <div className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="p-3 md:p-4">
+            <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm">Food</CardTitle>
-                  <CardDescription>Progress / target (kcal)</CardDescription>
+                  <CardTitle className="text-xs md:text-sm">Food</CardTitle>
+                  <CardDescription className="text-[11px] md:text-sm">Progress / target (kcal)</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-semibold">
+                  <div className="text-lg md:text-2xl font-semibold">
                     {(() => {
                       try {
                         const day = new Date().toISOString().slice(0,10)
@@ -249,11 +271,11 @@ export default function FitnessGoalPage() {
               </Card>
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm">Water</CardTitle>
-                  <CardDescription>Progress / target (L)</CardDescription>
+                  <CardTitle className="text-xs md:text-sm">Water</CardTitle>
+                  <CardDescription className="text-[11px] md:text-sm">Progress / target (L)</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-semibold">
+                  <div className="text-lg md:text-2xl font-semibold">
                     {(() => {
                       try {
                         const day = new Date().toISOString().slice(0,10)
@@ -272,11 +294,11 @@ export default function FitnessGoalPage() {
               </Card>
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm">Sleep</CardTitle>
-                  <CardDescription>Progress / target (h)</CardDescription>
+                  <CardTitle className="text-xs md:text-sm">Sleep</CardTitle>
+                  <CardDescription className="text-[11px] md:text-sm">Progress / target (h)</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-semibold">
+                  <div className="text-lg md:text-2xl font-semibold">
                     {(() => {
                       try {
                         const s = activePlan?.config.sleep?.startTime || '23:00'
@@ -296,11 +318,11 @@ export default function FitnessGoalPage() {
               </Card>
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm">Exercise</CardTitle>
-                  <CardDescription>Progress / target (kcal)</CardDescription>
+                  <CardTitle className="text-xs md:text-sm">Exercise</CardTitle>
+                  <CardDescription className="text-[11px] md:text-sm">Progress / target (kcal)</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-semibold">
+                  <div className="text-lg md:text-2xl font-semibold">
                     {(() => {
                       try {
                         const day = new Date().toISOString().slice(0,10)

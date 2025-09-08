@@ -469,10 +469,10 @@ export default function AccountPage() {
                   </div>
 
                   {/* Carousel/Gallery Layout */}
-                  <div className="overflow-x-auto">
-                    <div className={`flex gap-4 ${googleCalendarAccounts.length === 1 ? '' : 'pb-2'}`}>
+                  <div className="overflow-x-auto md:overflow-visible">
+                    <div className={`flex flex-col gap-4 md:flex-row ${googleCalendarAccounts.length === 1 ? '' : 'pb-2'}`}>
                       {googleCalendarAccounts.map((account) => (
-                        <div key={account.id} className="flex-shrink-0 w-80 p-4 border rounded-lg space-y-4 bg-card">
+                        <div key={account.id} className="flex-shrink-0 w-full md:w-80 p-4 border rounded-lg space-y-4 bg-card">
                           <div className="flex items-start justify-between">
                             <div className="flex items-center gap-3 flex-1">
                               <input
@@ -534,7 +534,7 @@ export default function AccountPage() {
 
                       {/* Add Account Card */}
                       {googleCalendarAccounts.length === 1 && (
-                        <div className="flex-shrink-0 w-80 p-4 border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center bg-muted/20 hover:bg-muted/30 transition-colors">
+                        <div className="flex-shrink-0 w-full md:w-80 p-4 border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center bg-muted/20 hover:bg-muted/30 transition-colors">
                           <Button
                             variant="ghost"
                             size="lg"

@@ -23,6 +23,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
+import { ContOnboardAlert } from '@/components/cont-onboard'
 
 type SyncState = 'idle' | 'syncing' | 'success' | 'error'
 
@@ -389,6 +390,7 @@ export default function WorkoutSpacesPage() {
           )}
         </div>
       </div>
+      <ContOnboardAlert />
     </div>
   )
 }

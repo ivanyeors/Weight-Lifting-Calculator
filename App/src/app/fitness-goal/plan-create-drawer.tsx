@@ -116,20 +116,20 @@ export function CreatePlanDrawer({ open, onOpenChange, userId, plan, onSaved }: 
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange} modal={false}>
-      <SheetContent side="right" className="w-[480px] sm:w-[560px] md:w-[640px] p-4">
+      <SheetContent side="right" className="w-full max-w-[100vw] sm:w-[560px] md:w-[640px] p-3 sm:p-4">
         <SheetHeader>
           <SheetTitle>Create Plan</SheetTitle>
           <SheetDescription>Select goals across pillars, then save</SheetDescription>
         </SheetHeader>
-        <div className="py-4 space-y-6">
+        <div className="py-3 sm:py-4 space-y-4 sm:space-y-6">
           <div className="space-y-2">
             <Label htmlFor="title">Title</Label>
             <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., 12-week cut" />
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             <div className="text-sm font-medium">Tracking plan</div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
               {(['food','water','sleep','exercise'] as PillarKey[]).map(k => (
                 <Checkbox key={k} variant="chip" checked={pillars[k]} onCheckedChange={() => toggle(k)}>
                   <span className="capitalize">{k}</span>
@@ -139,7 +139,7 @@ export function CreatePlanDrawer({ open, onOpenChange, userId, plan, onSaved }: 
           </div>
 
           {pillars.food && (
-            <div className="space-y-2 border rounded p-3">
+            <div className="space-y-2 border rounded p-2 sm:p-3">
               <div className="font-medium">Food</div>
               <Label htmlFor="targetWeight">Target Weight (kg)</Label>
               <Input id="targetWeight" type="number" value={foodTargetWeight} onChange={(e) => setFoodTargetWeight(e.target.value === '' ? '' : Number(e.target.value))} placeholder="e.g., 72" />
@@ -148,7 +148,7 @@ export function CreatePlanDrawer({ open, onOpenChange, userId, plan, onSaved }: 
           )}
 
           {pillars.water && (
-            <div className="space-y-2 border rounded p-3">
+            <div className="space-y-2 border rounded p-2 sm:p-3">
               <div className="font-medium">Water</div>
               <div className="space-y-2">
                 <Label>Recommended intake</Label>
@@ -165,7 +165,7 @@ export function CreatePlanDrawer({ open, onOpenChange, userId, plan, onSaved }: 
           )}
 
           {pillars.sleep && (
-            <div className="space-y-2 border rounded p-3">
+            <div className="space-y-2 border rounded p-2 sm:p-3">
               <div className="font-medium">Sleep</div>
               <Label>Preferred sleep window</Label>
               <div className="text-xs text-muted-foreground">Blocks will appear locally in calendar view</div>
@@ -173,7 +173,7 @@ export function CreatePlanDrawer({ open, onOpenChange, userId, plan, onSaved }: 
           )}
 
           {pillars.exercise && (
-            <div className="space-y-2 border rounded p-3">
+            <div className="space-y-2 border rounded p-2 sm:p-3">
               <div className="font-medium">Exercise</div>
               <Label htmlFor="physique">Target Body Physique</Label>
               <Select value={exercisePhysique} onValueChange={setExercisePhysique}>

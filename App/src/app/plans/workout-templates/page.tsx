@@ -11,6 +11,7 @@ import { useUserTier } from '@/hooks/use-user-tier'
 import { PanelLeft, PanelRight, Plus } from "lucide-react"
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabaseClient'
+import { ContOnboardAlert } from '@/components/cont-onboard'
 
 type SyncState = 'idle' | 'syncing' | 'success' | 'error'
 
@@ -280,6 +281,7 @@ export default function WorkoutTemplatesPage() {
         onOpenChange={setEditDrawerOpen}
         onSave={handleEditTemplate}
       />
+      <ContOnboardAlert />
     </div>
   )
 }

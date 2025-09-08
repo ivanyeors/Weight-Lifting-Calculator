@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from 'react'
 import { UserSwitcher } from '@/components/ui/user-switcher'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { NutritionProvider } from '@/lib/nutrition/store'
@@ -8,6 +9,16 @@ import { RecipeCards } from './RecipeCards'
 // import removed: WeeklyPlanner was deleted
 
 export default function PlansNutritionPage() {
+  // Mark nutrition page as visited for onboarding progress
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hasVisited = localStorage.getItem('fitspo:nutrition_page_visited')
+      if (!hasVisited) {
+        localStorage.setItem('fitspo:nutrition_page_visited', 'true')
+        window.dispatchEvent(new CustomEvent('fitspo:nutrition_page_visited'))
+      }
+    }
+  }, [])
   return (
     <NutritionProvider>
       <div className="p-6 grid gap-4">
