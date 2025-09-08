@@ -15,6 +15,7 @@ import {
   SidebarMenuButton,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { useIsMobile } from "@/hooks/use-mobile"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,9 +54,10 @@ export function AppSidebar() {
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false)
   const [currentPlan, setCurrentPlan] = useState<string>('Free')
   const { theme, resolvedTheme } = useTheme()
-  const { state } = useSidebar()
+  const { state, toggleSidebar } = useSidebar()
   const pathname = usePathname()
   const [fitnessGoalLabel, setFitnessGoalLabel] = useState<{ text: string; className: string } | null>(null)
+  const isMobile = useIsMobile()
   const teams = [
     { name: 'Fitspo', logo: AppWindow, plan: currentPlan },
     { name: 'Gym Team', logo: Dumbbell, plan: 'Pro' },
@@ -208,7 +210,7 @@ export function AppSidebar() {
                   <h2 className="text-base font-semibold">Fitspo</h2>
                 </div>
               </div>
-              <SidebarTrigger className="h-8 w-8 p-0" />
+              {!isMobile && <SidebarTrigger className="h-8 w-8 p-0" />}
             </div>
             <div className="mt-2 hidden">
               <TeamSwitcher teams={teams} />
@@ -355,7 +357,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      {state === 'collapsed' ? null : (
+      {state === 'collapsed' && !isMobile ? null : (
         <SidebarFooter className="p-2">
           {user ? (
             <DropdownMenu>
@@ -467,6 +469,8 @@ export function AppSidebar() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Mobile dock moved to global layout */}
     </Sidebar>
   )
 }
