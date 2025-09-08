@@ -174,7 +174,7 @@ export default function AccountPage() {
       // Ensure confirmation email redirects back to our app callback, then back to Account tab
       const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/')
       const redirectTo = typeof window !== 'undefined'
-        ? `${window.location.origin}${base}auth/callback?next=${encodeURIComponent(`${base}account?tab=account`)}`
+        ? `${window.location.origin}${base}auth/callback/?next=${encodeURIComponent(`${base}account?tab=account`)}`
         : undefined
 
       const { error } = await supabase.auth.updateUser(

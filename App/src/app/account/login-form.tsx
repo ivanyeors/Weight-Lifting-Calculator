@@ -37,11 +37,8 @@ export function LoginForm({
     try {
       if (mode === 'reset') {
         const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/');
-        // Use production domain for email redirects in production
-        const isProduction = process.env.NODE_ENV === 'production' || window.location.hostname !== 'localhost';
-        const redirectTo = isProduction
-          ? `https://fitspo.space${base}auth/callback`
-          : `${window.location.origin}${base}auth/callback`;
+        const origin = window.location.origin
+        const redirectTo = `${origin}${base}auth/callback/`;
 
         const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo,
@@ -59,11 +56,8 @@ export function LoginForm({
         onSuccess?.()
       } else {
         const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/');
-        // Use production domain for email redirects in production
-        const isProduction = process.env.NODE_ENV === 'production' || window.location.hostname !== 'localhost';
-        const redirectTo = isProduction
-          ? `https://fitspo.space${base}auth/callback`
-          : `${window.location.origin}${base}auth/callback`;
+        const origin = window.location.origin
+        const redirectTo = `${origin}${base}auth/callback/`;
 
         const { error: signUpError, data } = await supabase.auth.signUp({
           email,
@@ -173,11 +167,8 @@ export function LoginForm({
                       onClick={async () => {
                         sessionStorage.setItem('postAuthRedirectTo', window.location.pathname + window.location.search)
                         const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/');
-                        // Use production domain for OAuth redirect in production
-                        const isProduction = process.env.NODE_ENV === 'production' || window.location.hostname !== 'localhost';
-                        const redirectUrl = isProduction
-                          ? `https://fitspo.space${base}auth/callback`
-                          : `${window.location.origin}${base}auth/callback`;
+                        const origin = window.location.origin
+                        const redirectUrl = `${origin}${base}auth/callback/`.replace(/\/+$/, '/');
 
                         await supabase.auth.signInWithOAuth({
                           provider: 'google',
