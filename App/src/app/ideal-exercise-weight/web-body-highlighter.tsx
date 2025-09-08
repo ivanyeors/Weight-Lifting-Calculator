@@ -559,7 +559,7 @@ export function WebBodyHighlighter({ muscleGroups, exerciseName, selectedExercis
                       align="start"
                       side="bottom"
                       sideOffset={6}
-                      contentClassName="min-w-[400px]"
+                      contentClassName="min-w-[280px] sm:min-w-[400px]"
                     />
                   </div>
                 )}

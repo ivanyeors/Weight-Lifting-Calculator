@@ -954,7 +954,7 @@ export default function ExerciseLibraryPage() {
 
       {/* Statistics Drawer */}
       <Drawer open={isStatsOpen} onOpenChange={setIsStatsOpen} direction="right">
-        <DrawerContent className="data-[vaul-drawer-direction=right]:!w-1/2 data-[vaul-drawer-direction=right]:!max-w-none">
+        <DrawerContent className="data-[vaul-drawer-direction=right]:!w-[80vw] data-[vaul-drawer-direction=right]:!max-w-none lg:data-[vaul-drawer-direction=right]:!w-1/2">
           <div className="flex flex-col h-full">
             <DrawerHeader className="pb-0">
               <div className="flex items-center justify-between">
@@ -1108,7 +1108,7 @@ function ExerciseDetailDrawer({ open, onOpenChange, exercise, isPaidTier }: { op
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange} direction="right">
-      <DrawerContent className="data-[vaul-drawer-direction=right]:!w-1/2 data-[vaul-drawer-direction=right]:!max-w-none">
+      <DrawerContent className="data-[vaul-drawer-direction=right]:!w-[80vw] data-[vaul-drawer-direction=right]:!max-w-none lg:data-[vaul-drawer-direction=right]:!w-1/2">
         <div className="flex flex-col h-full">
           <DrawerHeader className="pb-0">
             <DrawerTitle className="text-xl">{exercise.name}</DrawerTitle>
