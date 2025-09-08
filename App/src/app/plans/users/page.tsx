@@ -33,7 +33,13 @@ type ManagedUser = {
 
 export default function PlansUsersPage() {
   const [syncStatus, setSyncStatus] = useState<SyncState>('idle')
-  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    // Default to collapsed on mobile/tablet, expanded on desktop
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 1024; // lg breakpoint
+    }
+    return true; // Default to collapsed on server-side
+  })
   const [users, setUsers] = useState<ManagedUser[]>([])
   const defaultNewUser = (): ManagedUserForm => ({
     name: '', bodyWeight: null, height: null, age: null,

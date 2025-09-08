@@ -242,14 +242,14 @@ export default function WorkoutSpacesPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="flex-1">
           <h1 className="text-2xl font-semibold">Workout Spaces</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Create spaces to manage your exercises based on the available equipment available.
           </p>
         </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground sm:justify-end">
           {getSyncIcon()}
           <span>
             {syncStatus === 'syncing' && 'Syncing...'}
@@ -312,7 +312,7 @@ export default function WorkoutSpacesPage() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Equipment in this space</label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-2 max-h-[360px] overflow-y-auto overflow-x-visible pr-4 px-2 pt-2 pb-2 mt-2" style={{ scrollbarGutter: 'stable' }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-2 px-2 pt-2 pb-2 mt-2">
                 {equipment.map((eq) => (
                   <Checkbox
                     key={eq.id}

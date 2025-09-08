@@ -682,17 +682,15 @@ export default function AccountPage() {
         </TabsContent>
 
         <TabsContent value="billing" className="space-y-6">
-          <Card id="plans">
-            <CardHeader>
-              <CardTitle>Plans</CardTitle>
-              <CardDescription>
+          <div id="plans" className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-semibold tracking-tight">Plans</h2>
+              <p className="text-sm text-muted-foreground">
                 Manage your subscription. Current plan: {currentPlan}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <PricingPlansClient plans={plans} />
-            </CardContent>
-            <CardFooter className="flex gap-3">
+              </p>
+            </div>
+            <PricingPlansClient plans={plans} />
+            <div className="flex flex-col sm:flex-row gap-3">
               <Button
                 disabled={!hasPaidPlan}
                 onClick={async () => {
@@ -729,8 +727,8 @@ export default function AccountPage() {
                   : null
                 setCurrentPlan(uPlan || lsPlan || 'Free')
               }}>Refresh status</Button>
-            </CardFooter>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="data" className="space-y-6">

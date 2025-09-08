@@ -9,6 +9,9 @@ import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { AnimatedBeam } from '@/components/ui/shadcn-io/animated-beam'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { FlickeringGrid } from '@/components/ui/shadcn-io/flickering-grid'
+import { LoginForm } from '@/app/account/login-form'
 import {
   CheckCircle,
   Circle,
@@ -51,6 +54,35 @@ export default function OnboardingPage() {
   const router = useRouter()
   const { user: selectedUser } = useSelectedUser()
   const { isAuthenticated: isGoogleCalendarConnected } = useGoogleCalendar()
+
+  // Authentication state
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isLoginOpen, setIsLoginOpen] = useState(false)
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        setIsAuthenticated(!!session?.user)
+      } catch (error) {
+        console.error('Error checking auth status:', error)
+        setIsAuthenticated(false)
+      }
+    }
+
+    checkAuth()
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session?.user)
+      if (session?.user && isLoginOpen) {
+        setIsLoginOpen(false)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [isLoginOpen])
 
   // Refs for animated beam
   const containerRef = useRef<HTMLDivElement>(null)
@@ -200,6 +232,46 @@ export default function OnboardingPage() {
   useEffect(() => {
     const checkStatuses = async () => {
       try {
+        // For unauthenticated users, set everything to false
+        if (!isAuthenticated) {
+          setUsersCount(0)
+          setSpacesCount(0)
+          setTemplatesCount(0)
+
+          setSteps(prev => prev.map((step: OnboardingStep) => {
+            let status: StepStatus = 'pending'
+
+            switch (step.id) {
+              case 'user-profile':
+                status = 'in-progress'
+                break
+              case 'workout-space':
+                status = 'disabled'
+                break
+              case 'workout-template':
+                status = 'disabled'
+                break
+              case 'google-calendar':
+                status = 'pending'
+                break
+              case 'workout-sessions':
+                status = 'disabled'
+                break
+              case 'nutrition-recipes':
+                status = 'disabled'
+                break
+              case 'fitness-goals':
+                status = 'disabled'
+                break
+            }
+
+            return { ...step, status }
+          }))
+
+          return
+        }
+
+        // Only query database for authenticated users
         // Check users
         const { data: users } = await supabase
           .from('managed_users')
@@ -272,7 +344,7 @@ export default function OnboardingPage() {
       window.removeEventListener('fitspo:selected_user_changed', handleChange)
       window.removeEventListener('storage', handleChange)
     }
-  }, [selectedUser, isGoogleCalendarConnected])
+  }, [selectedUser, isGoogleCalendarConnected, isAuthenticated])
 
   // Auto-update section expansion when steps change
   useEffect(() => {
@@ -323,6 +395,20 @@ export default function OnboardingPage() {
         return <Settings className="w-4 h-4" />
     }
   }
+
+  // Handle step navigation with authentication check
+  const handleStepClick = useCallback((path?: string, status?: StepStatus) => {
+    if (!path || status === 'disabled') return
+
+    if (!isAuthenticated) {
+      // Store the intended destination for after login
+      sessionStorage.setItem('postAuthRedirectTo', path)
+      setIsLoginOpen(true)
+    } else {
+      // User is authenticated, proceed with navigation
+      router.push(path)
+    }
+  }, [isAuthenticated, router])
 
 
   const completedSteps = steps.filter(s => s.status === 'completed').length
@@ -400,7 +486,7 @@ export default function OnboardingPage() {
         </div>
 
         {/* Steps by Category */}
-        <div ref={containerRef} className="max-w-6xl mx-auto relative overflow-visible min-h-[600px] px-4 sm:px-8 md:px-12 lg:px-16 space-y-16">
+        <div ref={containerRef} className="max-w-6xl mx-auto relative overflow-visible min-h-[600px] px-0 space-y-16">
           {Object.entries(stepsByCategory).map(([category, categorySteps], index) => (
             <Collapsible
               key={category}
@@ -481,7 +567,7 @@ export default function OnboardingPage() {
                                   variant={step.status === 'completed' ? 'secondary' : 'default'}
                                   size="sm"
                                   disabled={step.status === 'disabled'}
-                                  onClick={() => step.path && router.push(step.path)}
+                                  onClick={() => handleStepClick(step.path, step.status)}
                                   className="flex items-center gap-2 cursor-pointer"
                                 >
                                   {step.icon}
@@ -588,7 +674,7 @@ export default function OnboardingPage() {
                 {totalSteps - completedSteps} step{totalSteps - completedSteps !== 1 ? 's' : ''} remaining
               </p>
               <Button
-                onClick={() => router.push('/plans/workout-plans')}
+                onClick={() => handleStepClick('/plans/workout-plans', completedSteps >= totalSteps ? 'in-progress' : 'disabled')}
                 disabled={completedSteps < totalSteps}
                 variant="outline"
                 className="w-full cursor-pointer"
@@ -613,6 +699,38 @@ export default function OnboardingPage() {
           )}
         </div>
       </div>
+
+      {/* Login Modal */}
+      <Sheet open={isLoginOpen} onOpenChange={setIsLoginOpen}>
+        <SheetContent
+          side="bottom"
+          animation="fade"
+          className="p-0 inset-0 w-screen sm:h-dvh h-svh max-w-none rounded-none border-0 [&_[data-slot=sheet-close]]:z-[60]"
+          overlayClassName="!bg-transparent"
+        >
+          <SheetHeader className="sr-only">
+            <SheetTitle>Sign In</SheetTitle>
+          </SheetHeader>
+          {/* Full-screen flickering grid background */}
+          <div className="absolute inset-0 z-0 pointer-events-none">
+            <FlickeringGrid
+              squareSize={4}
+              gridGap={6}
+              flickerChance={0.3}
+              color="#283DFF"
+              maxOpacity={0.6}
+              className="w-full h-full opacity-80"
+            />
+          </div>
+
+          {/* Content overlay */}
+          <div className="absolute inset-x-0 top-16 bottom-0 z-10 flex min-h-full flex-col items-center justify-center p-6 md:p-10">
+            <div className="w-full max-w-sm md:max-w-3xl">
+              <LoginForm onSuccess={() => setIsLoginOpen(false)} />
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }
