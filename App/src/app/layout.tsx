@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/sonner"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/app/app-sidebar"
 import { MobileDock } from "@/app/(globals)/mobile-dock"
+import { AuthCallbackHandler } from "@/auth/AuthCallbackHandler"
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -42,16 +43,18 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <SidebarProvider style={{ "--sidebar-width": "14rem" } as CSSProperties}>
-            <AppSidebar />
-            <SidebarInset>
-              {children}
-            </SidebarInset>
-            {/* Global mobile dock so it's persistent across navigation */}
-            <MobileDock />
-          </SidebarProvider>
-          <Toaster />
-          <Analytics />
+          <AuthCallbackHandler>
+            <SidebarProvider style={{ "--sidebar-width": "14rem" } as CSSProperties}>
+              <AppSidebar />
+              <SidebarInset>
+                {children}
+              </SidebarInset>
+              {/* Global mobile dock so it's persistent across navigation */}
+              <MobileDock />
+            </SidebarProvider>
+            <Toaster />
+            <Analytics />
+          </AuthCallbackHandler>
         </ThemeProvider>
       </body>
     </html>
