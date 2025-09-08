@@ -182,11 +182,12 @@ export default function OnboardingPage() {
     goals: false
   })
 
-  const toggleSection = (section: string) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }))
+  // Track user-initiated overrides so auto logic doesn't fight the user
+  const [sectionOpenOverrides, setSectionOpenOverrides] = useState<Record<string, boolean>>({})
+
+  const handleSectionOpenChange = (category: string, open: boolean) => {
+    setExpandedSections(prev => ({ ...prev, [category]: open }))
+    setSectionOpenOverrides(prev => ({ ...prev, [category]: open }))
   }
 
   // Auto-manage section expansion based on completion status
@@ -195,6 +196,12 @@ export default function OnboardingPage() {
     const newExpandedSections = { ...expandedSections }
 
     categoryOrder.forEach((category, index) => {
+      // Respect user override for this category
+      if (sectionOpenOverrides[category] !== undefined) {
+        newExpandedSections[category] = sectionOpenOverrides[category]
+        return
+      }
+
       const categorySteps = currentSteps.filter(step => step.category === category)
       const totalSteps = categorySteps.filter(step => !step.isOptional).length
       const completedSteps = categorySteps.filter(step => step.status === 'completed' && !step.isOptional).length
@@ -226,7 +233,7 @@ export default function OnboardingPage() {
     if (JSON.stringify(newExpandedSections) !== JSON.stringify(expandedSections)) {
       setExpandedSections(newExpandedSections)
     }
-  }, [expandedSections])
+  }, [expandedSections, sectionOpenOverrides])
 
   // Check completion status for each step
   useEffect(() => {
@@ -293,6 +300,15 @@ export default function OnboardingPage() {
         const hasTemplates = (templates?.length || 0) > 0
         setTemplatesCount(templates?.length || 0)
 
+        // Check workout sessions
+        const { data: sessions } = await supabase
+          .from('workout_sessions')
+          .select('id')
+        const hasSessions = (sessions?.length || 0) > 0
+
+        // Check nutrition page visits
+        const nutritionVisited = typeof window !== 'undefined' ? localStorage.getItem('fitspo:nutrition_page_visited') === 'true' : false
+
         // Update step statuses
         setSteps(prev => {
           const updatedSteps = prev.map((step: OnboardingStep) => {
@@ -312,10 +328,10 @@ export default function OnboardingPage() {
                 status = isGoogleCalendarConnected ? 'completed' : 'pending'
                 break
               case 'workout-sessions':
-                status = hasTemplates ? 'in-progress' : 'disabled'
+                status = hasTemplates ? (hasSessions ? 'completed' : 'in-progress') : 'disabled'
                 break
               case 'nutrition-recipes':
-                status = hasUsers ? 'in-progress' : 'disabled'
+                status = hasUsers ? (nutritionVisited ? 'completed' : 'in-progress') : 'disabled'
                 break
               case 'fitness-goals':
                 status = (hasUsers && hasTemplates) ? 'in-progress' : 'disabled'
@@ -339,10 +355,14 @@ export default function OnboardingPage() {
     const handleChange = () => checkStatuses()
     window.addEventListener('fitspo:selected_user_changed', handleChange)
     window.addEventListener('storage', handleChange)
+    window.addEventListener('fitspo:workout_session_created', handleChange)
+    window.addEventListener('fitspo:nutrition_page_visited', handleChange)
 
     return () => {
       window.removeEventListener('fitspo:selected_user_changed', handleChange)
       window.removeEventListener('storage', handleChange)
+      window.removeEventListener('fitspo:workout_session_created', handleChange)
+      window.removeEventListener('fitspo:nutrition_page_visited', handleChange)
     }
   }, [selectedUser, isGoogleCalendarConnected, isAuthenticated])
 
@@ -411,9 +431,11 @@ export default function OnboardingPage() {
   }, [isAuthenticated, router])
 
 
-  const completedSteps = steps.filter(s => s.status === 'completed').length
-  const totalSteps = steps.filter(s => !s.isOptional).length
-  const progressPercentage = (completedSteps / totalSteps) * 100
+  // Progress counts only required steps (ignore optional)
+  const requiredSteps = steps.filter(s => !s.isOptional)
+  const completedRequiredSteps = requiredSteps.filter(s => s.status === 'completed').length
+  const totalRequiredSteps = requiredSteps.length
+  const progressPercentage = (completedRequiredSteps / Math.max(totalRequiredSteps, 1)) * 100
 
   const stepsByCategory = steps.reduce((acc, step) => {
     if (!acc[step.category]) acc[step.category] = []
@@ -423,7 +445,7 @@ export default function OnboardingPage() {
 
   // Auto-redirect when onboarding is complete
   useEffect(() => {
-    if (completedSteps >= totalSteps) {
+    if (completedRequiredSteps >= totalRequiredSteps && totalRequiredSteps > 0) {
       // Mark onboarding as complete
       localStorage.setItem('fitspo:onboarding_complete', 'true')
       localStorage.setItem('fitspo:onboarding_completed_at', new Date().toISOString())
@@ -435,7 +457,7 @@ export default function OnboardingPage() {
 
       return () => clearTimeout(timer)
     }
-  }, [completedSteps, totalSteps, router])
+  }, [completedRequiredSteps, totalRequiredSteps, router])
 
   return (
     <div className="min-h-screen bg-card">
@@ -457,7 +479,7 @@ export default function OnboardingPage() {
                 {Math.round(progressPercentage)}%
               </div>
               <div className="text-sm text-muted-foreground">
-                {completedSteps} of {totalSteps} steps completed
+                {completedRequiredSteps} of {totalRequiredSteps} steps completed
               </div>
             </div>
 
@@ -491,7 +513,7 @@ export default function OnboardingPage() {
             <Collapsible
               key={category}
               open={expandedSections[category]}
-              onOpenChange={() => toggleSection(category)}
+              onOpenChange={(open) => handleSectionOpenChange(category, open)}
             >
               <div
                 ref={
@@ -650,7 +672,7 @@ export default function OnboardingPage() {
 
         {/* Footer */}
         <div className="text-center mt-12 max-w-md mx-auto">
-          {completedSteps >= totalSteps ? (
+          {completedRequiredSteps >= totalRequiredSteps ? (
             <div className="space-y-4">
               <div className="flex items-center justify-center gap-3">
                 <Award className="w-5 h-5 text-primary" />
@@ -666,35 +688,20 @@ export default function OnboardingPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="flex items-center justify-center gap-3">
-                <Sparkles className="w-5 h-5 text-primary" />
-                <h3 className="text-base font-semibold text-foreground">Ready to Start?</h3>
-              </div>
-              <p className="text-muted-foreground text-sm">
-                {totalSteps - completedSteps} step{totalSteps - completedSteps !== 1 ? 's' : ''} remaining
-              </p>
               <Button
-                onClick={() => handleStepClick('/plans/workout-plans', completedSteps >= totalSteps ? 'in-progress' : 'disabled')}
-                disabled={completedSteps < totalSteps}
-                variant="outline"
-                className="w-full cursor-pointer"
-              >
-                Start Your Fitness Journey
-              </Button>
-              {process.env.NODE_ENV === 'development' && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  try {
                     localStorage.removeItem('fitspo:onboarding_complete')
                     localStorage.removeItem('fitspo:onboarding_completed_at')
-                    window.location.reload()
-                  }}
-                  className="w-full text-xs text-muted-foreground cursor-pointer"
-                >
-                  Reset Onboarding
-                </Button>
-              )}
+                  } catch {}
+                  try { window.location.reload() } catch {}
+                }}
+                className="w-full text-xs text-muted-foreground cursor-pointer"
+              >
+                Reset Onboarding
+              </Button>
             </div>
           )}
         </div>

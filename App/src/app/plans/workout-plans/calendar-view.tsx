@@ -176,7 +176,13 @@ export function CalendarView({
   const [workoutSpaces, setWorkoutSpaces] = useState<{ id: string; name: string }[]>([])
 
 
-  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(hideSidebar)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    // Default to collapsed on mobile/tablet
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 1024 // lg breakpoint
+    }
+    return hideSidebar
+  })
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [drawerMode, setDrawerMode] = useState<'view' | 'create' | 'edit'>('view')
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
@@ -1866,6 +1872,11 @@ export function CalendarView({
 
       const stored: CalendarEvent = { ...platformEvent, id: newId }
       setEvents(prev => prev.map(e => e.id === platformEvent.id ? stored : e).concat(prev.every(e => e.id !== platformEvent.id) ? [stored] : []))
+
+      // Trigger onboarding update for workout session completion
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('fitspo:workout_session_created'))
+      }
     } catch (e) {
       console.error('Failed to persist workout session', e)
       // Fallback to local insert to avoid UX loss
@@ -2156,7 +2167,7 @@ export function CalendarView({
               </div>
             )}
 
-            <Button 
+            <Button
               onClick={() => {
                 const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/')
                 if (typeof window !== 'undefined') {
@@ -2164,11 +2175,12 @@ export function CalendarView({
                 }
               }}
               variant="outline"
-              className="flex items-center gap-2"
+              size="icon"
+              className="h-9 w-9"
               disabled={isGoogleCalendarLoading}
+              title={isGoogleCalendarLoading ? 'Loading...' : isGoogleCalendarConnected ? 'Add account' : 'Connect'}
             >
               <CalendarIcon className="w-4 h-4" />
-              {isGoogleCalendarLoading ? 'Loading...' : isGoogleCalendarConnected ? 'Add account' : 'Connect'}
             </Button>
             <Button 
               onClick={handleAddEvent}
