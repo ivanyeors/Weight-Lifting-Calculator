@@ -116,6 +116,7 @@ export function AppSidebar() {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('fitspo:onboarding_complete');
         localStorage.removeItem('fitspo:onboarding_completed_at');
+        localStorage.removeItem('fitspo:selected_user_id');
       }
     } finally {
       const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/');
