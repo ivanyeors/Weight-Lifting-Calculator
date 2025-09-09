@@ -192,7 +192,16 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar
+      collapsible="icon"
+      className={`transition-transform duration-300 ease-in-out ${
+        isMobile && state === 'expanded'
+          ? 'transform translate-x-0'
+          : isMobile && state === 'collapsed'
+          ? 'transform -translate-x-full'
+          : ''
+      }`}
+    >
       <SidebarHeader className="p-2">
         {state === 'collapsed' ? (
           <div className="flex flex-col items-center gap-2">
