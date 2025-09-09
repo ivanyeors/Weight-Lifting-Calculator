@@ -1,7 +1,8 @@
 "use client"
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { 
+import { useRouter } from 'next/navigation'
+import {
   Card,
   CardHeader,
   CardTitle,
@@ -11,18 +12,24 @@ import {
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { supabase } from '@/lib/supabaseClient'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { BadgeCheck } from 'lucide-react'
+import { LoginForm } from '@/app/account/login-form'
+import { FlickeringGrid } from '@/components/ui/shadcn-io/flickering-grid'
 import type { Plan } from '@/lib/plans'
 
 // Use shared `Plan` type from `lib/plans`
 
 export function PricingPlansClient({ plans }: { plans: Plan[] }) {
+  const router = useRouter()
   const [currentPlan, setCurrentPlan] = useState<string>('Free')
   const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly')
   const [userId, setUserId] = useState<string | null>(null)
   const [email, setEmail] = useState<string | null>(null)
+  const [isLoginOpen, setIsLoginOpen] = useState(false)
 
   useEffect(() => {
     let unsub: (() => void) | null = null
@@ -78,17 +85,22 @@ export function PricingPlansClient({ plans }: { plans: Plan[] }) {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-      <div className="md:col-span-2 lg:col-span-3 flex items-center justify-end gap-3">
-        <Tabs value={billing} onValueChange={(v) => setBilling((v as 'monthly' | 'annual'))}>
-          <TabsList>
-            <TabsTrigger value="monthly">Monthly</TabsTrigger>
-            <TabsTrigger value="annual">Annually</TabsTrigger>
-          </TabsList>
-        </Tabs>
-        <Label className="text-xs text-green-600 whitespace-nowrap">save 40% annually</Label>
-      </div>
-      {plans.map((plan) => {
+    <div className="flex flex-col gap-16 text-center">
+      <div className="flex flex-col items-center justify-center gap-8">
+        <div className="flex flex-col items-center justify-center gap-8">
+          <Tabs value={billing} onValueChange={(v) => setBilling((v as 'monthly' | 'annual'))}>
+            <TabsList>
+              <TabsTrigger value="monthly">Monthly</TabsTrigger>
+              <TabsTrigger value="annual">
+                Annually
+                <Badge variant="secondary" className="ml-2">save 40%</Badge>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+        <div className="w-full">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {plans.map((plan) => {
         const isCurrent = plan.name.toLowerCase() === currentPlan.toLowerCase()
         const display = getDisplayPrice(plan)
         const isFree = plan.price.toLowerCase() === 'free'
@@ -100,16 +112,18 @@ export function PricingPlansClient({ plans }: { plans: Plan[] }) {
         const shouldShowSwitchCta = isUserOnHighestPlan && (plan.name === 'Personal' || plan.name === 'Free') && !isCurrent
         const ctaLabel = shouldShowSwitchCta ? 'Switch plan' : plan.cta
         return (
-          <Card key={plan.name} className={(plan.highlighted ? 'border-primary/50 shadow-md bg-gradient-to-b from-primary/5 to-card ' : '') + 'flex h-full flex-col'}>
+          <Card key={plan.name} className={(plan.highlighted ? 'ring-2 ring-primary border-primary/50 shadow-md bg-gradient-to-b from-primary/5 to-card ' : '') + 'relative flex h-full flex-col'}>
+            {plan.highlighted && (
+              <Badge className="-translate-x-1/2 -translate-y-1/2 absolute top-0 left-1/2 rounded-full bg-primary text-primary-foreground">
+                Most popular
+              </Badge>
+            )}
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div>
                   <CardTitle className="text-xl">{plan.name}</CardTitle>
                 </div>
                 <div className="flex gap-2">
-                  {plan.highlighted && (
-                    <Badge>Most popular</Badge>
-                  )}
                   {isCurrent && (
                     <Badge variant="secondary">Current plan</Badge>
                   )}
@@ -126,37 +140,91 @@ export function PricingPlansClient({ plans }: { plans: Plan[] }) {
                   <span className="text-muted-foreground">{display.period}</span>
                 </div>
               </div>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                {plan.features.map((f) => (
-                  <li key={f} className="flex items-start gap-2">
-                    <span className="mt-1 size-1.5 rounded-full bg-primary/70" />
+              <div className="space-y-2">
+                {plan.features.map((f, index) => (
+                  <div
+                    className="flex items-center gap-2 text-muted-foreground text-sm"
+                    key={index}
+                  >
+                    <BadgeCheck className="h-4 w-4 text-primary flex-shrink-0" />
                     <span>{f}</span>
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </CardContent>
             <CardFooter className="mt-auto">
               {isCurrent ? (
                 <Button className="w-full" variant="outline" disabled>
                   Current plan
                 </Button>
+              ) : !userId ? (
+                /* User not signed in - show login modal */
+                <Button
+                  className="w-full"
+                  variant={plan.highlighted ? "default" : "secondary"}
+                  onClick={() => setIsLoginOpen(true)}
+                >
+                  Select Plan
+                </Button>
               ) : (
-                <>
-                  {!isFree && !userId ? (
-                    <Button className="w-full" asChild>
-                      <Link href={`/account?tab=billing`}>Sign in to subscribe</Link>
-                    </Button>
-                  ) : (
-                    <Button className="w-full" asChild>
-                      <Link href={hrefWithParams}>{ctaLabel}</Link>
-                    </Button>
-                  )}
-                </>
+                /* User signed in - use actual Stripe links or redirect to account for free */
+                <Button
+                  className="w-full"
+                  variant={plan.highlighted ? "default" : "secondary"}
+                  asChild
+                >
+                  <a href={isFree ? '/account?tab=billing' : hrefWithParams}>
+                    {isFree ? 'Manage Plan' : 'Select Plan'}
+                  </a>
+                </Button>
               )}
             </CardFooter>
           </Card>
         )
       })}
+          </div>
+        </div>
+      </div>
+
+      {/* Login Modal */}
+      <Sheet open={isLoginOpen} onOpenChange={setIsLoginOpen}>
+        <SheetContent
+          side="bottom"
+          animation="fade"
+          className="p-0 inset-0 w-screen sm:h-dvh h-svh max-w-none rounded-none border-0 [&_[data-slot=sheet-close]]:z-[60]"
+          overlayClassName="!bg-transparent"
+        >
+          <SheetHeader className="sr-only">
+            <SheetTitle>Sign In</SheetTitle>
+          </SheetHeader>
+          {/* Full-screen flickering grid background */}
+          <div className="absolute inset-0 z-0 pointer-events-none">
+            <FlickeringGrid
+              squareSize={4}
+              gridGap={6}
+              flickerChance={0.3}
+              color="#283DFF"
+              maxOpacity={0.6}
+              className="w-full h-full opacity-80"
+            />
+          </div>
+
+          {/* Content overlay */}
+          <div className="absolute inset-x-0 top-4 bottom-0 z-10 flex min-h-full flex-col items-center justify-center p-6 md:p-10">
+            <div className="w-full max-w-sm md:max-w-3xl">
+              <LoginForm
+                onSuccess={() => {
+                  setIsLoginOpen(false)
+                  // After successful login, redirect to account page with billing tab
+                  setTimeout(() => {
+                    router.push('/account?tab=billing')
+                  }, 100)
+                }}
+              />
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }
