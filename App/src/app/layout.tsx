@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import { Analytics } from "@vercel/analytics/next"
-import { GoogleAnalytics } from '@next/third-parties/google'
 import { GoogleTagManager } from "@next/third-parties/google"
 import Script from 'next/script'
 import '../index.css'
@@ -55,7 +54,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || 'G-6P9R4044ZG'} />
         <ConsentDefaults />
         {gtmId ? <GoogleTagManager gtmId={gtmId} /> : null}
         {gaId ? (
