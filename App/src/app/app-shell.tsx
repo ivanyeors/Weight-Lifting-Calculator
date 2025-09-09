@@ -8,8 +8,9 @@ import { MobileDock } from "@/app/(globals)/mobile-dock"
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const normalizedPath = (pathname || "").replace(/\/+$/, "") || "/"
 
-  if (pathname === "/home") {
+  if (normalizedPath === "/home") {
     return <>{children}</>
   }
 

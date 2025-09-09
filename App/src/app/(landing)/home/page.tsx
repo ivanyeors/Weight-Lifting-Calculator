@@ -9,6 +9,7 @@ import { FlickeringGrid } from '@/components/ui/shadcn-io/flickering-grid'
 import { LoginForm } from '@/app/account/login-form'
 import { useTheme } from 'next-themes'
 import { supabase } from '@/lib/supabaseClient'
+import { HomeFooter } from './home-footer'
 import {
   Calculator,
   MapPin,
@@ -346,6 +347,7 @@ export default function HomePage() {
           </div>
         </SheetContent>
       </Sheet>
+      <HomeFooter />
     </div>
   )
 }
