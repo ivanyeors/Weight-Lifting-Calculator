@@ -1,6 +1,51 @@
+"use client"
+
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { ArrowLeft } from 'lucide-react'
+import { Navbar01 } from '@/components/ui/shadcn-io/navbar-01'
+import { useTheme } from 'next-themes'
+
 export default function PrivacyPage() {
+  const router = useRouter()
+  const { theme, resolvedTheme } = useTheme()
+
   return (
-    <div className="mx-auto max-w-4xl px-6 py-16">
+    <div className="min-h-screen bg-background">
+      {/* Navbar */}
+      <Navbar01
+        logo={
+          <img
+            src={(resolvedTheme || theme) === 'dark' ? '/logo-dark.svg' : '/logo-light.svg'}
+            alt="Fitspo Logo"
+            className="h-8 w-8"
+          />
+        }
+        logoHref="/home"
+        navigationLinks={[
+          { href: '/fitspo-app', label: 'App' },
+          { href: '/home#platform', label: 'Platform' },
+        ]}
+        signInText="Sign In"
+        signInHref="/home"
+        ctaText="Get Started"
+        ctaHref="/home"
+        onSignInClick={() => router.push('/home')}
+        onCtaClick={() => router.push('/home')}
+      />
+
+      <div className="mx-auto max-w-4xl px-6 py-16">
+      <div className="mb-6">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => router.back()}
+          className="mb-4"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
+        </Button>
+      </div>
       <h1 className="text-3xl font-bold tracking-tight text-foreground">Privacy Policy</h1>
       <div className="mt-6 space-y-6 text-sm leading-relaxed">
         <div>
@@ -129,6 +174,7 @@ export default function PrivacyPage() {
           <p className="text-xs text-muted-foreground">Last updated: {new Date().toLocaleDateString()}</p>
         </div>
       </div>
+    </div>
     </div>
   )
 }
