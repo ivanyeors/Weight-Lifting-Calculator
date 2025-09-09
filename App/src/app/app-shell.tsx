@@ -10,7 +10,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const normalizedPath = (pathname || "").replace(/\/+$/, "") || "/"
 
-  if (normalizedPath === "/home") {
+  if (normalizedPath === "/home" || normalizedPath === "/home/privacy" || normalizedPath === "/home/terms") {
     return <>{children}</>
   }
 
