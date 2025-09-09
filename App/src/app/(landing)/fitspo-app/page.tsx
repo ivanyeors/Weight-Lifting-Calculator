@@ -9,15 +9,74 @@ import heroImg from "@/assets/fitspoapp-promo/hero-img.png"
 import { Navbar01 } from "@/components/ui/shadcn-io/navbar-01"
 import { useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
+import { supabase } from "@/lib/supabaseClient"
+import { useState } from "react"
 
 export default function FitspoAppPage() {
   const router = useRouter()
   const { theme, resolvedTheme } = useTheme()
+  const [email, setEmail] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleRegisterInterest = () => {
-    toast.success("Thank you for your interest! We'll notify you when Fitspo App launches.", {
-      duration: 4000,
-    })
+  const handleRegisterInterest = async () => {
+    const emailInput = document.getElementById('email-input') as HTMLInputElement
+    const emailValue = emailInput?.value?.trim() || email
+
+    if (!emailValue) {
+      toast.error("Please enter your email address", {
+        duration: 4000,
+      })
+      return
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(emailValue)) {
+      toast.error("Please enter a valid email address", {
+        duration: 4000,
+      })
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const { error } = await supabase
+        .from('fitspo_app_interested_users')
+        .insert([
+          {
+            email: emailValue,
+            source: 'landing_page'
+          }
+        ])
+
+      if (error) {
+        if (error.code === '23505') { // Unique constraint violation
+          toast.success("You're already registered! We'll notify you when Fitspo App launches.", {
+            duration: 4000,
+          })
+        } else {
+          console.error('Error registering interest:', error)
+          toast.error("Something went wrong. Please try again later.", {
+            duration: 4000,
+          })
+        }
+      } else {
+        toast.success("Thank you for your interest! We'll notify you when Fitspo App launches.", {
+          duration: 4000,
+        })
+        // Clear the email input
+        if (emailInput) emailInput.value = ""
+        setEmail("")
+      }
+    } catch (error) {
+      console.error('Error registering interest:', error)
+      toast.error("Something went wrong. Please try again later.", {
+        duration: 4000,
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   // Navigation links for navbar
@@ -112,22 +171,43 @@ export default function FitspoAppPage() {
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex flex-col sm:flex-row gap-2 flex-1 max-w-md">
+                  <input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    id="email-input"
+                    disabled={isSubmitting}
+                  />
+                  <Button
+                    size="default"
+                    className="px-4 whitespace-nowrap"
+                    onClick={handleRegisterInterest}
+                    disabled={isSubmitting}
+                  >
+                    <Heart className="w-4 h-4 mr-2" />
+                    {isSubmitting ? "Registering..." : "Register Interest"}
+                  </Button>
+                </div>
+              </div>
               <Button
+                variant="outline"
                 size="default"
                 className="px-6"
-                onClick={handleRegisterInterest}
+                onClick={() => {
+                  const featuresSection = document.getElementById('features')
+                  if (featuresSection) {
+                    featuresSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  }
+                }}
               >
-                <Heart className="w-4 h-4 mr-2" />
-                Register Interest
-              </Button>
-              <a
-                href="#features"
-                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 border bg-background shadow-xs px-6 h-9"
-              >
-                <Zap className="w-4 h-4" />
+                <Zap className="w-4 h-4 mr-2" />
                 Learn More
-              </a>
+              </Button>
             </div>
 
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
