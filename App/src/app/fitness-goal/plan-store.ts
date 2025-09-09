@@ -51,7 +51,9 @@ export function usePlans(userId: string | null) {
       all[userId] = next
       localStorage.setItem(STORAGE_KEY, JSON.stringify(all))
       setPlans(next)
-      try { if (typeof window !== 'undefined') window.dispatchEvent(new Event('fitspo:plans_changed')) } catch {}
+      try { if (typeof window !== 'undefined') window.dispatchEvent(new Event('fitspo:plans_changed')) } catch {
+        // Ignore event emission errors
+      }
     } catch {
       setPlans(next)
     }

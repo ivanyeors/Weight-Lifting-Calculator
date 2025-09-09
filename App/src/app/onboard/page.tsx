@@ -235,6 +235,7 @@ export default function OnboardingPage() {
     }
   }, [expandedSections, sectionOpenOverrides])
 
+
   // Check completion status for each step
   useEffect(() => {
     const checkStatuses = async () => {
@@ -268,7 +269,7 @@ export default function OnboardingPage() {
                 status = 'disabled'
                 break
               case 'fitness-goals':
-                status = 'disabled'
+                status = 'pending'
                 break
             }
 
@@ -309,6 +310,9 @@ export default function OnboardingPage() {
         // Check nutrition page visits
         const nutritionVisited = typeof window !== 'undefined' ? localStorage.getItem('fitspo:nutrition_page_visited') === 'true' : false
 
+        // Check if user has visited fitness-goal page
+        const hasVisitedFitnessGoal = typeof window !== 'undefined' ? localStorage.getItem('fitspo:fitness_goal_visited') === 'true' : false
+
         // Update step statuses
         setSteps(prev => {
           const updatedSteps = prev.map((step: OnboardingStep) => {
@@ -334,7 +338,7 @@ export default function OnboardingPage() {
                 status = hasUsers ? (nutritionVisited ? 'completed' : 'in-progress') : 'disabled'
                 break
               case 'fitness-goals':
-                status = (hasUsers && hasTemplates) ? 'in-progress' : 'disabled'
+                status = hasUsers ? (hasVisitedFitnessGoal ? 'completed' : 'in-progress') : 'disabled'
                 break
             }
 
@@ -353,16 +357,24 @@ export default function OnboardingPage() {
 
     // Listen for changes
     const handleChange = () => checkStatuses()
+    const handleFitnessGoalVisited = () => {
+      // Mark fitness goal as visited and update status
+      localStorage.setItem('fitspo:fitness_goal_visited', 'true')
+      handleChange()
+    }
+
     window.addEventListener('fitspo:selected_user_changed', handleChange)
     window.addEventListener('storage', handleChange)
     window.addEventListener('fitspo:workout_session_created', handleChange)
     window.addEventListener('fitspo:nutrition_page_visited', handleChange)
+    window.addEventListener('fitspo:fitness_goal_visited', handleFitnessGoalVisited)
 
     return () => {
       window.removeEventListener('fitspo:selected_user_changed', handleChange)
       window.removeEventListener('storage', handleChange)
       window.removeEventListener('fitspo:workout_session_created', handleChange)
       window.removeEventListener('fitspo:nutrition_page_visited', handleChange)
+      window.removeEventListener('fitspo:fitness_goal_visited', handleFitnessGoalVisited)
     }
   }, [selectedUser, isGoogleCalendarConnected, isAuthenticated])
 

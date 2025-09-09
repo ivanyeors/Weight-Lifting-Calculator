@@ -160,6 +160,19 @@ export default function FitnessGoalPage() {
     }
   }, [user, targetWeight])
 
+  // Mark fitness goal page as visited when component mounts
+  useEffect(() => {
+    localStorage.setItem('fitspo:fitness_goal_visited', 'true')
+    // Emit event to notify onboarding
+    try {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('fitspo:fitness_goal_visited'))
+      }
+    } catch {
+      // Ignore event emission errors
+    }
+  }, [])
+
   // Removed unused calculator helpers and render-only helpers for this layout
 
   // Header: Create Plan click. On mobile with existing user, open sidebar instead of drawer
