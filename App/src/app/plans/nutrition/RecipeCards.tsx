@@ -20,15 +20,18 @@ import { fetchAllRecipes } from '@/lib/nutrition/db'
 import type { Recipe } from '@/lib/nutrition/types'
 import { CalendarView } from '@/app/plans/workout-plans/calendar-view'
 import { convertToBase, formatQuantityBase, getUnitKind } from '@/lib/nutrition/convert'
-import { Copy } from 'lucide-react'
+import { Copy, Plus } from 'lucide-react'
 import type { Food } from '@/lib/nutrition/foods'
 import { fetchFoods } from '@/lib/nutrition/foods'
 import { toast } from 'sonner'
 import { upsertFood, fetchUserInventory, deductForRecipe } from '@/lib/nutrition/db'
 import type { Ingredient, NutrientsPer100 } from '@/lib/nutrition/types'
+import { useUserTier } from '@/hooks/use-user-tier'
+import { UpgradeModal } from '@/components/ui/upgrade-modal'
 
 export function RecipeCards() {
   const { state, dispatch } = useNutrition()
+  const { currentTier } = useUserTier()
   const [pax, setPax] = useState(state.paxProfile.pax)
   const [search, setSearch] = useState('')
   const [onlyFeasible, setOnlyFeasible] = useState(false)
@@ -40,6 +43,7 @@ export function RecipeCards() {
   const [foods, setFoods] = useState<Food[]>([])
   const [remoteInv, setRemoteInv] = useState<Record<string, number>>({})
   const [microsExpanded, setMicrosExpanded] = useState<Record<string, boolean>>({})
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
 
   // Load canonical foods from DB for name alignment
   useEffect(() => { fetchFoods().then(setFoods).catch(() => setFoods([])) }, [])
@@ -467,6 +471,27 @@ export function RecipeCards() {
           </div>
         </Card>
 
+        {/* Main Content Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold">Recipes</h2>
+            <p className="text-sm text-muted-foreground">Browse and create custom recipes</p>
+          </div>
+          <Button
+            onClick={() => {
+              if (currentTier === 'Free') {
+                setIsUpgradeModalOpen(true)
+              } else {
+                // TODO: Add recipe creation logic here
+                toast.info('Recipe creation coming soon!')
+              }
+            }}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Recipe
+          </Button>
+        </div>
+
         {/* Cards */}
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
       {filtered.map(r0 => {
@@ -720,6 +745,22 @@ export function RecipeCards() {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        open={isUpgradeModalOpen}
+        onOpenChange={setIsUpgradeModalOpen}
+        title="Upgrade to Create Custom Recipes"
+        description="You've reached the limit for custom recipes on the Free plan. Upgrade to create unlimited custom recipes with nutritional analysis."
+        feature="unlimited custom recipes"
+        currentLimit="Built-in recipes only"
+        benefits={[
+          "Create unlimited custom recipes",
+          "Advanced nutritional analysis",
+          "Cloud synchronization",
+          "Recipe planning tools"
+        ]}
+      />
     </div>
   )
 }

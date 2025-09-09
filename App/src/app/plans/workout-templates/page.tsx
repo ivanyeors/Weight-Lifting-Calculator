@@ -12,6 +12,7 @@ import { PanelLeft, PanelRight, Plus } from "lucide-react"
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabaseClient'
 import { ContOnboardAlert } from '@/components/cont-onboard'
+import { UpgradeModal } from '@/components/ui/upgrade-modal'
 
 type SyncState = 'idle' | 'syncing' | 'success' | 'error'
 
@@ -36,7 +37,7 @@ interface WorkoutTemplate {
 
 export default function WorkoutTemplatesPage() {
   const { user: selectedUser } = useSelectedUser()
-  const { userId } = useUserTier()
+  const { userId, currentTier } = useUserTier()
   
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
     // Default to collapsed on mobile/tablet, expanded on desktop
@@ -53,6 +54,9 @@ export default function WorkoutTemplatesPage() {
   const [createDrawerOpen, setCreateDrawerOpen] = useState(false)
   const [editDrawerOpen, setEditDrawerOpen] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState<WorkoutTemplate | null>(null)
+
+  // Upgrade modal state
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
 
   // Load templates from Supabase
   const loadTemplates = async () => {
@@ -131,6 +135,12 @@ export default function WorkoutTemplatesPage() {
     exercises: string[]
   }) => {
     try {
+      // Check if free user is trying to create 10th template
+      if (currentTier === 'Free' && templates.length >= 9) {
+        setIsUpgradeModalOpen(true)
+        return
+      }
+
       setSyncStatus('syncing')
       const exerciseConfigs = templateData.exercises.map(id => ({ exerciseId: id, sets: 3, reps: 10 }))
       const estimatedTime = exerciseConfigs.reduce((sum, c) => sum + c.sets * 2, 0) + exerciseConfigs.length
@@ -281,7 +291,24 @@ export default function WorkoutTemplatesPage() {
         onOpenChange={setEditDrawerOpen}
         onSave={handleEditTemplate}
       />
+
       <ContOnboardAlert />
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        open={isUpgradeModalOpen}
+        onOpenChange={setIsUpgradeModalOpen}
+        title="Upgrade to Create More Templates"
+        description="You've reached the limit of 9 workout templates on the Free plan. Upgrade to create unlimited workout templates with advanced customization."
+        feature="unlimited workout templates"
+        currentLimit="9 templates maximum"
+        benefits={[
+          "Create unlimited workout templates",
+          "Advanced exercise customization",
+          "Template sharing and collaboration",
+          "Progress tracking and analytics"
+        ]}
+      />
     </div>
   )
 }
