@@ -150,6 +150,14 @@ export const loadExercisesFromSupabase = async (): Promise<ExternalExercise[]> =
 		exerciseIdToInvolvement.set(row.exercise_id, map)
 	}
 
+	// If RLS blocks involvement rows, we'll end up with empty maps. Treat that as incomplete
+	// so the caller can fall back to the public manifest JSON files. This preserves DB security
+	// while ensuring the UI still renders full muscle involvement intensity and color.
+	const hasAnyInvolvement = involvementRows && involvementRows.length > 0
+	if (!hasAnyInvolvement) {
+		return []
+	}
+
 	// 4) Merge into ExternalExercise shape
 	const merged: ExternalExercise[] = exerciseRows.map((e) => ({
 		id: e.id,
@@ -160,6 +168,41 @@ export const loadExercisesFromSupabase = async (): Promise<ExternalExercise[]> =
 	}))
 
 	return validateExerciseData(merged)
+}
+
+/**
+ * Load exercises via SECURITY DEFINER RPC to safely bypass RLS for public fields
+ */
+export const loadExercisesFromRpc = async (): Promise<ExternalExercise[]> => {
+  // get_public_exercises returns: id, name, description, base_weight_factor, muscle_involvement (jsonb)
+  const { data, error } = await supabase.rpc('get_public_exercises')
+  if (error) throw error
+
+  const rows: Array<{
+    id: string
+    name: string | null
+    description: string | null
+    base_weight_factor: number | null
+    muscle_involvement: Record<string, unknown> | null
+  }> = (data as unknown) as Array<any>
+
+  const mapped: ExternalExercise[] = (rows ?? []).map((r) => {
+    const involvementRaw = (r.muscle_involvement || {}) as Record<string, unknown>
+    const involvement: Record<string, number> = {}
+    for (const [key, val] of Object.entries(involvementRaw)) {
+      const n = Number(val)
+      if (Number.isFinite(n)) involvement[key] = n
+    }
+    return {
+      id: String(r.id),
+      name: r.name ?? String(r.id),
+      description: r.description ?? '',
+      baseWeightFactor: Number(r.base_weight_factor ?? 1.0),
+      muscleInvolvement: involvement,
+    }
+  })
+
+  return validateExerciseData(mapped)
 }
 
 /**
@@ -227,17 +270,12 @@ export const convertToExternalExerciseFormat = (
  * Load all exercise data from local files - now uses complete exercise data
  */
 export const loadAllExerciseData = async (): Promise<ExternalExercise[]> => {
-	// Prefer DB (Supabase) as source of truth
-	try {
-		const dbData = await loadExercisesFromSupabase()
-		if (dbData.length > 0) return dbData
-		console.warn('Supabase returned no exercises, falling back to manifest JSONs')
-	} catch (dbError) {
-		console.warn('Failed to load exercises from Supabase, falling back to manifest:', dbError)
+	// Strict DB-only loading via RPC. If unavailable or empty, throw to surface sync issues.
+	const rpcData = await loadExercisesFromRpc()
+	if (!rpcData || rpcData.length === 0) {
+		throw new Error('No exercises available from database')
 	}
-
-	// Fallback to manifest-based loading
-	return await loadExercisesFromManifest()
+	return rpcData
 }
 
 /**
