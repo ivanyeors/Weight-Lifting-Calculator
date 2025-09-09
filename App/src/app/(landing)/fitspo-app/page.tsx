@@ -1,17 +1,18 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
-import { Smartphone, Target, TrendingUp, Users, Heart, Zap, ChevronLeft, Home } from "lucide-react"
+import { Smartphone, Target, TrendingUp, Users, Heart, Zap } from "lucide-react"
 import Image from "next/image"
-import Link from "next/link"
 import heroImg from "@/assets/fitspoapp-promo/hero-img.png"
+import { Navbar01 } from "@/components/ui/shadcn-io/navbar-01"
+import { useRouter } from "next/navigation"
+import { useTheme } from "next-themes"
 
 export default function FitspoAppPage() {
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [lastScrollY, setLastScrollY] = useState(0)
+  const router = useRouter()
+  const { theme, resolvedTheme } = useTheme()
 
   const handleRegisterInterest = () => {
     toast.success("Thank you for your interest! We'll notify you when Fitspo App launches.", {
@@ -19,25 +20,27 @@ export default function FitspoAppPage() {
     })
   }
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY
+  // Navigation links for navbar
+  const navigationLinks = [
+    { href: '/fitspo-app', label: 'App', active: true },
+    { href: '/home#platform', label: 'Platform' },
+    { href: '/home/pricing', label: 'Pricing' },
+  ]
 
-      // Only show background when scrolling down and past the threshold
-      if (currentScrollY > lastScrollY && currentScrollY > 50) {
-        setIsScrolled(true)
-      }
-      // Hide background when scrolling up
-      else if (currentScrollY < lastScrollY) {
-        setIsScrolled(false)
-      }
-
-      setLastScrollY(currentScrollY)
+  const handleNavigationClick = (link: { href: string; label: string }) => {
+    if (link.href === '/fitspo-app') {
+      router.push('/fitspo-app')
+    } else if (link.href.startsWith('/home#')) {
+      router.push('/home')
+      setTimeout(() => {
+        const id = link.href.split('#')[1]
+        const el = document.getElementById(id)
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 100)
+    } else {
+      router.push(link.href)
     }
-
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [lastScrollY])
+  }
 
   const features = [
     {
@@ -63,40 +66,24 @@ export default function FitspoAppPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Top Navbar */}
-      <nav className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${
-        isScrolled
-          ? 'bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-border/40'
-          : 'bg-transparent border-transparent'
-      }`}>
-        <div className="container mx-auto flex h-16 items-center justify-between px-6">
-          <div className="flex items-center gap-4">
-            <Link href="/" className={`flex items-center gap-2 hover:opacity-80 transition-opacity ${
-              isScrolled ? 'text-foreground' : 'text-foreground/80'
-            }`}>
-              <ChevronLeft className="h-4 w-4" />
-              <span className="text-sm font-medium">Back to Fitspo</span>
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <Link
-              href="/"
-              className={`flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors ${
-                isScrolled ? 'text-foreground' : 'text-foreground/80'
-              }`}
-            >
-              <Home className="h-4 w-4" />
-              <span className="hidden sm:inline">Home</span>
-            </Link>
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/home">Login</Link>
-            </Button>
-            <Button size="sm" asChild>
-              <Link href="/home">Sign Up</Link>
-            </Button>
-          </div>
-        </div>
-      </nav>
+      <Navbar01
+        logo={
+          <img
+            src={(resolvedTheme || theme) === 'dark' ? '/logo-dark.svg' : '/logo-light.svg'}
+            alt="Fitspo Logo"
+            className="h-8 w-8"
+          />
+        }
+        logoHref="/home"
+        navigationLinks={navigationLinks}
+        signInText="Sign In"
+        signInHref="#signin"
+        ctaText="Get Started"
+        ctaHref="#get-started"
+        onSignInClick={() => router.push('/account')}
+        onCtaClick={() => router.push('/onboard')}
+        onNavigationClick={handleNavigationClick}
+      />
 
       {/* Hero Section (image only, no overlays) */}
       <div className="w-full">

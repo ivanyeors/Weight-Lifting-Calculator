@@ -145,13 +145,13 @@ export default function HomePage() {
     setIdealWeight(calculatedWeight)
   }, [bodyWeight, skeletalMuscleMass, bodyFatMass, height, age, gender, experience, currentExercise])
 
-  // Function to load exercises from local JSON files
+  // Function to load exercises from database (DB-only path)
   const loadExternalExercises = useCallback(async () => {
     setIsLoadingExercises(true)
     setExerciseLoadError(null)
 
     try {
-      // Load from local JSON files
+      // Load from database via RPC (strict DB path)
       const externalExercises = await loadAllExerciseData()
       const validatedExercises = validateExerciseData(externalExercises)
       
@@ -161,11 +161,11 @@ export default function HomePage() {
         if (!selectedExerciseId && validatedExercises[0]) {
           setSelectedExerciseId(validatedExercises[0].id)
         }
-        console.log(`Loaded ${validatedExercises.length} exercises from local JSON files`)
+        console.log(`Loaded ${validatedExercises.length} exercises from database`)
       }
     } catch (error) {
-      console.warn('Failed to load from local files:', error)
-      setExerciseLoadError('Could not load exercises from local files. Please check that the JSON files are present.')
+      console.error('Failed to load exercises from database:', error)
+      setExerciseLoadError('Could not load exercises from database. Please check your connection and access policies.')
     } finally {
       setIsLoadingExercises(false)
     }
@@ -479,118 +479,124 @@ export default function HomePage() {
           <div className="flex flex-1 flex-col gap-4 p-2 overflow-auto">
             {/* Charts Section - Body Highlighter with right-side content */}
             <div className="grid grid-cols-1 gap-6">
-              {currentExercise && (
-                <WebBodyHighlighter
-                  muscleGroups={muscleGroups}
-                  exerciseName={currentExercise.name}
-                  selectedExerciseId={selectedExerciseId}
-                  setSelectedExerciseId={setSelectedExerciseId}
-                  isLoadingExercises={isLoadingExercises}
-                  exerciseLoadError={exerciseLoadError}
-                  rightSlot={
-                    <Card className="@container/card border-2 border-primary/20 bg-gradient-to-t from-primary/5 to-card shadow-lg h-full">
-                      <CardHeader className="p-3">
-                        <div className="flex items-center justify-start gap-3">
-                          <div className="flex items-center space-x-2">
-                            <Target className="h-6 w-6 text-primary" />
-                            <CardTitle className="text-2xl @[250px]/card:text-3xl">Ideal Weight</CardTitle>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-3">
-                        <div>
-                          <div className="min-w-0">
-                            <div className="text-lg @[250px]/card:text-2xl text-foreground font-semibold mb-2">
-                              {currentExercise ? `Ideal ${currentExercise.name} Weight` : 'Ideal Weight'}
-                            </div>
-                            {currentExercise && (
-                              <div className="mb-3 p-3 bg-muted/60 rounded-md max-w-2xl md:max-w-3xl lg:max-w-4xl">
-                                <p className="text-xs text-muted-foreground/90 line-clamp-3 md:line-clamp-none">
-                                  {currentExercise.description}
-                                </p>
-                              </div>
-                            )}
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <div className="text-5xl font-bold text-primary leading-tight tabular-nums">
-                                {(idealWeight * (1 + adjustmentPercent / 100)).toFixed(2)} kg
-                              </div>
-                              <Label className="inline-flex items-center gap-1 text-sm @[250px]/card:text-base text-foreground border border-border rounded-md px-2.5 py-1 bg-background">
-                                {adjustmentPercent > 0 ? `+${adjustmentPercent}` : adjustmentPercent}%
-                              </Label>
-                            </div>
-                          </div>
-                          <div className="mt-4">
-                            <div className="mb-2 text-sm font-medium">Adjust weight</div>
-                            <div className="flex items-center gap-3 mb-3">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm text-muted-foreground">Amount</span>
-                                <div className="flex items-center gap-1">
-                                  <Input
-                                    type="number"
-                                    inputMode="decimal"
-                                    className="w-24"
-                                    value={Number.isNaN(stepPercent) ? '' : stepPercent}
-                                    onChange={(e) => {
-                                      const value = parseFloat(e.target.value)
-                                      if (Number.isNaN(value)) {
-                                        setStepPercent(0)
-                                      } else {
-                                        setStepPercent(Math.max(0, Math.min(100, value)))
-                                      }
-                                    }}
-                                  />
-                                  <span className="text-sm text-muted-foreground">%</span>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex gap-2">
-                              <Button
-                                size="lg"
-                                variant="secondary"
-                                className="flex-1"
-                                onClick={() => setAdjustmentPercent((prev) => prev - (Number.isFinite(stepPercent) ? stepPercent : 0))}
-                              >
-                                -{Number.isFinite(stepPercent) ? stepPercent : 0}%
-                              </Button>
-                              <Button
-                                size="lg"
-                                variant="secondary"
-                                className="flex-1"
-                                onClick={() => setAdjustmentPercent((prev) => prev + (Number.isFinite(stepPercent) ? stepPercent : 0))}
-                              >
-                                +{Number.isFinite(stepPercent) ? stepPercent : 0}%
-                              </Button>
-                            </div>
-                          </div>
-
-                          {/* Completion history line chart */}
-                          <div className="mt-6">
-                            <div className="mb-2 text-sm font-medium">Exercise Trend</div>
-                            {completionSeries.length > 0 ? (
-                              <ChartContainer
-                                config={{ weight: { label: 'Weight', color: 'hsl(var(--primary))' } }}
-                                className="w-full h-48 md:h-64"
-                              >
-                                <LineChart data={completionSeries} margin={{ left: 8, right: 8, top: 8, bottom: 8 }}>
-                                  <CartesianGrid strokeDasharray="3 3" />
-                                  <XAxis dataKey="dateLabel" tickMargin={8} />
-                                  <YAxis tickMargin={8} />
-                                  <ChartTooltip content={<ChartTooltipContent />} />
-                                  <Line type="monotone" dataKey="weight" stroke="var(--color-weight)" strokeWidth={2} dot={true} />
-                                </LineChart>
-                              </ChartContainer>
-                            ) : (
-                              <div className="w-full h-48 md:h-64 border border-dashed rounded-md flex items-center justify-center text-sm text-muted-foreground bg-muted/30">
-                                No data
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  }
-                />
+              {exerciseLoadError && (
+                <div className="rounded-md border border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300 p-3">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    <span>{exerciseLoadError}</span>
+                  </div>
+                </div>
               )}
+              <WebBodyHighlighter
+                muscleGroups={muscleGroups}
+                exerciseName={currentExercise ? currentExercise.name : 'Exercise weights'}
+                selectedExerciseId={selectedExerciseId}
+                setSelectedExerciseId={setSelectedExerciseId}
+                isLoadingExercises={isLoadingExercises}
+                exerciseLoadError={exerciseLoadError}
+                rightSlot={
+                  <Card className="@container/card border-2 border-primary/20 bg-gradient-to-t from-primary/5 to-card shadow-lg h-full">
+                    <CardHeader className="p-3">
+                      <div className="flex items-center justify-start gap-3">
+                        <div className="flex items-center space-x-2">
+                          <Target className="h-6 w-6 text-primary" />
+                          <CardTitle className="text-2xl @[250px]/card:text-3xl">Ideal Weight</CardTitle>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-3">
+                      <div>
+                        <div className="min-w-0">
+                          <div className="text-lg @[250px]/card:text-2xl text-foreground font-semibold mb-2">
+                            {currentExercise ? `Ideal ${currentExercise.name} Weight` : 'Ideal Weight'}
+                          </div>
+                          {currentExercise && (
+                            <div className="mb-3 p-3 bg-muted/60 rounded-md max-w-2xl md:max-w-3xl lg:max-w-4xl">
+                              <p className="text-xs text-muted-foreground/90 line-clamp-3 md:line-clamp-none">
+                                {currentExercise.description}
+                              </p>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <div className="text-5xl font-bold text-primary leading-tight tabular-nums">
+                              {(idealWeight * (1 + adjustmentPercent / 100)).toFixed(2)} kg
+                            </div>
+                            <Label className="inline-flex items-center gap-1 text-sm @[250px]/card:text-base text-foreground border border-border rounded-md px-2.5 py-1 bg-background">
+                              {adjustmentPercent > 0 ? `+${adjustmentPercent}` : adjustmentPercent}%
+                            </Label>
+                          </div>
+                        </div>
+                        <div className="mt-4">
+                          <div className="mb-2 text-sm font-medium">Adjust weight</div>
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-muted-foreground">Amount</span>
+                              <div className="flex items-center gap-1">
+                                <Input
+                                  type="number"
+                                  inputMode="decimal"
+                                  className="w-24"
+                                  value={Number.isNaN(stepPercent) ? '' : stepPercent}
+                                  onChange={(e) => {
+                                    const value = parseFloat(e.target.value)
+                                    if (Number.isNaN(value)) {
+                                      setStepPercent(0)
+                                    } else {
+                                      setStepPercent(Math.max(0, Math.min(100, value)))
+                                    }
+                                  }}
+                                />
+                                <span className="text-sm text-muted-foreground">%</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              size="lg"
+                              variant="secondary"
+                              className="flex-1"
+                              onClick={() => setAdjustmentPercent((prev) => prev - (Number.isFinite(stepPercent) ? stepPercent : 0))}
+                            >
+                              -{Number.isFinite(stepPercent) ? stepPercent : 0}%
+                            </Button>
+                            <Button
+                              size="lg"
+                              variant="secondary"
+                              className="flex-1"
+                              onClick={() => setAdjustmentPercent((prev) => prev + (Number.isFinite(stepPercent) ? stepPercent : 0))}
+                            >
+                              +{Number.isFinite(stepPercent) ? stepPercent : 0}%
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Completion history line chart */}
+                        <div className="mt-6">
+                          <div className="mb-2 text-sm font-medium">Exercise Trend</div>
+                          {completionSeries.length > 0 ? (
+                            <ChartContainer
+                              config={{ weight: { label: 'Weight', color: 'hsl(var(--primary))' } }}
+                              className="w-full h-48 md:h-64"
+                            >
+                              <LineChart data={completionSeries} margin={{ left: 8, right: 8, top: 8, bottom: 8 }}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="dateLabel" tickMargin={8} />
+                                <YAxis tickMargin={8} />
+                                <ChartTooltip content={<ChartTooltipContent />} />
+                                <Line type="monotone" dataKey="weight" stroke="var(--color-weight)" strokeWidth={2} dot={true} />
+                              </LineChart>
+                            </ChartContainer>
+                          ) : (
+                            <div className="w-full h-48 md:h-64 border border-dashed rounded-md flex items-center justify-center text-sm text-muted-foreground bg-muted/30">
+                              No data
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                }
+              />
             </div>
 
             {/* Metric cards - full width section above the formula card */}
