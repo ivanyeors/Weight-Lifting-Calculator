@@ -11,7 +11,9 @@ export default function BillingPage() {
             Manage your subscription and billing preferences
           </p>
         </div>
-        <PricingPlansClient plans={plans} />
+        <div className="px-4 md:px-6 lg:px-8">
+          <PricingPlansClient plans={plans} />
+        </div>
       </div>
     </div>
   )

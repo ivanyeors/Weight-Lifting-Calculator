@@ -693,7 +693,9 @@ export default function AccountPage() {
                 Manage your subscription. Current plan: {currentPlan}
               </p>
             </div>
-            <PricingPlansClient plans={plans} />
+            <div className="px-4 md:px-6 lg:px-8">
+              <PricingPlansClient plans={plans} />
+            </div>
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
                 disabled={!hasPaidPlan}

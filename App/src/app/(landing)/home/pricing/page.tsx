@@ -6,7 +6,7 @@ import { Navbar01 } from '@/components/ui/shadcn-io/navbar-01'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
-import { ArrowLeft } from 'lucide-react'
+import { FeatureComparisonTable } from './feature-comparison-table'
 
 export default function PricingPage() {
   const router = useRouter()
@@ -57,29 +57,54 @@ export default function PricingPage() {
         onNavigationClick={handleNavigationClick}
       />
 
+      {/* Header Section */}
+      <section className="py-16 bg-gradient-to-b from-background to-muted/20">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+            Choose Your Fitness Journey
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            Unlock your full potential with our comprehensive fitness platform.
+            Choose the plan that fits your goals, from basic calculations to advanced
+            training analytics and client management.
+          </p>
+        </div>
+      </section>
+
       {/* Pricing Content */}
-      <div className="pb-16">
+      <div className="pt-6 pb-12">
         <div className="container mx-auto px-4">
-          <div className="mb-6">
+          <PricingPlansClient plans={plans} />
+
+          {/* View All Features Button */}
+          <div className="mt-16 text-center">
             <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.back()}
-              className="mb-4"
+              variant="outline"
+              size="lg"
+              onClick={() => {
+                const element = document.getElementById('feature-comparison');
+                element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+              className="px-8 py-3"
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
+              View All Plans Features
             </Button>
           </div>
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold mb-4">Choose Your Plan</h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Unlock more features and customize your experience with our flexible pricing plans.
-            </p>
-          </div>
-          <PricingPlansClient plans={plans} />
         </div>
       </div>
+
+      {/* Feature Comparison Section */}
+      <section id="feature-comparison" className="py-20 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold mb-4">Compare All Features</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Detailed comparison of all features across our pricing plans
+            </p>
+          </div>
+          <FeatureComparisonTable plans={plans} />
+        </div>
+      </section>
     </div>
   )
 }
