@@ -5,6 +5,7 @@ import { AppSidebar } from "@/app/app-sidebar"
 
 export function SidebarConditionalWrapper() {
   const pathname = usePathname()
-  if (pathname === "/home") return null
+  const normalizedPath = (pathname || "").replace(/\/+$/, "") || "/"
+  if (normalizedPath === "/home") return null
   return <AppSidebar />
 }
