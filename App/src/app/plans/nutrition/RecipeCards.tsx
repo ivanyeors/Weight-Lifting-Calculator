@@ -20,18 +20,18 @@ import { fetchAllRecipes } from '@/lib/nutrition/db'
 import type { Recipe } from '@/lib/nutrition/types'
 import { CalendarView } from '@/app/plans/workout-plans/calendar-view'
 import { convertToBase, formatQuantityBase, getUnitKind } from '@/lib/nutrition/convert'
-import { Copy, Plus } from 'lucide-react'
+import { Copy } from 'lucide-react'
 import type { Food } from '@/lib/nutrition/foods'
 import { fetchFoods } from '@/lib/nutrition/foods'
 import { toast } from 'sonner'
 import { upsertFood, fetchUserInventory, deductForRecipe } from '@/lib/nutrition/db'
 import type { Ingredient, NutrientsPer100 } from '@/lib/nutrition/types'
 import { useUserTier } from '@/hooks/use-user-tier'
-import { UpgradeModal } from '@/components/ui/upgrade-modal'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 export function RecipeCards() {
+  const { isPaidTier } = useUserTier()
   const { state, dispatch } = useNutrition()
-  const { currentTier } = useUserTier()
   const [pax, setPax] = useState(state.paxProfile.pax)
   const [search, setSearch] = useState('')
   const [onlyFeasible, setOnlyFeasible] = useState(false)
@@ -43,7 +43,7 @@ export function RecipeCards() {
   const [foods, setFoods] = useState<Food[]>([])
   const [remoteInv, setRemoteInv] = useState<Record<string, number>>({})
   const [microsExpanded, setMicrosExpanded] = useState<Record<string, boolean>>({})
-  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
 
   // Load canonical foods from DB for name alignment
   useEffect(() => { fetchFoods().then(setFoods).catch(() => setFoods([])) }, [])
@@ -264,6 +264,7 @@ export function RecipeCards() {
   }
 
   const openAddDrawer = (recipeId: string) => {
+    if (!isPaidTier) { setShowUpgradeDialog(true); return }
     setSelectedRecipeId(recipeId)
     // default preselect next 3 days
     try {
@@ -470,27 +471,6 @@ export function RecipeCards() {
             </div>
           </div>
         </Card>
-
-        {/* Main Content Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-lg font-semibold">Recipes</h2>
-            <p className="text-sm text-muted-foreground">Browse and create custom recipes</p>
-          </div>
-          <Button
-            onClick={() => {
-              if (currentTier === 'Free') {
-                setIsUpgradeModalOpen(true)
-              } else {
-                // TODO: Add recipe creation logic here
-                toast.info('Recipe creation coming soon!')
-              }
-            }}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Recipe
-          </Button>
-        </div>
 
         {/* Cards */}
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -746,21 +726,21 @@ export function RecipeCards() {
         </SheetContent>
       </Sheet>
 
-      {/* Upgrade Modal */}
-      <UpgradeModal
-        open={isUpgradeModalOpen}
-        onOpenChange={setIsUpgradeModalOpen}
-        title="Upgrade to Create Custom Recipes"
-        description="You've reached the limit for custom recipes on the Free plan. Upgrade to create unlimited custom recipes with nutritional analysis."
-        feature="unlimited custom recipes"
-        currentLimit="Built-in recipes only"
-        benefits={[
-          "Create unlimited custom recipes",
-          "Advanced nutritional analysis",
-          "Cloud synchronization",
-          "Recipe planning tools"
-        ]}
-      />
+      {/* Upgrade dialog for Free tier */}
+      <Dialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Upgrade Required</DialogTitle>
+            <DialogDescription>
+              Adding recipes to the calendar is available on Personal and Trainer plans.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={() => setShowUpgradeDialog(false)}>Cancel</Button>
+            <Button onClick={() => { if (typeof window !== 'undefined') window.location.href = '/account?tab=billing#plans' }}>View plans</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

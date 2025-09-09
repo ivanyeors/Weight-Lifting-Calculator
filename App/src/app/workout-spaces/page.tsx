@@ -24,7 +24,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { ContOnboardAlert } from '@/components/cont-onboard'
-import { UpgradeModal } from '@/components/ui/upgrade-modal'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 type SyncState = 'idle' | 'syncing' | 'success' | 'error'
 
@@ -32,7 +32,7 @@ interface SpaceItem { id: string; name: string }
 interface EquipmentItem { id: string; name: string; category: string | null }
 
 export default function WorkoutSpacesPage() {
-  const { userId, isPaidTier, currentTier } = useUserTier()
+  const { userId, isPaidTier } = useUserTier()
 
   const [syncStatus, setSyncStatus] = useState<SyncState>('idle')
   const [spaces, setSpaces] = useState<SpaceItem[]>([])
@@ -43,11 +43,9 @@ export default function WorkoutSpacesPage() {
 
   const [equipment, setEquipment] = useState<EquipmentItem[]>([])
   const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<Set<string>>(new Set())
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
 
   const selectedSpace = useMemo(() => spaces.find((s) => s.id === selectedSpaceId) || null, [spaces, selectedSpaceId])
-
-  // Upgrade modal state
-  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
 
   const getSyncIcon = () => {
     switch (syncStatus) {
@@ -128,18 +126,12 @@ export default function WorkoutSpacesPage() {
   }, [selectedSpaceId, selectedSpace])
 
   const handleCreateSpace = async () => {
+    if (!isPaidTier && spaces.length >= 2) { setShowUpgradeDialog(true); return }
     try {
       if (!userId) {
         toast.error('Please sign in to create spaces')
         return
       }
-
-      // Check if free user is trying to create 3rd space
-      if (currentTier === 'Free' && spaces.length >= 2) {
-        setIsUpgradeModalOpen(true)
-        return
-      }
-
       const name = newSpaceName.trim()
       if (!name) {
         toast.error('Enter a space name')
@@ -403,21 +395,21 @@ export default function WorkoutSpacesPage() {
       </div>
       <ContOnboardAlert />
 
-      {/* Upgrade Modal */}
-      <UpgradeModal
-        open={isUpgradeModalOpen}
-        onOpenChange={setIsUpgradeModalOpen}
-        title="Upgrade to Create More Spaces"
-        description="You've reached the limit of 2 workout spaces on the Free plan. Upgrade to create unlimited workout spaces with advanced equipment management."
-        feature="unlimited workout spaces"
-        currentLimit="2 workout spaces maximum"
-        benefits={[
-          "Create unlimited workout spaces",
-          "Advanced equipment management",
-          "Cloud synchronization",
-          "Space-specific exercise availability"
-        ]}
-      />
+      {/* Upgrade dialog for Free tier */}
+      <Dialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Upgrade Required</DialogTitle>
+            <DialogDescription>
+              Creating more than 2 spaces is available on Personal and Trainer plans.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={() => setShowUpgradeDialog(false)}>Cancel</Button>
+            <Button onClick={() => { if (typeof window !== 'undefined') window.location.href = '/account?tab=billing#plans' }}>View plans</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
