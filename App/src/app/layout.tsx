@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { Analytics } from "@vercel/analytics/next"
-import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google"
+import { GoogleTagManager } from "@next/third-parties/google"
+import Script from 'next/script'
 import '../index.css'
 import { ThemeProvider } from "@/app/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
@@ -48,7 +49,23 @@ export default function RootLayout({
       <body className={inter.className}>
         <ConsentDefaults />
         {gtmId ? <GoogleTagManager gtmId={gtmId} /> : null}
-        {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
+        {gaId ? (
+          <>
+            <Script
+              id="ga-gtag-script"
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+              strategy="beforeInteractive"
+            />
+            <Script id="ga-gtag-init" strategy="beforeInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${gaId}');
+              `}
+            </Script>
+          </>
+        ) : null}
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <AuthCallbackHandler>
             <AppShell>
