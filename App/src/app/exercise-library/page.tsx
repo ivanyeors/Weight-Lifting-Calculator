@@ -16,7 +16,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 import {
   Breadcrumb,
@@ -35,7 +34,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { computeIdealWeight, type PersonalInputs } from '@/lib/idealWeight'
 import { useSelectedUser } from '@/hooks/use-selected-user'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { UpgradeModal } from '@/components/ui/upgrade-modal'
+// duplicate Dialog import removed
 
 // Allowed workout types to be synced with Supabase
 const ALLOWED_WORKOUT_TYPES: readonly string[] = [
@@ -151,15 +150,13 @@ export default function ExerciseLibraryPage() {
   const [drawerExercise, setDrawerExercise] = useState<Exercise | null>(null)
   const isMobile = useIsMobile()
 
-  // Upgrade modal state
-  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
-
   // Placeholder to keep future usage-related side effects if needed
 
   // Statistics dialog state
   const [isStatsOpen, setIsStatsOpen] = useState(false)
   const [statsMode, setStatsMode] = useState<'exercises' | 'muscle'>('exercises')
   const [personalInputs, setPersonalInputs] = useState<PersonalInputs | null>(null)
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
 
   const loadExercises = async () => {
     try {
@@ -596,7 +593,6 @@ export default function ExerciseLibraryPage() {
   }
 
   return (
-    <>
     <div className="flex h-screen">
       <ExerciseLibrarySidebar
         collapsed={sidebarCollapsed}
@@ -657,22 +653,16 @@ export default function ExerciseLibraryPage() {
                 </span>
               </div>
             )}
+            <Button onClick={() => {
+              if (!isPaidTier) { setShowUpgradeDialog(true); return }
+              resetForm();
+              setEditingExercise(null);
+              setIsAddDialogOpen(true)
+            }}>
+              <Plus className="h-4 w-4" />
+              Add Exercise
+            </Button>
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  onClick={() => {
-                    if (currentTier === 'Free') {
-                      setIsUpgradeModalOpen(true)
-                    } else {
-                      resetForm()
-                      setEditingExercise(null)
-                    }
-                  }}
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Exercise
-                </Button>
-              </DialogTrigger>
               <DialogContent className="max-w-md">
                 <DialogHeader>
                   <DialogTitle>
@@ -1007,6 +997,22 @@ export default function ExerciseLibraryPage() {
           </div>
         </DrawerContent>
       </Drawer>
+
+      {/* Upgrade dialog for Free tier */}
+      <Dialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Upgrade Required</DialogTitle>
+            <DialogDescription>
+              Creating custom exercises is available on Personal and Trainer plans.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={() => setShowUpgradeDialog(false)}>Cancel</Button>
+            <Button onClick={() => { if (typeof window !== 'undefined') window.location.href = '/account?tab=billing#plans' }}>View plans</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
@@ -1395,23 +1401,6 @@ function StatisticsExercisesChart({ exercises, workoutTypes, initialType }: { ex
         </BarChart>
       </ChartContainer>
     </div>
-
-    {/* Upgrade Modal */}
-    <UpgradeModal
-      open={isUpgradeModalOpen}
-      onOpenChange={setIsUpgradeModalOpen}
-      title="Upgrade to Add Custom Exercises"
-      description="You've reached the limit for custom exercises on the Free plan. Upgrade to create unlimited custom exercises with cloud sync."
-      feature="unlimited custom exercises"
-      currentLimit="Local storage only"
-      benefits={[
-        "Create unlimited custom exercises",
-        "Cloud synchronization across devices",
-        "Advanced exercise analytics",
-        "Priority support"
-      ]}
-    </>
-    </>
   )
 }
 

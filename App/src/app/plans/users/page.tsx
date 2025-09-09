@@ -14,7 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { supabase } from '@/lib/supabaseClient'
 import { ContOnboardAlert } from '@/components/cont-onboard'
 import { useUserTier } from '@/hooks/use-user-tier'
-import { UpgradeModal } from '@/components/ui/upgrade-modal'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 type SyncState = 'idle' | 'syncing' | 'success' | 'error'
 
@@ -35,7 +35,7 @@ type ManagedUser = {
 }
 
 export default function PlansUsersPage() {
-  const { currentTier, userId } = useUserTier()
+  const { isPaidTier } = useUserTier()
   const [syncStatus, setSyncStatus] = useState<SyncState>('idle')
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
     // Default to collapsed on mobile/tablet, expanded on desktop
@@ -77,9 +77,7 @@ export default function PlansUsersPage() {
   const [selectedUser, setSelectedUser] = useState<ManagedUser | null>(null)
   const [editingUser, setEditingUser] = useState<ManagedUser | null>(null)
   const [isEditing, setIsEditing] = useState(false)
-
-  // Upgrade modal state
-  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
 
   const loadMuscles = useCallback(async () => {
     const { data, error } = await supabase.from('muscles').select('id, name').order('name', { ascending: true })
@@ -156,12 +154,6 @@ export default function PlansUsersPage() {
 
   const createUser = async () => {
     try {
-      // Check if free user is trying to create 3rd user
-      if (currentTier === 'Free' && users.length >= 2) {
-        setIsUpgradeModalOpen(true)
-        return
-      }
-
       setSyncStatus('syncing')
       const name = newUserForm.name.trim() || 'New User'
       const { data, error } = await supabase
@@ -287,7 +279,10 @@ export default function PlansUsersPage() {
                 {syncStatus === 'idle' && 'Ready'}
               </span>
             </div>
-            <Button onClick={() => { setIsDrawerOpen(true) }}>
+            <Button onClick={() => {
+              if (!isPaidTier && users.length >= 2) { setShowUpgradeDialog(true); return }
+              setIsDrawerOpen(true)
+            }}>
               <Plus className="h-4 w-4" />
               New User
             </Button>
@@ -703,22 +698,21 @@ export default function PlansUsersPage() {
 
       {/* Continue Onboarding Alert */}
       <ContOnboardAlert />
-
-      {/* Upgrade Modal */}
-      <UpgradeModal
-        open={isUpgradeModalOpen}
-        onOpenChange={setIsUpgradeModalOpen}
-        title="Upgrade to Manage More Users"
-        description="You've reached the limit of 2 users on the Free plan. Upgrade to create unlimited user profiles with comprehensive fitness tracking."
-        feature="unlimited user management"
-        currentLimit="2 users maximum"
-        benefits={[
-          "Create unlimited user profiles",
-          "Comprehensive fitness tracking",
-          "Personalized workout recommendations",
-          "Advanced analytics and reporting"
-        ]}
-      />
+      {/* Upgrade dialog for Free tier */}
+      <Dialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Upgrade Required</DialogTitle>
+            <DialogDescription>
+              Creating more than 2 managed users is available on Personal and Trainer plans.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={() => setShowUpgradeDialog(false)}>Cancel</Button>
+            <Button onClick={() => { if (typeof window !== 'undefined') window.location.href = '/account?tab=billing#plans' }}>View plans</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
