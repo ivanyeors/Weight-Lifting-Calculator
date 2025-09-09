@@ -4,6 +4,14 @@ import { useMemo, useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+  DrawerClose,
+} from "@/components/ui/drawer"
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -15,6 +23,7 @@ import {
 import { ChevronDown, Search } from "lucide-react"
 import { loadAllExerciseData, type ExternalExercise } from '@/lib/exerciseLoader'
 import Link from 'next/link'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 // Use the shared ExternalExercise type from the loader
 
@@ -123,13 +132,108 @@ export function ExerciseDropdown({
   const isActuallyLoading = loading || isLoading
   const displayError = loadError || error
 
+  const isMobile = useIsMobile()
+  const [open, setOpen] = useState(false)
+
+  if (isMobile) {
+    const handleSelect = (id: string) => {
+      onSelectExercise(id)
+      setOpen(false)
+    }
+    return (
+      <div className={className}>
+        <Drawer open={open} onOpenChange={setOpen}>
+          <DrawerTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-full justify-between h-10 bg-background border-border hover:bg-accent hover:text-accent-foreground"
+              disabled={isActuallyLoading}
+            >
+              <span className="truncate font-medium">
+                {isActuallyLoading ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="h-3 w-3 animate-spin rounded-full border border-muted-foreground/20 border-t-foreground" />
+                    <span>Loading exercises...</span>
+                  </div>
+                ) : (
+                  currentExerciseName
+                )}
+              </span>
+              <ChevronDown className="h-4 w-4 opacity-50" />
+            </Button>
+          </DrawerTrigger>
+          <DrawerContent className="p-2">
+            <DrawerHeader>
+              <DrawerTitle>Select Exercise</DrawerTitle>
+            </DrawerHeader>
+            <div className="px-3 pb-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="exercise-search-mobile"
+                  name="exercise-search-mobile"
+                  aria-label="Search exercises"
+                  placeholder="Search exercises..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  autoFocus
+                  className="pl-10 h-10 bg-background border-border"
+                />
+              </div>
+            </div>
+            <div className="max-h-[60vh] overflow-y-auto">
+              {filteredExercises.length > 0 ? (
+                <div className="divide-y">
+                  {filteredExercises.map((exercise) => (
+                    <button
+                      key={exercise.id}
+                      className="w-full text-left px-4 py-3 hover:bg-accent/50"
+                      onClick={() => handleSelect(exercise.id)}
+                    >
+                      <div className="flex flex-col w-full">
+                        <span className="font-medium text-sm">{exercise.name}</span>
+                        <div className="flex justify-between items-center mt-1">
+                          <span className="text-xs text-muted-foreground">Weight Factor</span>
+                          <span className="text-xs font-semibold text-primary tabular-nums">{exercise.baseWeightFactor}</span>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6 px-4 text-sm text-muted-foreground">
+                  {searchQuery ? "No exercises found" : "No exercises available"}
+                </div>
+              )}
+              {displayError && (
+                <div className="text-sm text-amber-600 bg-amber-50 dark:bg-amber-950/50 dark:text-amber-400 p-3 rounded-lg m-3 border border-amber-200 dark:border-amber-800">
+                  <div className="flex items-start space-x-2">
+                    <span className="text-amber-600 dark:text-amber-400">⚠</span>
+                    <span>{displayError}</span>
+                  </div>
+                </div>
+              )}
+              <div className="p-3">
+                <DrawerClose asChild>
+                  <Link href="/exercise-library" className="w-full inline-flex items-center justify-center h-10 rounded-md border px-4 text-sm">
+                    View all exercises
+                  </Link>
+                </DrawerClose>
+              </div>
+            </div>
+          </DrawerContent>
+        </Drawer>
+      </div>
+    )
+  }
+
   return (
     <div className={className}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button 
-            variant="outline" 
-            className="w-full justify-between h-10 bg-background border-border hover:bg-accent hover:text-accent-foreground transition-colors min-w-[220px]"
+          <Button
+            variant="outline"
+            className="w-full justify-between h-10 bg-background border-border hover:bg-accent hover:text-accent-foreground sm:min-w-[220px]"
             disabled={isActuallyLoading}
           >
             <span className="truncate font-medium">
