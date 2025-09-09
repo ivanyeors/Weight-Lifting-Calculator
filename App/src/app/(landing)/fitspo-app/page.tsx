@@ -3,8 +3,9 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
-import { Smartphone, Target, TrendingUp, Users, Heart, Zap } from "lucide-react"
+import { Smartphone, Target, TrendingUp, Users, Heart, Zap, ChevronLeft, Home } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
 import heroImg from "@/assets/fitspoapp-promo/hero-img.png"
 
 export default function FitspoAppPage() {
@@ -37,6 +38,34 @@ export default function FitspoAppPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      {/* Top Navbar */}
+      <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto flex h-16 items-center justify-between px-6">
+          <div className="flex items-center gap-4">
+            <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <ChevronLeft className="h-4 w-4" />
+              <span className="text-sm font-medium">Back to Fitspo</span>
+            </Link>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <Link
+              href="/"
+              className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
+            >
+              <Home className="h-4 w-4" />
+              <span className="hidden sm:inline">Home</span>
+            </Link>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/home">Login</Link>
+            </Button>
+            <Button size="sm" asChild>
+              <Link href="/home">Sign Up</Link>
+            </Button>
+          </div>
+        </div>
+      </nav>
+
       {/* Hero Section (image only, no overlays) */}
       <div className="w-full">
         <Image
