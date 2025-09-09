@@ -34,6 +34,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { computeIdealWeight, type PersonalInputs } from '@/lib/idealWeight'
 import { useSelectedUser } from '@/hooks/use-selected-user'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 // Allowed workout types to be synced with Supabase
 const ALLOWED_WORKOUT_TYPES: readonly string[] = [
@@ -147,6 +148,7 @@ export default function ExerciseLibraryPage() {
   // Drawer state for exercise details
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [drawerExercise, setDrawerExercise] = useState<Exercise | null>(null)
+  const isMobile = useIsMobile()
 
   // Placeholder to keep future usage-related side effects if needed
 
@@ -950,11 +952,12 @@ export default function ExerciseLibraryPage() {
         onOpenChange={setIsDrawerOpen}
         exercise={drawerExercise}
         isPaidTier={isPaidTier}
+        direction={isMobile ? 'bottom' : 'right'}
       />
 
       {/* Statistics Drawer */}
-      <Drawer open={isStatsOpen} onOpenChange={setIsStatsOpen} direction="right">
-        <DrawerContent className="data-[vaul-drawer-direction=right]:!w-[80vw] data-[vaul-drawer-direction=right]:!max-w-none lg:data-[vaul-drawer-direction=right]:!w-1/2">
+      <Drawer open={isStatsOpen} onOpenChange={setIsStatsOpen} direction={isMobile ? 'bottom' : 'right'}>
+        <DrawerContent className="data-[vaul-drawer-direction=right]:!w-[80vw] data-[vaul-drawer-direction=right]:!max-w-none lg:data-[vaul-drawer-direction=right]:!w-1/2 data-[vaul-drawer-direction=bottom]:!max-h-[85vh]">
           <div className="flex flex-col h-full">
             <DrawerHeader className="pb-0">
               <div className="flex items-center justify-between">
@@ -995,7 +998,7 @@ export default function ExerciseLibraryPage() {
 }
 
 // Drawer UI for exercise details and videos
-function ExerciseDetailDrawer({ open, onOpenChange, exercise, isPaidTier }: { open: boolean; onOpenChange: (v: boolean) => void; exercise: Exercise | null; isPaidTier: boolean }) {
+function ExerciseDetailDrawer({ open, onOpenChange, exercise, isPaidTier, direction = 'right' }: { open: boolean; onOpenChange: (v: boolean) => void; exercise: Exercise | null; isPaidTier: boolean; direction?: 'left' | 'right' | 'top' | 'bottom' }) {
   const [isSearching, setIsSearching] = useState(false)
   const [videoUrls, setVideoUrls] = useState<string[]>([])
   const [videoError, setVideoError] = useState<null | { code: 'missing_api_key' | 'quota_exceeded' | 'upstream_error' | 'no_results' | 'no_queries'; message: string }>(null)
@@ -1107,8 +1110,8 @@ function ExerciseDetailDrawer({ open, onOpenChange, exercise, isPaidTier }: { op
   })()
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange} direction="right">
-      <DrawerContent className="data-[vaul-drawer-direction=right]:!w-[80vw] data-[vaul-drawer-direction=right]:!max-w-none lg:data-[vaul-drawer-direction=right]:!w-1/2">
+    <Drawer open={open} onOpenChange={onOpenChange} direction={direction}>
+      <DrawerContent className="data-[vaul-drawer-direction=right]:!w-[80vw] data-[vaul-drawer-direction=right]:!max-w-none lg:data-[vaul-drawer-direction=right]:!w-1/2 data-[vaul-drawer-direction=bottom]:!max-h-[85vh]">
         <div className="flex flex-col h-full">
           <DrawerHeader className="pb-0">
             <DrawerTitle className="text-xl">{exercise.name}</DrawerTitle>
