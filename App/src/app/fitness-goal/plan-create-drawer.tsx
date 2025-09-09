@@ -73,7 +73,7 @@ export function CreatePlanDrawer({ open, onOpenChange, userId, plan, onSaved }: 
       : 10 * weightKg + 6.25 * heightCm - 5 * ageYears - 161
   }
 
-  const calculateTDEE = (bmr: number, multiplier = 1.55) => bmr * multiplier
+  const calculateTDEE = (bmr: number, multiplier = 1.55) => Math.round(bmr * multiplier)
 
   const computePlanNutrition = () => {
     try {
@@ -98,7 +98,7 @@ export function CreatePlanDrawer({ open, onOpenChange, userId, plan, onSaved }: 
       const fat = Math.round((dailyCalories * 0.25) / 9)
       return { dailyCalories, macros: { protein_g: protein, carbs_g: carbs, fat_g: fat } }
     } catch {
-      return { dailyCalories: undefined as number | undefined, macros: undefined as any }
+      return { dailyCalories: undefined, macros: undefined }
     }
   }
 
@@ -232,7 +232,9 @@ export function CreatePlanDrawer({ open, onOpenChange, userId, plan, onSaved }: 
               if (next.status === 'active' && userId) {
                 try { await syncService.syncActivePlansToDb(userId) } catch {/* ignore */}
               }
-              try { onSaved?.(next) } catch {}
+              try { onSaved?.(next) } catch {
+                // Ignore save callback errors
+              }
               onOpenChange(false)
             }}>Save</Button>
           </div>

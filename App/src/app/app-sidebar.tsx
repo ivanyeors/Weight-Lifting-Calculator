@@ -43,7 +43,7 @@ import { FlickeringGrid } from "@/components/ui/shadcn-io/flickering-grid"
 import { supabase } from '@/lib/supabaseClient'
 import { TeamSwitcher } from "@/components/ui/team-switcher"
 
-import { Calculator, MapPin, ClipboardList, Dumbbell, AppWindow, ChevronDown, Flame, Users as UsersIcon, UtensilsCrossed, Building2, CheckCircle } from "lucide-react"
+import { Calculator, MapPin, ClipboardList, Dumbbell, AppWindow, ChevronDown, Flame, Users as UsersIcon, UtensilsCrossed, Building2, CheckCircle, Calendar } from "lucide-react"
 import { useTheme } from "next-themes"
 
 type UserInfo = { id: string; email: string | null; name: string | null; avatarUrl: string | null }
@@ -336,7 +336,7 @@ export function AppSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === '/plans/workout-plans'}>
                   <a href="/plans/workout-plans" className={`flex items-center gap-2 ${pathname === '/plans/workout-plans' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
-                    <ClipboardList />
+                    <Calendar />
                     <span className="group-data-[collapsible=icon]:hidden">Fitness Calendar</span>
                   </a>
                 </SidebarMenuButton>

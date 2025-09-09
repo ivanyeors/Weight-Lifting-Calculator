@@ -152,14 +152,15 @@ export const Navbar01 = React.forwardRef<HTMLElement, Navbar01Props>(
     }, [ref]);
 
     return (
-      <header
-        ref={combinedRef}
-        className={cn(
-          'sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6 [&_*]:no-underline',
-          className
-        )}
-        {...props}
-      >
+      <>
+        <header
+          ref={combinedRef}
+          className={cn(
+            'sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6 [&_*]:no-underline',
+            className
+          )}
+          {...props}
+        >
         <div className="container mx-auto flex h-16 max-w-screen-2xl items-center justify-between gap-4">
           {/* Left side */}
           <div className="flex items-center gap-2">
@@ -181,11 +182,14 @@ export const Navbar01 = React.forwardRef<HTMLElement, Navbar01Props>(
                     {navigationLinks.map((link, index) => (
                       <NavigationMenuItem key={index} className="w-full">
                         <button
-                          onClick={(e) => { e.preventDefault(); onNavigationClick?.(link); }}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            onNavigationClick?.(link);
+                          }}
                           className={cn(
                             "flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer no-underline",
-                            link.active 
-                              ? "bg-accent text-accent-foreground" 
+                            link.active
+                              ? "bg-accent text-accent-foreground"
                               : "text-foreground/80"
                           )}
                         >
@@ -200,8 +204,11 @@ export const Navbar01 = React.forwardRef<HTMLElement, Navbar01Props>(
             )}
             {/* Main nav */}
             <div className="flex items-center gap-6">
-              <button 
-                onClick={(e) => e.preventDefault()}
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = logoHref;
+                }}
                 className="flex items-center space-x-2 text-primary hover:text-primary/90 transition-colors cursor-pointer"
               >
                 <div className="text-2xl">
@@ -216,11 +223,14 @@ export const Navbar01 = React.forwardRef<HTMLElement, Navbar01Props>(
                   {navigationLinks.map((link, index) => (
                     <NavigationMenuItem key={index}>
                       <button
-                        onClick={(e) => { e.preventDefault(); onNavigationClick?.(link); }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          onNavigationClick?.(link);
+                        }}
                         className={cn(
                           "group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 cursor-pointer no-underline",
-                          link.active 
-                            ? "bg-accent text-accent-foreground" 
+                          link.active
+                            ? "bg-accent text-accent-foreground"
                             : "text-foreground/80 hover:text-foreground"
                         )}
                       >
@@ -259,6 +269,7 @@ export const Navbar01 = React.forwardRef<HTMLElement, Navbar01Props>(
           </div>
         </div>
       </header>
+      </>
     );
   }
 );

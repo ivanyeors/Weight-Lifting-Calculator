@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { Menu } from "lucide-react"
+import { Home, PanelLeftIcon } from "lucide-react"
 import { MenuDock } from "@/components/ui/shadcn-io/menu-dock"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useSidebar } from "@/components/ui/sidebar"
@@ -41,16 +41,16 @@ export function MobileDock() {
         items={[
           {
             label: 'Home',
-            icon: Menu,
+            icon: Home,
             onClick: () => { try { window.location.href = '/home' } catch {} }
           },
           {
-            label: 'Menu',
-            icon: Menu,
+            label: 'Sidebar',
+            icon: PanelLeftIcon,
             onClick: toggleSidebar,
           }
         ]}
-        variant="compact"
+        variant="default"
         showLabels={false}
         className="bg-background/95 backdrop-blur-sm border border-border/50 shadow-lg rounded-full px-2 py-1"
       />

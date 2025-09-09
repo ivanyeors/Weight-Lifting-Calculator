@@ -64,6 +64,7 @@ export default function HomePage() {
   const navigationLinks = [
     { href: '/fitspo-app', label: 'App' },
     { href: '/home#platform', label: 'Platform' },
+    { href: '/home/pricing', label: 'Pricing' },
   ]
 
   const handleGetStarted = () => {
