@@ -9,6 +9,10 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/app/app-sidebar"
 import { MobileDock } from "@/app/(globals)/mobile-dock"
 import { AuthCallbackHandler } from "@/auth/AuthCallbackHandler"
+import GTM from "@/components/analytics/GTM"
+import GA from "@/components/analytics/GA"
+import ConsentDefaults from "@/components/analytics/ConsentDefaults"
+import ConsentBanner from "@/components/analytics/ConsentBanner"
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -42,6 +46,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
+        <ConsentDefaults />
+        <GTM />
+        <GA />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthCallbackHandler>
             <SidebarProvider style={{ "--sidebar-width": "14rem" } as CSSProperties}>
@@ -54,6 +61,7 @@ export default function RootLayout({
             </SidebarProvider>
             <Toaster />
             <Analytics />
+            <ConsentBanner />
           </AuthCallbackHandler>
         </ThemeProvider>
       </body>
