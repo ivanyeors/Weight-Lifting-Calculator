@@ -120,7 +120,7 @@ export function AppSidebar() {
       }
     } finally {
       const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/');
-      window.location.replace(`${base}`);
+      window.location.replace(`${base}home`);
     }
   }
 
@@ -186,6 +186,11 @@ export function AppSidebar() {
     }
   }, [user?.id])
 
+  // Hide sidebar when not authenticated and on /home page
+  if (!user && pathname === '/home') {
+    return null
+  }
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-2">
@@ -221,23 +226,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup className="group-data-[collapsible=icon]:items-center">
-          <SidebarGroupLabel className="group-data-[collapsible=icon]:justify-center">
-            App
-          </SidebarGroupLabel>
-          <SidebarGroupContent className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
-            <SidebarMenu className="group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:w-full">
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/fitspo-app'}>
-                  <a href="/fitspo-app" className={`flex items-center gap-2 ${pathname === '/fitspo-app' ? 'bg-primary/10 text-primary border-l-2 border-primary' : ''} group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:!border-0`}>
-                    <AppWindow />
-                    <span className="group-data-[collapsible=icon]:hidden">Fitspo App</span>
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {/* Removed Fitspo App entry point from sidebar as requested */}
 
         <SidebarGroup className="group-data-[collapsible=icon]:items-center">
           <SidebarGroupLabel className="group-data-[collapsible=icon]:justify-center">

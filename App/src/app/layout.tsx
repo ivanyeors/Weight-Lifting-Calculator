@@ -1,16 +1,14 @@
 import type { Metadata } from 'next'
-import { type CSSProperties } from 'react'
 import { Inter } from 'next/font/google'
 import { Analytics } from "@vercel/analytics/next"
+import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google"
 import '../index.css'
 import { ThemeProvider } from "@/app/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
-import { AppSidebar } from "@/app/app-sidebar"
-import { MobileDock } from "@/app/(globals)/mobile-dock"
+
+import { AppShell } from "@/app/app-shell"
 import { AuthCallbackHandler } from "@/auth/AuthCallbackHandler"
-import GTM from "@/components/analytics/GTM"
-import GA from "@/components/analytics/GA"
+// Replaced bespoke GTM/GA with @next/third-parties implementations
 import ConsentDefaults from "@/components/analytics/ConsentDefaults"
 import ConsentBanner from "@/components/analytics/ConsentBanner"
 
@@ -43,22 +41,19 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const gaId = process.env.NEXT_PUBLIC_GA_ID || 'G-6P9R4044ZG'
+  const gtmId = process.env.NEXT_PUBLIC_GTM_ID
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ConsentDefaults />
-        <GTM />
-        <GA />
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        {gtmId ? <GoogleTagManager gtmId={gtmId} /> : null}
+        {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <AuthCallbackHandler>
-            <SidebarProvider style={{ "--sidebar-width": "14rem" } as CSSProperties}>
-              <AppSidebar />
-              <SidebarInset>
-                {children}
-              </SidebarInset>
-              {/* Global mobile dock so it's persistent across navigation */}
-              <MobileDock />
-            </SidebarProvider>
+            <AppShell>
+              {children}
+            </AppShell>
             <Toaster />
             <Analytics />
             <ConsentBanner />
