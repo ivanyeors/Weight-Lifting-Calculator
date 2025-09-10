@@ -28,7 +28,7 @@ function updateGtagConsent(state: ConsentState) {
     try {
       const GA_ID = process.env.NEXT_PUBLIC_GA_ID || 'G-6P9R4044ZG'
       const url = window.location.pathname + (window.location.search ? `?${window.location.search}` : '')
-      gtag('config', GA_ID, { page_path: url })
+      gtag('config', GA_ID, { page_path: url, transport_type: 'beacon' })
     } catch {}
   }
 }
