@@ -14,6 +14,7 @@ function sendPageView(url: string) {
   try {
     gtag("config", GA_ID, {
       page_path: url,
+      transport_type: "beacon",
     })
   } catch {
     // no-op
