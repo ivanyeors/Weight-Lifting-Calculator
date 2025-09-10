@@ -51,12 +51,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   const gaId = process.env.NEXT_PUBLIC_GA_ID || 'G-6P9R4044ZG'
-  const gtmId = process.env.NEXT_PUBLIC_GTM_ID
+  const gtmId = process.env.NEXT_PUBLIC_GTM_ID || 'GTM-WM9V3GDQ'
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <ConsentDefaults />
         {gtmId ? <GoogleTagManager gtmId={gtmId} /> : null}
+        <ConsentDefaults />
         {gaId ? (
           <>
             <Script
