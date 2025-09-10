@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import { Analytics } from "@vercel/analytics/next"
 import { GoogleTagManager } from "@next/third-parties/google"
+import { GoogleAnalytics } from '@next/third-parties/google';
 import Script from 'next/script'
 import '../index.css'
 import { ThemeProvider } from "@/app/theme-provider"
