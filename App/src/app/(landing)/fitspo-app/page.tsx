@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
@@ -10,13 +11,37 @@ import { Navbar01 } from "@/components/ui/shadcn-io/navbar-01"
 import { useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
 import { supabase } from "@/lib/supabaseClient"
-import { useState } from "react"
+import { LoginSheet } from "@/components/auth/LoginSheet"
 
 export default function FitspoAppPage() {
   const router = useRouter()
   const { theme, resolvedTheme } = useTheme()
   const [email, setEmail] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoginOpen, setIsLoginOpen] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+  useEffect(() => {
+    let unsub: (() => void) | undefined
+    const init = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        setIsAuthenticated(!!session?.user)
+      } catch {
+        setIsAuthenticated(false)
+      }
+    }
+    void init()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setIsAuthenticated(!!session?.user)
+      if (session?.user) {
+        setIsLoginOpen(false)
+        router.replace('/onboard')
+      }
+    })
+    unsub = () => subscription.unsubscribe()
+    return () => { unsub?.() }
+  }, [router])
 
   const handleRegisterInterest = async () => {
     const emailInput = document.getElementById('email-input') as HTMLInputElement
@@ -135,12 +160,12 @@ export default function FitspoAppPage() {
         }
         logoHref="/home"
         navigationLinks={navigationLinks}
-        signInText="Sign In"
-        signInHref="#signin"
-        ctaText="Get Started"
-        ctaHref="#get-started"
-        onSignInClick={() => router.push('/account')}
-        onCtaClick={() => router.push('/onboard')}
+        signInText={isAuthenticated ? 'Account' : 'Sign In'}
+        signInHref={isAuthenticated ? '/account' : '#signin'}
+        ctaText={isAuthenticated ? 'Dashboard' : 'Get Started'}
+        ctaHref={isAuthenticated ? '/onboard' : '#get-started'}
+        onSignInClick={() => { if (isAuthenticated) router.push('/account'); else setIsLoginOpen(true) }}
+        onCtaClick={() => { if (isAuthenticated) router.push('/onboard'); else setIsLoginOpen(true) }}
         onNavigationClick={handleNavigationClick}
       />
 
@@ -296,6 +321,7 @@ export default function FitspoAppPage() {
           </div>
         </div>
       </div>
+      <LoginSheet open={isLoginOpen} onOpenChange={setIsLoginOpen} onSuccess={() => setIsLoginOpen(false)} />
     </div>
   )
 }

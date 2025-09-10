@@ -12,6 +12,7 @@ import { AuthCallbackHandler } from "@/auth/AuthCallbackHandler"
 // Replaced bespoke GTM/GA with @next/third-parties implementations
 import ConsentDefaults from "@/components/analytics/ConsentDefaults"
 import ConsentBanner from "@/components/analytics/ConsentBanner"
+import GATrackPageViews from "@/components/analytics/GATrackPageViews"
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -78,6 +79,7 @@ export default function RootLayout({
             <AppShell>
               {children}
             </AppShell>
+            <GATrackPageViews />
             <Toaster />
             <Analytics />
             <ConsentBanner />

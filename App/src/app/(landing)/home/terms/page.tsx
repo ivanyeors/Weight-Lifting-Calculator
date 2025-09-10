@@ -1,14 +1,41 @@
 "use client"
 
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import { Navbar01 } from '@/components/ui/shadcn-io/navbar-01'
 import { useTheme } from 'next-themes'
+import { LoginSheet } from '@/components/auth/LoginSheet'
+import { supabase } from '@/lib/supabaseClient'
 
 export default function TermsPage() {
   const router = useRouter()
   const { theme, resolvedTheme } = useTheme()
+  const [isLoginOpen, setIsLoginOpen] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+  useEffect(() => {
+    let unsub: (() => void) | undefined
+    const check = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        setIsAuthenticated(!!session?.user)
+      } catch {
+        setIsAuthenticated(false)
+      }
+    }
+    void check()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setIsAuthenticated(!!session?.user)
+      if (session?.user) {
+        setIsLoginOpen(false)
+        router.replace('/onboard')
+      }
+    })
+    unsub = () => subscription.unsubscribe()
+    return () => { unsub?.() }
+  }, [router])
 
   return (
     <div className="min-h-screen bg-background">
@@ -26,12 +53,12 @@ export default function TermsPage() {
           { href: '/fitspo-app', label: 'App' },
           { href: '/home#platform', label: 'Platform' },
         ]}
-        signInText="Sign In"
-        signInHref="/home"
-        ctaText="Get Started"
-        ctaHref="/home"
-        onSignInClick={() => router.push('/home')}
-        onCtaClick={() => router.push('/home')}
+        signInText={isAuthenticated ? 'Account' : 'Sign In'}
+        signInHref={isAuthenticated ? '/account' : '#signin'}
+        ctaText={isAuthenticated ? 'Dashboard' : 'Get Started'}
+        ctaHref={isAuthenticated ? '/onboard' : '#get-started'}
+        onSignInClick={() => { if (isAuthenticated) router.push('/account'); else setIsLoginOpen(true) }}
+        onCtaClick={() => { if (isAuthenticated) router.push('/onboard'); else setIsLoginOpen(true) }}
       />
 
       <div className="mx-auto max-w-4xl px-6 py-16">
@@ -139,6 +166,7 @@ export default function TermsPage() {
         </div>
       </div>
     </div>
+      <LoginSheet open={isLoginOpen} onOpenChange={setIsLoginOpen} onSuccess={() => setIsLoginOpen(false)} />
     </div>
   )
 }
