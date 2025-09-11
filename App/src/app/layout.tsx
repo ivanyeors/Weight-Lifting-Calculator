@@ -46,16 +46,13 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({children }: { children: React.ReactNode }) {
   const gaId = process.env.NEXT_PUBLIC_GA_ID || 'G-6P9R4044ZG'
   const gtmId = process.env.NEXT_PUBLIC_GTM_ID || 'GTM-WM9V3GDQ'
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
+        <GoogleAnalytics gaId="G-6P9R4044ZG" />
         {gtmId ? <GoogleTagManager gtmId={gtmId} /> : null}
         <ConsentDefaults />
         {gaId ? (
