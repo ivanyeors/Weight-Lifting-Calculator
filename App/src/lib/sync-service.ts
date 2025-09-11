@@ -34,6 +34,38 @@ export class SyncService {
   // Sync fitness logs from localStorage to Supabase
   async syncFitnessLogsToDb(planId: string, userId: string) {
     try {
+      // Guard: Supabase auth user must exist (RLS policies depend on auth.uid())
+      const { data: authData } = await supabase.auth.getUser()
+      const authUserId = authData?.user?.id
+      if (!authUserId) {
+        // Skip sync silently when unauthenticated; caller may retry after login
+        return false
+      }
+
+      // Ensure planId is a UUID; if it is not, attempt to upsert plan with a new UUID and migrate
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+      if (!uuidRegex.test(planId)) {
+        // Attempt migration: read local plan and assign a new UUID, then update local storage
+        try {
+          const plansRaw = localStorage.getItem('fitspo:plans')
+          if (plansRaw) {
+            const allPlans = JSON.parse(plansRaw) as Record<string, Array<Plan>>
+            const userPlans = allPlans[userId] || []
+            const idx = userPlans.findIndex((p) => p.id === planId)
+            if (idx >= 0) {
+              const newId = (crypto as any)?.randomUUID ? (crypto as any).randomUUID() : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
+              const migrated: Plan = { ...userPlans[idx], id: newId }
+              userPlans[idx] = migrated
+              allPlans[userId] = userPlans
+              localStorage.setItem('fitspo:plans', JSON.stringify(allPlans))
+              planId = newId
+            }
+          }
+        } catch {
+          // Ignore migration errors, proceed with original id (DB may reject)
+        }
+      }
+
       const day = new Date().toISOString().slice(0, 10)
 
       // Collect all logs for today
@@ -42,6 +74,44 @@ export class SyncService {
         water: this.getLocalStorageValue('fitspo:water_liters_by_day', day),
         sleep: this.getLocalStorageValue('fitspo:sleep_hours_by_day', day),
         exercise: this.getLocalStorageValue('fitspo:exercise_kcals_by_day', day)
+      }
+
+      // Ensure plan exists in DB (FK constraint). If not, upsert from local storage copy
+      try {
+        const { data: planRow, error: planFetchError } = await supabase
+          .from('fitness_plans')
+          .select('id')
+          .eq('id', planId)
+          .maybeSingle()
+        if (planFetchError || !planRow) {
+          // Try find in local storage and upsert
+          const plansRaw = localStorage.getItem('fitspo:plans')
+          if (plansRaw) {
+            const allPlans = JSON.parse(plansRaw) as Record<string, Array<Plan>>
+            const userPlans = allPlans[userId] || []
+            const localPlan = userPlans.find((p) => p.id === planId)
+            if (localPlan) {
+              await supabase
+                .from('fitness_plans')
+                .upsert({
+                  id: localPlan.id,
+                  user_id: localPlan.userId,
+                  owner_id: authUserId,
+                  title: localPlan.title,
+                  status: localPlan.status,
+                  duration_days: localPlan.durationDays,
+                  pillars: localPlan.pillars,
+                  config: localPlan.config,
+                  created_at: localPlan.createdAt,
+                  updated_at: new Date().toISOString()
+                }, {
+                  onConflict: 'id'
+                })
+            }
+          }
+        }
+      } catch {
+        // ignore and proceed; insert below may still succeed if plan exists
       }
 
       // Upsert to fitness_logs table

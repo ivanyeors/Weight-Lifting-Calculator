@@ -12,12 +12,14 @@ import { usePlans } from './plan-store'
 import { savePlan } from './plan-api'
 import { useSelectedUser } from '@/hooks/use-selected-user'
 import { syncService } from '@/lib/sync-service'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 export type PillarKey = 'food' | 'water' | 'sleep' | 'exercise'
 
 export function CreatePlanDrawer({ open, onOpenChange, userId, plan, onSaved }: { open: boolean; onOpenChange: (v: boolean) => void; userId: string; plan?: Plan | null; onSaved?: (p: Plan) => void }) {
   const { add, update } = usePlans(userId || null)
   const { user } = useSelectedUser()
+  const isMobile = useIsMobile()
   const [title, setTitle] = useState('New Plan')
   const [pillars, setPillars] = useState<Record<PillarKey, boolean>>({ food: true, water: true, sleep: true, exercise: true })
 
@@ -116,7 +118,15 @@ export function CreatePlanDrawer({ open, onOpenChange, userId, plan, onSaved }: 
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange} modal={false}>
-      <SheetContent side="right" className="w-full max-w-[100vw] sm:w-[560px] md:w-[640px] p-3 sm:p-4">
+      <SheetContent
+        side={isMobile ? 'bottom' : 'right'}
+        animation={isMobile ? 'fade' : 'slide'}
+        overlayClassName={isMobile ? '!bg-black/40' : undefined}
+        className={isMobile
+          ? 'p-3 sm:p-4 inset-x-0 bottom-0 w-screen max-w-none rounded-t-2xl border-t h-[75vh] overflow-y-auto'
+          : 'w-full max-w-[100vw] sm:w-[560px] md:w-[640px] p-3 sm:p-4'
+        }
+      >
         <SheetHeader>
           <SheetTitle>Create Plan</SheetTitle>
           <SheetDescription>Select goals across pillars, then save</SheetDescription>
@@ -202,7 +212,9 @@ export function CreatePlanDrawer({ open, onOpenChange, userId, plan, onSaved }: 
               const nutrition = computePlanNutrition()
               const exKcals = computeExerciseKcals()
               const base: Plan = plan ? { ...plan } as Plan : {
-                id: String(Date.now()),
+                id: (typeof crypto !== 'undefined' && typeof (crypto as any).randomUUID === 'function')
+                  ? (crypto as any).randomUUID()
+                  : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`,
                 userId,
                 title: title || 'New Plan',
                 status: 'draft',

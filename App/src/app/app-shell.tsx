@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { SidebarConditionalWrapper } from "@/app/sidebar-conditional-wrapper"
 import { MobileDock } from "@/app/(globals)/mobile-dock"
+import { FitnessGoalDock } from "@/app/fitness-goal/fitness-goal-dock"
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -20,7 +21,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <SidebarInset>
         {children}
       </SidebarInset>
-      <MobileDock />
+      {normalizedPath === "/fitness-goal" ? <FitnessGoalDock /> : <MobileDock />}
     </SidebarProvider>
   )
 }

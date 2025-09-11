@@ -14,6 +14,7 @@ import { useMemo, useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { toast } from 'sonner'
 import { syncService } from '@/lib/sync-service'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 export function PlanDetailsDrawer({
   open,
@@ -29,6 +30,7 @@ export function PlanDetailsDrawer({
   if (!plan) return null
 
   const { update } = usePlans(plan.userId)
+  const isMobile = useIsMobile()
 
   const targets = useMemo(() => {
     const m = plan?.config.food?.macros
@@ -136,19 +138,22 @@ export function PlanDetailsDrawer({
   return (
     <Sheet open={open} onOpenChange={onOpenChange} modal={false}>
       <SheetContent
-        side="right"
-        animation="slide"
-        overlayClassName="bg-transparent pointer-events-none"
-        className="w-[60vw] sm:w-[60vw] lg:w-[60vw] max-w-none sm:max-w-none"
+        side={isMobile ? 'bottom' : 'right'}
+        animation={isMobile ? 'fade' : 'slide'}
+        overlayClassName={isMobile ? 'bg-black/40' : 'bg-transparent pointer-events-none'}
+        className={isMobile
+          ? 'px-2 py-3 sm:p-4 inset-x-0 bottom-0 w-screen max-w-none rounded-t-2xl border-t h-[75vh]'
+          : 'w-[60vw] sm:w-[60vw] lg:w-[60vw] max-w-none sm:max-w-none'
+        }
       >
-        <SheetHeader className="p-4">
+        <SheetHeader className="p-2 sm:p-4">
           <SheetTitle>{plan.title}</SheetTitle>
           <SheetDescription>
             Status: <span className="uppercase text-xs tracking-wide">{plan.status}</span>
           </SheetDescription>
         </SheetHeader>
 
-        <div className="px-4 pb-4 space-y-4 overflow-auto">
+        <div className="px-2 sm:px-4 pb-3 sm:pb-4 space-y-4 overflow-auto">
           <div className="border rounded p-3">
             <div className="text-sm font-medium mb-2">Progress over goal</div>
             <StackedPillarChart plan={plan} />
@@ -156,7 +161,7 @@ export function PlanDetailsDrawer({
 
           <div className="border rounded p-3">
             <div className="text-sm font-medium mb-3">Quick log today</div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+            <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-3 text-sm">
               {plan.pillars.food && (
                 <div className="space-y-1">
                   <Label className="text-xs">Food (select planned recipes)</Label>
@@ -285,7 +290,7 @@ export function PlanDetailsDrawer({
               )}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 text-sm">
             <div>
               <div className="text-muted-foreground text-xs">Duration</div>
               <div>{plan.durationDays ? `${plan.durationDays} days` : '—'}</div>

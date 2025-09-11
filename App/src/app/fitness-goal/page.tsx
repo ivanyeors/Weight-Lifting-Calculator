@@ -66,6 +66,22 @@ export default function FitnessGoalPage() {
 
   // Auto-select first active plan (or first plan) when none selected
   useEffect(() => {
+    // fitness-goal dock actions
+    const openCreate = () => setDrawerOpen(true)
+    const openDetails = () => setDetailsOpen(true)
+    if (typeof window !== 'undefined') {
+      window.addEventListener('fitspo:open_create_plan', openCreate)
+      window.addEventListener('fitspo:open_plan_details', openDetails)
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('fitspo:open_create_plan', openCreate)
+        window.removeEventListener('fitspo:open_plan_details', openDetails)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
     try {
       if (plans.length === 0) return
       const active = plans.find(p => p.status === 'active')
