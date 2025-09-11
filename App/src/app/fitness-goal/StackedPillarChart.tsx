@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts'
-import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import type { Plan } from './plan-types'
 import type { ChartConfig } from '@/components/ui/chart'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 type DailyLog = {
   date: string
@@ -29,12 +30,12 @@ const COLORS = {
   exercise: 'var(--chart-4)',
 } as const
 
-function getDayKeys(durationDays: number): string[] {
+function getDayKeysFromStart(startISO: string, durationDays: number): string[] {
   const out: string[] = []
-  const now = new Date()
-  for (let i = durationDays - 1; i >= 0; i--) {
-    const d = new Date(now)
-    d.setDate(now.getDate() - i)
+  const start = new Date(startISO)
+  for (let i = 0; i < durationDays; i++) {
+    const d = new Date(start)
+    d.setDate(start.getDate() + i)
     out.push(d.toISOString().slice(0, 10))
   }
   return out
@@ -83,9 +84,21 @@ function readPlanLogs(planId?: string | null): Record<string, Partial<DailyLog>>
 
 export function StackedPillarChart({ plan }: { plan: Plan }) {
   const durationDays = Math.max(1, Number(plan?.durationDays ?? 28))
-  const days = useMemo(() => getDayKeys(durationDays), [durationDays])
+  const startDateISO = useMemo(() => {
+    try {
+      const created = plan?.createdAt ? new Date(plan.createdAt) : null
+      if (created && !Number.isNaN(created.getTime())) {
+        return created.toISOString().slice(0, 10)
+      }
+    } catch {}
+    const now = new Date()
+    now.setDate(now.getDate() - (durationDays - 1))
+    return now.toISOString().slice(0, 10)
+  }, [plan?.createdAt, durationDays])
+  const days = useMemo(() => getDayKeysFromStart(startDateISO, durationDays), [startDateISO, durationDays])
 
   const targets = useMemo(() => computeTargets(plan), [plan])
+  const isMobile = useIsMobile()
 
   const [logsVersion, setLogsVersion] = useState(0)
   useEffect(() => {
@@ -167,33 +180,60 @@ export function StackedPillarChart({ plan }: { plan: Plan }) {
     return cfg
   }, [enabled])
 
+  const totalDays = days.length
+  const visibleDays = isMobile ? 7 : 14
+  const perDayPx = isMobile ? 44 : 48
+  const minWidthPx = Math.max(totalDays, visibleDays) * perDayPx
+
+  const legendItems = useMemo(() => {
+    const items: Array<{ key: keyof typeof COLORS; label: string; color: string }> = []
+    if (enabled.food) items.push({ key: 'food', label: 'Food', color: COLORS.food })
+    if (enabled.water) items.push({ key: 'water', label: 'Water', color: COLORS.water })
+    if (enabled.sleep) items.push({ key: 'sleep', label: 'Sleep', color: COLORS.sleep })
+    if (enabled.exercise) items.push({ key: 'exercise', label: 'Exercise', color: COLORS.exercise })
+    return items
+  }, [enabled])
+
   return (
-    <ChartContainer config={config} className="w-full h-[220px] sm:h-64">
-      <BarChart accessibilityLayer data={chartData}>
-        <CartesianGrid vertical={false} />
-        <XAxis
-          dataKey="date"
-          tickLine={false}
-          tickMargin={6}
-          axisLine={false}
-          tickFormatter={(v: string) => (typeof v === 'string' ? v.slice(5) : v)}
-        />
-        <ChartTooltip content={<ChartTooltipContent hideLabel formatter={(value) => (<span>{Number(value ?? 0)}%</span>)} />} />
-        <ChartLegend content={<ChartLegendContent />} />
-        {enabled.food && (
-          <Bar dataKey="food" stackId="a" fill="var(--color-food)" />
-        )}
-        {enabled.water && (
-          <Bar dataKey="water" stackId="a" fill="var(--color-water)" />
-        )}
-        {enabled.sleep && (
-          <Bar dataKey="sleep" stackId="a" fill="var(--color-sleep)" />
-        )}
-        {enabled.exercise && (
-          <Bar dataKey="exercise" stackId="a" fill="var(--color-exercise)" />
-        )}
-      </BarChart>
-    </ChartContainer>
+    <div className="w-full">
+      <div className="flex items-center justify-end gap-4 mb-2 text-xs">
+        {legendItems.map(it => (
+          <div key={it.key} className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: it.color }} />
+            <span>{it.label}</span>
+          </div>
+        ))}
+      </div>
+      <div className="w-full overflow-x-auto">
+        <div style={{ minWidth: `${minWidthPx}px` }}>
+          <ChartContainer config={config} className="w-full h-[220px] sm:h-64">
+            <BarChart accessibilityLayer data={chartData} margin={{ top: 8, right: 12, bottom: 16, left: 8 }}>
+              <CartesianGrid vertical={false} />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                tickMargin={6}
+                axisLine={false}
+                tickFormatter={(v: string) => (typeof v === 'string' ? v.slice(5) : v)}
+              />
+              <ChartTooltip content={<ChartTooltipContent hideLabel formatter={(value) => (<span>{Number(value ?? 0)}%</span>)} />} />
+              {enabled.food && (
+                <Bar dataKey="food" stackId="a" fill="var(--color-food)" />
+              )}
+              {enabled.water && (
+                <Bar dataKey="water" stackId="a" fill="var(--color-water)" />
+              )}
+              {enabled.sleep && (
+                <Bar dataKey="sleep" stackId="a" fill="var(--color-sleep)" />
+              )}
+              {enabled.exercise && (
+                <Bar dataKey="exercise" stackId="a" fill="var(--color-exercise)" />
+              )}
+            </BarChart>
+          </ChartContainer>
+        </div>
+      </div>
+    </div>
   )
 }
 

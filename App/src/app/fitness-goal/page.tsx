@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useSelectedUser } from '@/hooks/use-selected-user'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Plus, PanelLeft, PanelRight, User, ArrowRight } from 'lucide-react'
@@ -19,6 +19,10 @@ import { fetchPlans } from './plan-api'
 import { syncService } from '@/lib/sync-service'
 import { useOrbProgress } from './orb-progress-hooks'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { ChartContainer } from '@/components/ui/chart'
+import type { ChartConfig } from '@/components/ui/chart'
+import { Line as RLine, LineChart as RLineChart, YAxis as RYAxis } from 'recharts'
+import type { Plan } from './plan-types'
  
 // (kept for potential future use)
 
@@ -189,6 +193,137 @@ export default function FitnessGoalPage() {
     }
   }, [])
 
+  // Track logs changes to recompute progress chart
+  const [logsVersion, setLogsVersion] = useState(0)
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (!e.key) return
+      if (
+        e.key === 'fitspo:food_kcals_by_day' ||
+        e.key === 'fitspo:water_liters_by_day' ||
+        e.key === 'fitspo:sleep_hours_by_day' ||
+        e.key === 'fitspo:exercise_kcals_by_day' ||
+        e.key.startsWith('fitspo:plan_logs:')
+      ) {
+        setLogsVersion(v => v + 1)
+      }
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', onStorage)
+      window.addEventListener('fitspo:logs_changed', () => setLogsVersion(v => v + 1))
+      return () => window.removeEventListener('storage', onStorage)
+    }
+  }, [])
+
+  // Helpers to compute daily overall progress (ratio of goals hit per day)
+  const getDayKeysFromStart = (startISO: string, durationDays: number): string[] => {
+    const out: string[] = []
+    const start = new Date(startISO)
+    for (let i = 0; i < durationDays; i++) {
+      const d = new Date(start)
+      d.setDate(start.getDate() + i)
+      out.push(d.toISOString().slice(0, 10))
+    }
+    return out
+  }
+
+  const readNumberMap = (key: string): Record<string, number> => {
+    try {
+      const raw = typeof window !== 'undefined' ? localStorage.getItem(key) : null
+      return raw ? (JSON.parse(raw) as Record<string, number>) : {}
+    } catch {
+      return {}
+    }
+  }
+
+  const computeTargets = (plan: Plan | null) => {
+    const m = plan?.config?.food?.macros
+    const foodTarget = m ? (m.protein_g ?? 0) * 4 + (m.carbs_g ?? 0) * 4 + (m.fat_g ?? 0) * 9 : 2500
+    const waterTarget = plan?.config?.water?.recommendedLitersPerDay ?? 3.0
+    const exerciseTarget = plan?.config?.exercise?.estimatedKcalsPerWorkout ?? 300
+    let sleepTarget = 8
+    try {
+      const s = plan?.config?.sleep?.startTime || '23:00'
+      const e = plan?.config?.sleep?.endTime || '07:00'
+      const [sh, sm] = s.split(':').map(Number)
+      const [eh, em] = e.split(':').map(Number)
+      const hrs = (eh + (eh < sh ? 24 : 0)) - sh + (em - sm) / 60
+      if (Number.isFinite(hrs)) sleepTarget = hrs
+    } catch { /* ignore sleep target parse */ }
+    return { foodTarget, waterTarget, sleepTarget, exerciseTarget }
+  }
+
+  const progressChartConfig: ChartConfig = useMemo(() => ({
+    progress: { label: 'Progress', color: 'var(--chart-1)' },
+  }), [])
+
+  const progressData = useMemo(() => {
+    void logsVersion
+    if (!activePlan) return [] as Array<{ date: string; progress: number }>
+    const durationDays = Math.max(1, Number(activePlan?.durationDays ?? 28))
+    // Determine start date from plan.createdAt, else backfill from today
+    let startDateISO: string
+    try {
+      const created = activePlan?.createdAt ? new Date(activePlan.createdAt) : null
+      if (created && !Number.isNaN(created.getTime())) {
+        startDateISO = created.toISOString().slice(0, 10)
+      } else {
+        const now = new Date()
+        now.setDate(now.getDate() - (durationDays - 1))
+        startDateISO = now.toISOString().slice(0, 10)
+      }
+    } catch {
+      const now = new Date()
+      now.setDate(now.getDate() - (durationDays - 1))
+      startDateISO = now.toISOString().slice(0, 10)
+    }
+    const days = getDayKeysFromStart(startDateISO, durationDays)
+
+    const targets = computeTargets(activePlan)
+    const foodMap = readNumberMap('fitspo:food_kcals_by_day')
+    const waterMap = readNumberMap('fitspo:water_liters_by_day')
+    const sleepMap = readNumberMap('fitspo:sleep_hours_by_day')
+    const exerciseMap = readNumberMap('fitspo:exercise_kcals_by_day')
+    // Per-plan overrides
+    let planLogs: Record<string, Partial<{ food: number; water: number; sleep: number; exercise: number }>> = {}
+    try {
+      const key = `fitspo:plan_logs:${activePlan.id}`
+      const raw = typeof window !== 'undefined' ? localStorage.getItem(key) : null
+      planLogs = raw ? JSON.parse(raw) : {}
+    } catch { /* ignore per-plan log parse */ }
+
+    const todayISO = new Date().toISOString().slice(0,10)
+    const out = days.map((d) => {
+      let total = 0
+      let hit = 0
+      if (activePlan.pillars.food) {
+        total++
+        const v = planLogs[d]?.food ?? foodMap[d] ?? 0
+        if (targets.foodTarget > 0 && v >= targets.foodTarget * 0.8) hit++
+      }
+      if (activePlan.pillars.water) {
+        total++
+        const v = planLogs[d]?.water ?? waterMap[d] ?? 0
+        if (targets.waterTarget > 0 && v >= targets.waterTarget * 0.8) hit++
+      }
+      if (activePlan.pillars.sleep) {
+        total++
+        const v = planLogs[d]?.sleep ?? sleepMap[d] ?? 0
+        if (targets.sleepTarget > 0 && v >= targets.sleepTarget * 0.8) hit++
+      }
+      if (activePlan.pillars.exercise) {
+        total++
+        const v = planLogs[d]?.exercise ?? exerciseMap[d] ?? 0
+        if (targets.exerciseTarget > 0 && v >= targets.exerciseTarget * 0.8) hit++
+      }
+      const pct = total > 0 ? Math.round((hit / total) * 100) : 0
+      // For future days (after today), mark as null (not tracked yet)
+      const isFuture = d > todayISO
+      return { date: d, progress: isFuture ? (null as unknown as number) : pct }
+    })
+    return out
+  }, [activePlan, logsVersion])
+
   // Removed unused calculator helpers and render-only helpers for this layout
 
   // Header: Create Plan click. On mobile with existing user, open sidebar instead of drawer
@@ -259,7 +394,7 @@ export default function FitnessGoalPage() {
         </div>
 
         <div className="flex-1 flex flex-col overflow-y-auto">
-          <div className="relative flex-1 flex items-center justify-center md:block min-h-[70vh] md:min-h-0 overflow-hidden">
+          <div className="relative flex-1 min-h-[70vh] overflow-hidden">
             {(() => {
               // Map orb hue/hoverIntensity → hyperspeed colors/speed
               const h = Math.max(0, Math.min(360, hue || 0)) / 360
@@ -322,107 +457,115 @@ export default function FitnessGoalPage() {
                 </div>
               )
             })()}
-          </div>
+            {/* Centered 2x2 pillar grid overlay */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-[min(90vw,640px)] flex flex-col items-stretch gap-4 md:gap-6">
+                <div className="w-full">
+                  <ChartContainer config={progressChartConfig} className="w-full h-[120px] md:h-[140px]">
+                    <RLineChart accessibilityLayer data={progressData} margin={{ left: 0, right: 0, top: 8, bottom: 8 }}>
+                      <RYAxis domain={[0, 100]} hide />
+                      <RLine dataKey="progress" type="natural" stroke="#ffffff" strokeWidth={2} dot={false} isAnimationActive={false} />
+                    </RLineChart>
+                  </ChartContainer>
+                </div>
 
-          <div className="p-3 md:p-4">
-            <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xs md:text-sm">Food</CardTitle>
-                  <CardDescription className="text-[11px] md:text-sm">Progress / target (kcal)</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-lg md:text-2xl font-semibold">
-                    {(() => {
-                      try {
-                        const day = new Date().toISOString().slice(0,10)
-                        const tracked = activePlan?.pillars.food
-                        // Progress
-                        const rawP = typeof window !== 'undefined' ? localStorage.getItem('fitspo:food_kcals_by_day') : null
-                        const progMap = rawP ? JSON.parse(rawP) as Record<string, number> : {}
-                        const prog = Math.max(0, Math.round((progMap[day] || 0)))
-                        // Target from macros if available
-                        const m = activePlan?.config.food?.macros
-                        const target = m ? (m.protein_g ?? 0) * 4 + (m.carbs_g ?? 0) * 4 + (m.fat_g ?? 0) * 9 : 2500
-                        const tgt = Math.max(0, Math.round(target))
-                        if (!tracked) return `${tgt} kcal target`
-                        return `${prog} / ${tgt} kcal`
-                      } catch { return '—' }
-                    })()}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xs md:text-sm">Water</CardTitle>
-                  <CardDescription className="text-[11px] md:text-sm">Progress / target (L)</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-lg md:text-2xl font-semibold">
-                    {(() => {
-                      try {
-                        const day = new Date().toISOString().slice(0,10)
-                        const tracked = activePlan?.pillars.water
-                        const rawP = typeof window !== 'undefined' ? localStorage.getItem('fitspo:water_liters_by_day') : null
-                        const progMap = rawP ? JSON.parse(rawP) as Record<string, number> : {}
-                        const prog = Math.max(0, Math.round(((progMap[day] || 0) * 10)) / 10)
-                        const target = activePlan?.config.water?.recommendedLitersPerDay ?? 3.0
-                        const tgt = Math.max(0, Math.round(target * 10) / 10)
-                        if (!tracked) return `${tgt} L target`
-                        return `${prog} / ${tgt} L`
-                      } catch { return '—' }
-                    })()}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xs md:text-sm">Sleep</CardTitle>
-                  <CardDescription className="text-[11px] md:text-sm">Progress / target (h)</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-lg md:text-2xl font-semibold">
-                    {(() => {
-                      try {
-                        const s = activePlan?.config.sleep?.startTime || '23:00'
-                        const e = activePlan?.config.sleep?.endTime || '07:00'
-                        const [sh, sm] = s.split(':').map(Number)
-                        const [eh, em] = e.split(':').map(Number)
-                        let hrs = (eh + (eh < sh ? 24 : 0)) - sh + (em - sm)/60
-                        if (!Number.isFinite(hrs)) hrs = 8
-                        const tgt = Math.round(hrs*10)/10
-                        const tracked = activePlan?.pillars.sleep
-                        if (!tracked) return `${tgt}h target`
-                        return `— / ${tgt}h`
-                      } catch { return '—' }
-                    })()}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xs md:text-sm">Exercise</CardTitle>
-                  <CardDescription className="text-[11px] md:text-sm">Progress / target (kcal)</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-lg md:text-2xl font-semibold">
-                    {(() => {
-                      try {
-                        const day = new Date().toISOString().slice(0,10)
-                        const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:exercise_kcals_by_day') : null
-                        const map = raw ? JSON.parse(raw) as Record<string, number> : {}
-                        const prog = Math.max(0, Math.round((map[day] || 0)))
-                        const tracked = activePlan?.pillars.exercise
-                        const target = Math.max(0, Math.round(activePlan?.config.exercise?.estimatedKcalsPerWorkout ?? 300))
-                        if (!tracked) return `${target} kcal target`
-                        return `${prog} / ${target} kcal`
-                      } catch { return '—' }
-                    })()}
-                  </div>
-                </CardContent>
-              </Card>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 p-3 md:p-4">
+                <Card className="bg-transparent border-none shadow-none">
+                  <CardHeader className="p-0">
+                    <CardTitle className="text-xs md:text-sm">Food</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="text-lg md:text-2xl font-semibold">
+                      {(() => {
+                        try {
+                          const day = new Date().toISOString().slice(0,10)
+                          const tracked = activePlan?.pillars.food
+                          // Progress
+                          const rawP = typeof window !== 'undefined' ? localStorage.getItem('fitspo:food_kcals_by_day') : null
+                          const progMap = rawP ? JSON.parse(rawP) as Record<string, number> : {}
+                          const prog = Math.max(0, Math.round((progMap[day] || 0)))
+                          // Target from macros if available
+                          const m = activePlan?.config.food?.macros
+                          const target = m ? (m.protein_g ?? 0) * 4 + (m.carbs_g ?? 0) * 4 + (m.fat_g ?? 0) * 9 : 2500
+                          const tgt = Math.max(0, Math.round(target))
+                          if (!tracked) return `${tgt} kcal target`
+                          return `${prog} / ${tgt} kcal`
+                        } catch { return '—' }
+                      })()}
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-transparent border-none shadow-none">
+                  <CardHeader className="p-0">
+                    <CardTitle className="text-xs md:text-sm">Water</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="text-lg md:text-2xl font-semibold">
+                      {(() => {
+                        try {
+                          const day = new Date().toISOString().slice(0,10)
+                          const tracked = activePlan?.pillars.water
+                          const rawP = typeof window !== 'undefined' ? localStorage.getItem('fitspo:water_liters_by_day') : null
+                          const progMap = rawP ? JSON.parse(rawP) as Record<string, number> : {}
+                          const prog = Math.max(0, Math.round(((progMap[day] || 0) * 10)) / 10)
+                          const target = activePlan?.config.water?.recommendedLitersPerDay ?? 3.0
+                          const tgt = Math.max(0, Math.round(target * 10) / 10)
+                          if (!tracked) return `${tgt} L target`
+                          return `${prog} / ${tgt} L`
+                        } catch { return '—' }
+                      })()}
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-transparent border-none shadow-none">
+                  <CardHeader className="p-0">
+                    <CardTitle className="text-xs md:text-sm">Sleep</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="text-lg md:text-2xl font-semibold">
+                      {(() => {
+                        try {
+                          const s = activePlan?.config.sleep?.startTime || '23:00'
+                          const e = activePlan?.config.sleep?.endTime || '07:00'
+                          const [sh, sm] = s.split(':').map(Number)
+                          const [eh, em] = e.split(':').map(Number)
+                          let hrs = (eh + (eh < sh ? 24 : 0)) - sh + (em - sm)/60
+                          if (!Number.isFinite(hrs)) hrs = 8
+                          const tgt = Math.round(hrs*10)/10
+                          const tracked = activePlan?.pillars.sleep
+                          if (!tracked) return `${tgt}h target`
+                          return `— / ${tgt}h`
+                        } catch { return '—' }
+                      })()}
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-transparent border-none shadow-none">
+                  <CardHeader className="p-0">
+                    <CardTitle className="text-xs md:text-sm">Exercise</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="text-lg md:text-2xl font-semibold">
+                      {(() => {
+                        try {
+                          const day = new Date().toISOString().slice(0,10)
+                          const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:exercise_kcals_by_day') : null
+                          const map = raw ? JSON.parse(raw) as Record<string, number> : {}
+                          const prog = Math.max(0, Math.round((map[day] || 0)))
+                          const tracked = activePlan?.pillars.exercise
+                          const target = Math.max(0, Math.round(activePlan?.config.exercise?.estimatedKcalsPerWorkout ?? 300))
+                          if (!tracked) return `${target} kcal target`
+                          return `${prog} / ${target} kcal`
+                        } catch { return '—' }
+                      })()}
+                    </div>
+                  </CardContent>
+                </Card>
+                </div>
+              </div>
             </div>
           </div>
+          
 
           <PlanDetailsDrawer
             open={detailsOpen}

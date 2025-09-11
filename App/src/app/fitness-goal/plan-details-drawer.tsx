@@ -149,7 +149,7 @@ export function PlanDetailsDrawer({
 
           <div className="flex-1 overflow-y-auto overscroll-contain px-2 sm:px-4 pb-3 sm:pb-4 space-y-4 pb-safe">
             <div className="border rounded p-3">
-              <div className="text-sm font-medium mb-2">Progress over goal</div>
+              <div className="text-sm font-medium mb-2">Pogress</div>
               <StackedPillarChart plan={plan} />
             </div>
 
@@ -370,7 +370,7 @@ export function PlanDetailsDrawer({
 
           <div className="px-4 pb-4 space-y-4 overflow-auto">
             <div className="border rounded p-3">
-              <div className="text-sm font-medium mb-2">Progress over goal</div>
+              <div className="text-sm font-medium mb-2">Pogress</div>
               <StackedPillarChart plan={plan} />
             </div>
 
