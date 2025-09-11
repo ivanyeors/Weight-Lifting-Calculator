@@ -41,7 +41,7 @@ export function RecipeCards() {
   const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null)
   const [selectedDays, setSelectedDays] = useState<string[]>([])
   const [foods, setFoods] = useState<Food[]>([])
-  const [remoteInv, setRemoteInv] = useState<Record<string, number>>({})
+  const [remoteInv, setRemoteInv] = useState<Record<string, { amount: number; expiry_date?: Date | null; price_per_base?: number | null; include_cost?: boolean }>>({})
   const [microsExpanded, setMicrosExpanded] = useState<Record<string, boolean>>({})
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
 
@@ -86,14 +86,17 @@ export function RecipeCards() {
     const foodIdToName = new Map<string, string>()
     for (const f of foods) foodIdToName.set(f.id, f.name)
 
-    // Remote amounts keyed by food name
-    const remoteByName = new Map<string, number>()
-    const remoteExpiryByName = new Map<string, Date | null>()
+    // Remote inventory keyed by food name, including amount, expiry and price
+    const remoteByName = new Map<string, { amount: number; expiry_date?: Date | null; price_per_base?: number | null; include_cost?: boolean }>()
     for (const [foodId, item] of Object.entries(remoteInv || {})) {
       const nm = foodIdToName.get(foodId)
       if (nm) {
-        remoteByName.set(nm, item.amount || 0)
-        remoteExpiryByName.set(nm, item.expiry_date || null)
+        remoteByName.set(nm, {
+          amount: item.amount || 0,
+          expiry_date: item.expiry_date || null,
+          price_per_base: item.price_per_base ?? null,
+          include_cost: item.include_cost ?? true
+        })
       }
     }
 
@@ -101,9 +104,11 @@ export function RecipeCards() {
     for (const ing of state.ingredients) {
       const entry = state.inventory[ing.id]
       const localAmount = entry ? entry.stdRemaining : ing.stdGramsOrMl
-      const amount = remoteByName.has(ing.name) ? (remoteByName.get(ing.name) as number) : localAmount
-      const expiryDate = remoteExpiryByName.get(ing.name)
-      byName.set(ing.name, { ...ing, stdGramsOrMl: amount, expiryDate })
+      const remote = remoteByName.get(ing.name)
+      const amount = remote ? remote.amount : localAmount
+      const expiryDate = remote?.expiry_date || null
+      const pricePerBase = (remote?.include_cost ?? true) ? (remote?.price_per_base ?? ing.pricePerBase ?? 0) : 0
+      byName.set(ing.name, { ...ing, stdGramsOrMl: amount, expiryDate, pricePerBase })
     }
 
     // Add remote-only foods as pseudo-ingredients
@@ -120,16 +125,17 @@ export function RecipeCards() {
         micros: f.micros || {}
       }
 
-      // Use remote amount if available, otherwise 0 (making it available for feasibility checks)
-      const amount = remoteByName.get(name) || 0
-      const expiryDate = remoteExpiryByName.get(name)
+      // Use remote values if available, otherwise 0 (available for feasibility checks)
+      const remote = remoteByName.get(name)
+      const amount = remote?.amount || 0
+      const expiryDate = remote?.expiry_date || null
 
       const pseudo: Ingredient = {
         id: `food:${f.id}`,
         name,
         available: { amount: 0, unit: 'g' },
         stdGramsOrMl: amount,
-        pricePerBase: 0,
+        pricePerBase: (remote?.include_cost ?? true) ? (remote?.price_per_base ?? 0) : 0,
         nutrientsPer100: nutrients,
         category: f.category || undefined
       }
@@ -518,7 +524,22 @@ export function RecipeCards() {
                   ) : null}
                 </div>
               </div>
-              <div className="text-[10px] text-muted-foreground border rounded px-1.5 py-0.5">{r.baseServings}</div>
+              <div className="text-[10px] text-muted-foreground border rounded px-1.5 py-0.5">
+                {(() => {
+                  try {
+                    const scale = pax / r.baseServings
+                    let sum = 0
+                    for (const ri of r.ingredients) {
+                      const need = convertToBase(ri.quantity.amount * scale, ri.quantity.unit)
+                      const ing = invIndex.get(ri.name)
+                      const price = ing?.pricePerBase || 0
+                      sum += price * need.value
+                    }
+                    const val = Number.isFinite(sum) ? sum : 0
+                    return `$${val.toFixed(2)}`
+                  } catch { return '$0.00' }
+                })()}
+              </div>
             </div>
             {/* Macros, Charts, and Micronutrients */}
             {res && (

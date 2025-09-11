@@ -255,7 +255,124 @@ export function CreatePlanDrawer({ open, onOpenChange, userId, plan, onSaved }: 
             <SheetDescription>Select goals across pillars, then save</SheetDescription>
           </SheetHeader>
           <div className="py-3 sm:py-4 space-y-4 sm:space-y-6">
-            {/* rest unchanged below */}
+            <div className="space-y-2">
+              <Label htmlFor="title">Title</Label>
+              <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., 12-week cut" />
+            </div>
+
+            <div className="space-y-2 sm:space-y-3">
+              <div className="text-sm font-medium">Tracking plan</div>
+              <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                {(['food','water','sleep','exercise'] as PillarKey[]).map(k => (
+                  <Checkbox key={k} variant="chip" checked={pillars[k]} onCheckedChange={() => toggle(k)}>
+                    <span className="capitalize">{k}</span>
+                  </Checkbox>
+                ))}
+              </div>
+            </div>
+
+            {pillars.food && (
+              <div className="space-y-2 border rounded p-2 sm:p-3">
+                <div className="font-medium">Food</div>
+                <Label htmlFor="targetWeight">Target Weight (kg)</Label>
+                <Input id="targetWeight" type="number" value={foodTargetWeight} onChange={(e) => setFoodTargetWeight(e.target.value === '' ? '' : Number(e.target.value))} placeholder="e.g., 72" />
+                <div className="text-xs text-muted-foreground">Macros will be computed based on target</div>
+              </div>
+            )}
+
+            {pillars.water && (
+              <div className="space-y-2 border rounded p-2 sm:p-3">
+                <div className="font-medium">Water</div>
+                <div className="space-y-2">
+                  <Label>Recommended intake</Label>
+                  <div className="text-sm">
+                    {recommendedWaterLpd != null ? `${recommendedWaterLpd} L/day` : '—'}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Based on your profile (gender, age, height, weight)</div>
+                </div>
+                <div className="space-y-2 pt-2">
+                  <Label>Daily water reminders (times)</Label>
+                  <div className="text-xs text-muted-foreground">We will schedule reminders and sync as tasks to Google</div>
+                </div>
+              </div>
+            )}
+
+            {pillars.sleep && (
+              <div className="space-y-2 border rounded p-2 sm:p-3">
+                <div className="font-medium">Sleep</div>
+                <Label>Preferred sleep window</Label>
+                <div className="text-xs text-muted-foreground">Blocks will appear locally in calendar view</div>
+              </div>
+            )}
+
+            {pillars.exercise && (
+              <div className="space-y-2 border rounded p-2 sm:p-3">
+                <div className="font-medium">Exercise</div>
+                <Label htmlFor="physique">Target Body Physique</Label>
+                <Select value={exercisePhysique} onValueChange={setExercisePhysique}>
+                  <SelectTrigger id="physique">
+                    <SelectValue placeholder="Select body physique" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="lean">Lean</SelectItem>
+                    <SelectItem value="lean_muscular">Lean Muscular</SelectItem>
+                    <SelectItem value="muscular">Muscular</SelectItem>
+                    <SelectItem value="extreme_muscular">Extreme Muscular</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="text-xs text-muted-foreground">Template, weights, and reps will be derived from selection</div>
+                <div className="pt-3 space-y-2">
+                  <Label htmlFor="durationDays">Goal duration (days)</Label>
+                  <Input id="durationDays" type="number" inputMode="numeric" value={durationDays} onChange={(e) => setDurationDays(e.target.value === '' ? '' : Number(e.target.value))} placeholder="e.g., 56" />
+                </div>
+              </div>
+            )}
+
+            <div className="pt-2 flex justify-end gap-2">
+              <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+              <Button onClick={async () => {
+                if (!userId) return onOpenChange(false)
+                const nutrition = computePlanNutrition()
+                const exKcals = computeExerciseKcals()
+                const base: Plan = plan ? { ...plan } as Plan : {
+                  id: (typeof crypto !== 'undefined' && typeof (crypto as any).randomUUID === 'function')
+                    ? (crypto as any).randomUUID()
+                    : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`,
+                  userId,
+                  title: title || 'New Plan',
+                  status: 'draft',
+                  pillars: { ...pillars },
+                  config: { },
+                  createdAt: new Date().toISOString(),
+                }
+                const next: Plan = {
+                  ...base,
+                  title: title || base.title,
+                  pillars: { ...pillars },
+                  durationDays: durationDays === '' ? undefined : Number(durationDays),
+                  config: {
+                    food: pillars.food ? { targetWeightKg: (foodTargetWeight === '' ? undefined : Number(foodTargetWeight)), macros: nutrition.macros } : base.config.food,
+                    water: pillars.water ? { reminders: base.config.water?.reminders || [], recommendedLitersPerDay: recommendedWaterLpd ?? base.config.water?.recommendedLitersPerDay } : base.config.water,
+                    sleep: pillars.sleep ? { startTime: base.config.sleep?.startTime, endTime: base.config.sleep?.endTime } : base.config.sleep,
+                    exercise: pillars.exercise ? { physique: exercisePhysique || base.config.exercise?.physique || '', templateId: base.config.exercise?.templateId || null, estimatedKcalsPerWorkout: exKcals } : base.config.exercise,
+                  },
+                }
+                if (isEdit) {
+                  update(next.id, next)
+                } else {
+                  add(next)
+                }
+                try { await savePlan(next) } catch {/* ignore */}
+                // Sync to database if plan is active
+                if (next.status === 'active' && userId) {
+                  try { await syncService.syncActivePlansToDb(userId) } catch {/* ignore */}
+                }
+                try { onSaved?.(next) } catch {
+                  // Ignore save callback errors
+                }
+                onOpenChange(false)
+              }}>Save</Button>
+            </div>
           </div>
         </SheetContent>
       </Sheet>
