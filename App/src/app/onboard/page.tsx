@@ -55,6 +55,28 @@ export default function OnboardingPage() {
   const { user: selectedUser } = useSelectedUser()
   const { isAuthenticated: isGoogleCalendarConnected } = useGoogleCalendar()
 
+  // Early guard: if user is logged in and onboarding is already complete, skip rendering and redirect immediately
+  const [isGuardChecking, setIsGuardChecking] = useState(true)
+  useEffect(() => {
+    const run = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const authed = !!session?.user
+        const completed = typeof window !== 'undefined' && localStorage.getItem('fitspo:onboarding_complete') === 'true'
+        if (authed && completed) {
+          router.replace('/plans/workout-plans')
+          return
+        }
+      } catch {
+        // noop
+      } finally {
+        setIsGuardChecking(false)
+      }
+    }
+    run()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // Authentication state
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoginOpen, setIsLoginOpen] = useState(false)
@@ -472,6 +494,7 @@ export default function OnboardingPage() {
   }, [completedRequiredSteps, totalRequiredSteps, router])
 
   return (
+    isGuardChecking ? null : (
     <div className="min-h-screen bg-card">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
@@ -751,5 +774,6 @@ export default function OnboardingPage() {
         </SheetContent>
       </Sheet>
     </div>
+    )
   )
 }
