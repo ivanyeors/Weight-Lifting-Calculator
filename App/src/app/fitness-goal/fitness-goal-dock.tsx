@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useSidebar } from "@/components/ui/sidebar"
 import { MenuDock } from "@/components/ui/shadcn-io/menu-dock"
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { UserSwitcher } from "@/components/ui/user-switcher"
 import { supabase } from "@/lib/supabaseClient"
 import { PanelLeftIcon, User2, Plus, ClipboardList } from "lucide-react"
@@ -73,24 +73,21 @@ export function FitnessGoalDock() {
         />
       </div>
 
-      <Sheet open={userSheetOpen} onOpenChange={setUserSheetOpen}>
-        <SheetContent
-          side="bottom"
-          animation="fade"
+      <Drawer open={userSheetOpen} onOpenChange={setUserSheetOpen}>
+        <DrawerContent
           className="p-3 sm:p-4 inset-x-0 bottom-0 w-screen max-w-none rounded-t-2xl border-t"
-          overlayClassName="!bg-black/40"
         >
-          <SheetHeader className="pb-2">
-            <SheetTitle className="text-sm">Select user</SheetTitle>
-          </SheetHeader>
+          <DrawerHeader className="pb-2">
+            <DrawerTitle className="text-sm">Select user</DrawerTitle>
+          </DrawerHeader>
           <UserSwitcher
             onSelected={() => setUserSheetOpen(false)}
             contentClassName=""
             align="start"
             side="bottom"
           />
-        </SheetContent>
-      </Sheet>
+        </DrawerContent>
+      </Drawer>
     </>
   )
 }

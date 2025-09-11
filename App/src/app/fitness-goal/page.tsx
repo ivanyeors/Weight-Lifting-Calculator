@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation'
 
 
 import { PlanSidebar } from './plan-sidebar'
-import { Orb } from '@/components/ui/shadcn-io/orb'
+import Hyperspeed from '@/components/ui/shadcn-io/hyperspeed'
 import { CreatePlanDrawer } from './plan-create-drawer'
 import { PlanDetailsDrawer } from './plan-details-drawer'
 import { usePlans } from './plan-store'
@@ -260,14 +260,68 @@ export default function FitnessGoalPage() {
 
         <div className="flex-1 flex flex-col overflow-y-auto">
           <div className="relative flex-1 flex items-center justify-center md:block min-h-[70vh] md:min-h-0 overflow-hidden">
-            <div className="w-full h-full scale-500 md:scale-100 overflow-hidden md:overflow-visible">
-              <Orb
-                className="w-full h-full"
-                hue={hue}
-                hoverIntensity={hoverIntensity}
-                rotateOnHover={true}
-              />
-            </div>
+            {(() => {
+              // Map orb hue/hoverIntensity → hyperspeed colors/speed
+              const h = Math.max(0, Math.min(360, hue || 0)) / 360
+              const clamp01 = (v: number) => Math.max(0, Math.min(1, v))
+              const intensity = clamp01(hoverIntensity || 0.1)
+
+              function hslToRgb(hh: number, s: number, l: number) {
+                const c = (1 - Math.abs(2 * l - 1)) * s
+                const x = c * (1 - Math.abs(((hh * 6) % 2) - 1))
+                const m = l - c / 2
+                let r = 0, g = 0, b = 0
+                if (0 <= hh && hh < 1 / 6) [r, g, b] = [c, x, 0]
+                else if (1 / 6 <= hh && hh < 2 / 6) [r, g, b] = [x, c, 0]
+                else if (2 / 6 <= hh && hh < 3 / 6) [r, g, b] = [0, c, x]
+                else if (3 / 6 <= hh && hh < 4 / 6) [r, g, b] = [0, x, c]
+                else if (4 / 6 <= hh && hh < 5 / 6) [r, g, b] = [x, 0, c]
+                else [r, g, b] = [c, 0, x]
+                const R = Math.round((r + m) * 255)
+                const G = Math.round((g + m) * 255)
+                const B = Math.round((b + m) * 255)
+                return (R << 16) | (G << 8) | B
+              }
+
+              const baseLightness = 0.52
+              const spread = 0.10
+              const s = 0.9
+              const left1 = hslToRgb(h, s, baseLightness)
+              const left2 = hslToRgb(h, s, baseLightness + spread * 0.6)
+              const left3 = hslToRgb(h, s, baseLightness + spread)
+
+              const rightHue = (h + 0.55) % 1 // complementary/cyan shift
+              const right1 = hslToRgb(rightHue, 0.85, baseLightness)
+              const right2 = hslToRgb(rightHue, 0.85, baseLightness + spread * 0.6)
+              const right3 = hslToRgb(rightHue, 0.85, baseLightness + spread)
+
+              const sticks = hslToRgb((h + 0.08) % 1, 0.95, 0.6)
+
+              const speedUp = 1 + intensity * 1.8 // 1.0 – 2.8
+              const fovSpeedUp = 120 + Math.round(intensity * 60) // 120 – 180
+
+              const effectOptions = {
+                distortion: 'turbulentDistortion',
+                speedUp,
+                fovSpeedUp,
+                colors: {
+                  roadColor: 0x080808,
+                  islandColor: 0x0a0a0a,
+                  background: 0x000000,
+                  shoulderLines: 0x131318,
+                  brokenLines: 0x131318,
+                  leftCars: [left1, left2, left3] as number[],
+                  rightCars: [right1, right2, right3] as number[],
+                  sticks,
+                },
+              }
+
+              return (
+                <div className="absolute inset-0">
+                  <Hyperspeed className="w-full h-full" effectOptions={effectOptions} />
+                </div>
+              )
+            })()}
           </div>
 
           <div className="p-3 md:p-4">
