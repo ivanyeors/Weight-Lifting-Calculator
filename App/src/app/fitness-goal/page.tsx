@@ -461,10 +461,10 @@ export default function FitnessGoalPage() {
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-[min(90vw,640px)] flex flex-col items-stretch gap-4 md:gap-6">
                 <div className="w-full">
-                  <ChartContainer config={progressChartConfig} className="w-full h-[120px] md:h-[140px]">
-                    <RLineChart accessibilityLayer data={progressData} margin={{ left: 0, right: 0, top: 8, bottom: 8 }}>
+                  <ChartContainer config={progressChartConfig} className="w-full h-[120px] md:h-[140px] overflow-visible">
+                    <RLineChart accessibilityLayer data={progressData} margin={{ left: 12, right: 12, top: 12, bottom: 12 }}>
                       <RYAxis domain={[0, 100]} hide />
-                      <RLine dataKey="progress" type="natural" stroke="#ffffff" strokeWidth={2} dot={false} isAnimationActive={false} />
+                      <RLine dataKey="progress" type="natural" stroke="#ffffff" strokeWidth={2} dot={false} isAnimationActive={false} strokeLinecap="round" />
                     </RLineChart>
                   </ChartContainer>
                 </div>
