@@ -168,13 +168,13 @@ export function StackedPillarChart({ plan }: { plan: Plan }) {
   }, [enabled])
 
   return (
-    <ChartContainer config={config} className="w-full h-64">
+    <ChartContainer config={config} className="w-full h-[220px] sm:h-64">
       <BarChart accessibilityLayer data={chartData}>
         <CartesianGrid vertical={false} />
         <XAxis
           dataKey="date"
           tickLine={false}
-          tickMargin={8}
+          tickMargin={6}
           axisLine={false}
           tickFormatter={(v: string) => (typeof v === 'string' ? v.slice(5) : v)}
         />
