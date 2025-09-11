@@ -61,7 +61,7 @@ export default function FitnessGoalPage() {
   const activePlan = useMemo(() => plans.find(p => p.id === selectedPlanId) || null, [plans, selectedPlanId])
 
   // Calculate dynamic orb values based on fitness progress
-  const { hue, hoverIntensity } = useOrbProgress(activePlan)
+  const { hoverIntensity } = useOrbProgress(activePlan)
 
   // Hide sidebar by default on mobile, show on larger screens
   useEffect(() => {
@@ -396,48 +396,79 @@ export default function FitnessGoalPage() {
         <div className="flex-1 flex flex-col overflow-y-auto">
           <div className="relative flex-1 min-h-[70vh] overflow-hidden">
             {(() => {
-              // Map orb hue/hoverIntensity → hyperspeed colors/speed
-              const h = Math.max(0, Math.min(360, hue || 0)) / 360
-              const clamp01 = (v: number) => Math.max(0, Math.min(1, v))
-              const intensity = clamp01(hoverIntensity || 0.1)
+              // Build Hyperspeed options from today's pillar logging status
+              const today = new Date().toISOString().slice(0, 10)
 
-              function hslToRgb(hh: number, s: number, l: number) {
-                const c = (1 - Math.abs(2 * l - 1)) * s
-                const x = c * (1 - Math.abs(((hh * 6) % 2) - 1))
-                const m = l - c / 2
-                let r = 0, g = 0, b = 0
-                if (0 <= hh && hh < 1 / 6) [r, g, b] = [c, x, 0]
-                else if (1 / 6 <= hh && hh < 2 / 6) [r, g, b] = [x, c, 0]
-                else if (2 / 6 <= hh && hh < 3 / 6) [r, g, b] = [0, c, x]
-                else if (3 / 6 <= hh && hh < 4 / 6) [r, g, b] = [0, x, c]
-                else if (4 / 6 <= hh && hh < 5 / 6) [r, g, b] = [x, 0, c]
-                else [r, g, b] = [c, 0, x]
-                const R = Math.round((r + m) * 255)
-                const G = Math.round((g + m) * 255)
-                const B = Math.round((b + m) * 255)
-                return (R << 16) | (G << 8) | B
+              // Utility: read numeric map from localStorage
+              const mapFood = readNumberMap('fitspo:food_kcals_by_day')
+              const mapWater = readNumberMap('fitspo:water_liters_by_day')
+              const mapSleep = readNumberMap('fitspo:sleep_hours_by_day')
+              const mapEx   = readNumberMap('fitspo:exercise_kcals_by_day')
+
+              // Whether each (enabled) pillar has been logged today (> 0)
+              const foodLogged = !!(activePlan?.pillars.food && (mapFood[today] || 0) > 0)
+              const waterLogged = !!(activePlan?.pillars.water && (mapWater[today] || 0) > 0)
+              const sleepLogged = !!(activePlan?.pillars.sleep && (mapSleep[today] || 0) > 0)
+              const exLogged = !!(activePlan?.pillars.exercise && (mapEx[today] || 0) > 0)
+
+              const enabledCount = (activePlan?.pillars.food ? 1 : 0) + (activePlan?.pillars.water ? 1 : 0) + (activePlan?.pillars.sleep ? 1 : 0) + (activePlan?.pillars.exercise ? 1 : 0)
+              const loggedCount = (foodLogged ? 1 : 0) + (waterLogged ? 1 : 0) + (sleepLogged ? 1 : 0) + (exLogged ? 1 : 0)
+              const completed = enabledCount > 0 && loggedCount === enabledCount
+
+              // Utility: convert CSS var color (oklch/hsl/rgb) -> hex int
+              function cssVarToHexInt(varName: string, fallbackHex: number): number {
+                try {
+                  if (typeof window === 'undefined' || typeof document === 'undefined') return fallbackHex
+                  const el = document.createElement('div')
+                  el.style.color = `var(${varName})`
+                  // Place element to ensure styles compute under theme
+                  document.body.appendChild(el)
+                  const rgb = getComputedStyle(el).color // e.g., rgb(255, 0, 0)
+                  document.body.removeChild(el)
+                  const m = rgb.match(/rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)/)
+                  if (!m) return fallbackHex
+                  const r = Math.min(255, Math.max(0, Number(m[1])))
+                  const g = Math.min(255, Math.max(0, Number(m[2])))
+                  const b = Math.min(255, Math.max(0, Number(m[3])))
+                  return (r << 16) | (g << 8) | b
+                } catch {
+                  return fallbackHex
+                }
               }
 
-              const baseLightness = 0.52
-              const spread = 0.10
-              const s = 0.9
-              const left1 = hslToRgb(h, s, baseLightness)
-              const left2 = hslToRgb(h, s, baseLightness + spread * 0.6)
-              const left3 = hslToRgb(h, s, baseLightness + spread)
+              // Pillar palette → hex (fallbacks match requested colors)
+              const foodHex = cssVarToHexInt('--chart-1', 0x22c55e) // green-500
+              const waterHex = cssVarToHexInt('--chart-2', 0x3b82f6) // blue-500
+              const sleepHex = cssVarToHexInt('--chart-3', 0xa855f7) // purple-500
+              const exerciseHex = cssVarToHexInt('--chart-4', 0xf97316) // orange-500
 
-              const rightHue = (h + 0.55) % 1 // complementary/cyan shift
-              const right1 = hslToRgb(rightHue, 0.85, baseLightness)
-              const right2 = hslToRgb(rightHue, 0.85, baseLightness + spread * 0.6)
-              const right3 = hslToRgb(rightHue, 0.85, baseLightness + spread)
+              // Default gray-500 when not logged
+              const dullGrey = 0x6b7280
 
-              const sticks = hslToRgb((h + 0.08) % 1, 0.95, 0.6)
+              // Car light colors depend on which pillars were logged today
+              const leftCars: number[] = [
+                foodLogged ? foodHex : dullGrey,
+                waterLogged ? waterHex : dullGrey,
+              ]
+              const rightCars: number[] = [
+                exLogged ? exerciseHex : dullGrey,
+                sleepLogged ? sleepHex : dullGrey,
+              ]
 
-              const speedUp = 1 + intensity * 1.8 // 1.0 – 2.8
-              const fovSpeedUp = 120 + Math.round(intensity * 60) // 120 – 180
+              // Distortion / speed / fade depend on completion
+              const distortion = completed ? 'LongRaceDistortion' : 'turbulentDistortion'
+              const speedUp = completed ? 2 : 0.1
+              const carLightsFade = completed ? 0.4 : 0.1
+
+              // We can still reflect orb intensity in FOV responsiveness subtly
+              const clamp01 = (v: number) => Math.max(0, Math.min(1, v))
+              const intensity = clamp01(hoverIntensity || 0.1)
+              const fovSpeedUp = 120 + Math.round(intensity * 60) // 120–180
 
               const effectOptions = {
-                distortion: 'turbulentDistortion',
+                distortion,
                 speedUp,
+                carLightsFade,
                 fovSpeedUp,
                 colors: {
                   roadColor: 0x080808,
@@ -445,9 +476,9 @@ export default function FitnessGoalPage() {
                   background: 0x000000,
                   shoulderLines: 0x131318,
                   brokenLines: 0x131318,
-                  leftCars: [left1, left2, left3] as number[],
-                  rightCars: [right1, right2, right3] as number[],
-                  sticks,
+                  leftCars,
+                  rightCars,
+                  sticks: dullGrey,
                 },
               }
 
