@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 
 interface TermsOfServiceDialogProps {
@@ -14,6 +14,7 @@ export function TermsOfServiceDialog({ children }: TermsOfServiceDialogProps) {
       <DialogContent className="max-w-4xl max-h-[80vh]">
         <DialogHeader>
           <DialogTitle className="text-2xl">Terms of Service</DialogTitle>
+          <DialogDescription>Read and understand the terms governing your use of this app.</DialogDescription>
         </DialogHeader>
         <div className="max-h-[60vh] overflow-y-auto pr-4">
           <div className="space-y-6 text-sm leading-relaxed">
