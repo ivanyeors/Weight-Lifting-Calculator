@@ -119,98 +119,195 @@ export function FeatureComparisonTable({ plans }: FeatureComparisonTableProps) {
         <CardTitle className="text-center text-xl md:text-2xl">Feature Comparison</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        {/* Header Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 border-b bg-muted/50">
-          <div className="p-4 md:p-6 font-semibold text-left">Features</div>
-          {plans.map((plan, index) => (
-            <div key={plan.name} className="p-4 md:p-6 text-center md:col-span-1">
-              <div className="flex flex-col items-center gap-2">
-                <h3 className="font-semibold text-base md:text-lg">{plan.name}</h3>
-                {plan.highlighted && (
-                  <Badge className="bg-primary text-primary-foreground text-xs md:text-sm">Most Popular</Badge>
-                )}
-                <div className="text-xl md:text-2xl font-bold">
-                  {plan.price.toLowerCase() === 'free' ? 'Free' : `$${plan.price}`}
+        {/* Mobile: sticky plan header with 4-column grid (feature + 3 plans) */}
+        <div className="md:hidden">
+          {/* Header Row (sticky) */}
+          <div className="grid [grid-template-columns:minmax(160px,1fr)_repeat(3,64px)] gap-0 border-b sticky top-0 z-20 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="p-3 font-semibold text-left">Features</div>
+            {plans.map((plan) => (
+              <div key={plan.name} className="p-3 text-center">
+                <div className="flex flex-col items-center gap-1">
+                  <span className="font-semibold text-xs">{plan.name}</span>
+                  {plan.highlighted && (
+                    <Badge className="bg-primary text-primary-foreground text-[10px] leading-3">Popular</Badge>
+                  )}
+                  <span className="text-sm font-bold">
+                    {plan.price.toLowerCase() === 'free' ? 'Free' : `$${plan.price}`}
+                  </span>
                 </div>
-                <div className="text-xs md:text-sm text-muted-foreground">{plan.period}</div>
               </div>
+            ))}
+          </div>
+
+          {/* Feature Rows */}
+          {extendedFeatures.map((feature) => (
+            <div key={feature.name} className="border-b last:border-b-0">
+              <Collapsible>
+                <CollapsibleTrigger
+                  className="w-full"
+                  onClick={() => toggleFeature(feature.name)}
+                >
+                  <div className={`grid [grid-template-columns:minmax(160px,1fr)_repeat(3,64px)] gap-0 hover:bg-muted/30 transition-colors ${
+                    expandedFeatures.has(feature.name) ? 'bg-muted/20' : ''
+                  }`}>
+                    <div className="p-4 text-left flex items-center">
+                      <ChevronDown
+                        className={`h-4 w-4 transition-transform mr-2 ${
+                          expandedFeatures.has(feature.name) ? 'rotate-180' : ''
+                        }`}
+                      />
+                      <span className="font-medium text-sm">{feature.name}</span>
+                    </div>
+                    <div className="p-4 flex items-center justify-center">
+                      {feature.free ? (
+                        <BadgeCheck className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <X className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="p-4 flex items-center justify-center">
+                      {feature.personal ? (
+                        <BadgeCheck className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <X className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="p-4 flex items-center justify-center">
+                      {feature.trainer ? (
+                        <BadgeCheck className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <X className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
+                  </div>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="px-4 pb-4">
+                    <div className="bg-muted/30 rounded-lg p-3">
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        {feature.description}
+                      </p>
+                    </div>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
             </div>
           ))}
+
+          {/* CTA Row */}
+          <div className="grid [grid-template-columns:minmax(160px,1fr)_repeat(3,64px)] gap-0 p-4 bg-muted/20">
+            <div className="font-semibold text-sm flex items-center">Select Plan</div>
+            {plans.map((plan) => (
+              <div key={plan.name} className="flex justify-center">
+                <Button
+                  variant={plan.highlighted ? 'default' : 'outline'}
+                  size="sm"
+                  className="w-full text-xs"
+                  onClick={() => {
+                    window.location.href = '/home/pricing'
+                  }}
+                >
+                  Select
+                </Button>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Feature Rows */}
-        {extendedFeatures.map((feature, index) => (
-          <div key={feature.name} className="border-b last:border-b-0">
-            <Collapsible>
-              <CollapsibleTrigger
-                className="w-full"
-                onClick={() => toggleFeature(feature.name)}
-              >
-                <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 hover:bg-muted/30 transition-colors ${
-                  expandedFeatures.has(feature.name) ? 'bg-muted/20' : ''
-                }`}>
-                  <div className="p-4 md:p-6 text-left flex items-center">
-                    <ChevronDown
-                      className={`h-4 w-4 transition-transform mr-2 ${
-                        expandedFeatures.has(feature.name) ? 'rotate-180' : ''
-                      }`}
-                    />
-                    <span className="font-medium text-sm md:text-base">{feature.name}</span>
+        {/* Desktop and tablet (unchanged layout) */}
+        <div className="hidden md:block">
+          {/* Header Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 border-b bg-muted/50">
+            <div className="p-4 md:p-6 font-semibold text-left">Features</div>
+            {plans.map((plan) => (
+              <div key={plan.name} className="p-4 md:p-6 text-center md:col-span-1">
+                <div className="flex flex-col items-center gap-2">
+                  <h3 className="font-semibold text-base md:text-lg">{plan.name}</h3>
+                  {plan.highlighted && (
+                    <Badge className="bg-primary text-primary-foreground text-xs md:text-sm">Most Popular</Badge>
+                  )}
+                  <div className="text-xl md:text-2xl font-bold">
+                    {plan.price.toLowerCase() === 'free' ? 'Free' : `$${plan.price}`}
                   </div>
-                  <div className="p-4 md:p-6 flex items-center justify-center">
-                    {feature.free ? (
-                      <BadgeCheck className="h-5 w-5 text-green-600" />
-                    ) : (
-                      <X className="h-5 w-5 text-muted-foreground" />
-                    )}
-                  </div>
-                  <div className="p-4 md:p-6 flex items-center justify-center">
-                    {feature.personal ? (
-                      <BadgeCheck className="h-5 w-5 text-green-600" />
-                    ) : (
-                      <X className="h-5 w-5 text-muted-foreground" />
-                    )}
-                  </div>
-                  <div className="p-4 md:p-6 flex items-center justify-center">
-                    {feature.trainer ? (
-                      <BadgeCheck className="h-5 w-5 text-green-600" />
-                    ) : (
-                      <X className="h-5 w-5 text-muted-foreground" />
-                    )}
-                  </div>
+                  <div className="text-xs md:text-sm text-muted-foreground">{plan.period}</div>
                 </div>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <div className="px-4 md:px-6 pb-4 md:pb-6">
-                  <div className="bg-muted/30 rounded-lg p-3 md:p-4">
-                    <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
-                      {feature.description}
-                    </p>
-                  </div>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
+              </div>
+            ))}
           </div>
-        ))}
 
-        {/* CTA Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 p-4 md:p-6 bg-muted/20">
-          <div className="font-semibold text-sm md:text-base flex items-center">Select Plan</div>
-          {plans.map((plan) => (
-            <div key={plan.name} className="flex justify-center mt-2 md:mt-0">
+          {/* Feature Rows */}
+          {extendedFeatures.map((feature) => (
+            <div key={feature.name} className="border-b last:border-b-0">
+              <Collapsible>
+                <CollapsibleTrigger
+                  className="w-full"
+                  onClick={() => toggleFeature(feature.name)}
+                >
+                  <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 hover:bg-muted/30 transition-colors ${
+                    expandedFeatures.has(feature.name) ? 'bg-muted/20' : ''
+                  }`}>
+                    <div className="p-4 md:p-6 text-left flex items-center">
+                      <ChevronDown
+                        className={`h-4 w-4 transition-transform mr-2 ${
+                          expandedFeatures.has(feature.name) ? 'rotate-180' : ''
+                        }`}
+                      />
+                      <span className="font-medium text-sm md:text-base">{feature.name}</span>
+                    </div>
+                    <div className="p-4 md:p-6 flex items-center justify-center">
+                      {feature.free ? (
+                        <BadgeCheck className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <X className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="p-4 md:p-6 flex items-center justify-center">
+                      {feature.personal ? (
+                        <BadgeCheck className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <X className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="p-4 md:p-6 flex items-center justify-center">
+                      {feature.trainer ? (
+                        <BadgeCheck className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <X className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
+                  </div>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="px-4 md:px-6 pb-4 md:pb-6">
+                    <div className="bg-muted/30 rounded-lg p-3 md:p-4">
+                      <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
+                        {feature.description}
+                      </p>
+                    </div>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
+          ))}
+
+          {/* CTA Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 p-4 md:p-6 bg-muted/20">
+            <div className="font-semibold text-sm md:text-base flex items-center">Select Plan</div>
+            {plans.map((plan) => (
+              <div key={plan.name} className="flex justify-center mt-2 md:mt-0">
                 <Button
-                  variant={plan.highlighted ? "default" : "outline"}
+                  variant={plan.highlighted ? 'default' : 'outline'}
                   size="sm"
                   className="w-full md:w-auto text-xs md:text-sm"
                   onClick={() => {
-                    // Redirect to the pricing page where proper authentication and Stripe link handling occurs
                     window.location.href = '/home/pricing'
                   }}
                 >
                   Select Plan
                 </Button>
-            </div>
-          ))}
+              </div>
+            ))}
+          </div>
         </div>
       </CardContent>
     </Card>
