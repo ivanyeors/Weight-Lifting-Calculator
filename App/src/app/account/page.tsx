@@ -304,12 +304,8 @@ export default function AccountPage() {
       } catch {}
     }
     return (
-      <div className="container mx-auto p-4 md:p-8">
-        <div className="mb-6 flex items-center gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
-          <p className="text-sm text-muted-foreground">Access your account to continue.</p>
-        </div>
-        <div className="max-w-3xl">
+      <div className="min-h-screen flex items-center justify-center px-4 md:px-8 py-8">
+        <div className="w-full max-w-sm md:max-w-3xl">
           <LoginForm
             onSuccess={() => {
               try {
