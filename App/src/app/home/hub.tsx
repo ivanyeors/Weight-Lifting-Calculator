@@ -62,7 +62,7 @@ export default function HomeHub() {
   ] as const
 
   return (
-    <div className="relative min-h-screen bg-background overflow-hidden">
+    <div className="relative min-h-screen bg-background overflow-hidden flex items-center">
       {/* Background Grid Pattern */}
       <div className="pointer-events-none absolute inset-0 z-0">
         <InteractiveGridPattern
@@ -73,7 +73,7 @@ export default function HomeHub() {
           squaresClassName="stroke-muted/40 hover:fill-[#0A19A3]/60 transition-colors duration-300"
         />
       </div>
-      <div className="relative z-10 container mx-auto px-4 py-12">
+      <div className="relative z-10 container mx-auto px-4">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-foreground">Welcome</h1>
           <p className="text-muted-foreground mt-2 text-sm">Choose a feature to get started</p>
