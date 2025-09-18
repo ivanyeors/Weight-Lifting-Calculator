@@ -14,9 +14,12 @@ export default function HomeHub() {
   useEffect(() => {
     const recalc = () => {
       const [cols, rows] = gridSquares
-      const w = Math.ceil((window.innerWidth || 0) / cols)
-      const h = Math.ceil((window.innerHeight || 0) / rows)
-      setCellSize({ w, h })
+      const vw = window.innerWidth || 0
+      const vh = window.innerHeight || 0
+      const perCol = Math.ceil(vw / cols)
+      const perRow = Math.ceil(vh / rows)
+      const size = Math.min(perCol, perRow)
+      setCellSize({ w: size, h: size })
     }
     recalc()
     window.addEventListener('resize', recalc)
