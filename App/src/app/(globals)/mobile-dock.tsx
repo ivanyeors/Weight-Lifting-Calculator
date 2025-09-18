@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { Home, PanelLeftIcon, Dumbbell, Target, Filter, Plus } from "lucide-react"
+import { Home, PanelLeftIcon, Dumbbell, Target, Filter, Plus, ChefHat } from "lucide-react"
 import { MenuDock } from "@/components/ui/shadcn-io/menu-dock"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useSidebar } from "@/components/ui/sidebar"
@@ -65,6 +65,9 @@ export function MobileDock() {
             const pathname = rawPath.replace(/\/+$/, '') || '/'
             const isExerciseLibrary = pathname === '/exercise-library'
             const isIdealExerciseWeight = pathname === '/ideal-exercise-weight'
+            const isPlansUsers = pathname === '/plans/users'
+            const isPlansWorkoutTemplates = pathname === '/plans/workout-templates'
+            const isPlansWorkoutPlans = pathname === '/plans/workout-plans'
             if (isExerciseLibrary) {
               base.splice(1, 0,
                 {
@@ -113,6 +116,67 @@ export function MobileDock() {
               } else {
                 base.push(targetItem)
               }
+            }
+            if (isPlansUsers) {
+              base.splice(1, 0,
+                {
+                  label: 'Filter',
+                  icon: Filter,
+                  onClick: () => {
+                    try { window.dispatchEvent(new CustomEvent('plans-users:open-filters')) } catch {}
+                  }
+                },
+                {
+                  label: 'Add',
+                  icon: Plus,
+                  onClick: () => {
+                    try { window.dispatchEvent(new CustomEvent('plans-users:open-add')) } catch {}
+                  }
+                },
+              )
+            }
+            if (isPlansWorkoutTemplates) {
+              base.splice(1, 0,
+                {
+                  label: 'Filter',
+                  icon: Filter,
+                  onClick: () => {
+                    try { window.dispatchEvent(new CustomEvent('plans-workout-templates:open-filters')) } catch {}
+                  }
+                },
+                {
+                  label: 'Add',
+                  icon: Plus,
+                  onClick: () => {
+                    try { window.dispatchEvent(new CustomEvent('plans-workout-templates:open-add')) } catch {}
+                  }
+                },
+              )
+            }
+            if (isPlansWorkoutPlans) {
+              base.splice(1, 0,
+                {
+                  label: 'Filter',
+                  icon: Filter,
+                  onClick: () => {
+                    try { window.dispatchEvent(new CustomEvent('workout-plans:open-filters')) } catch {}
+                  }
+                },
+                {
+                  label: 'Add',
+                  icon: Plus,
+                  onClick: () => {
+                    try { window.dispatchEvent(new CustomEvent('workout-plans:open-add')) } catch {}
+                  }
+                },
+                {
+                  label: 'Meals',
+                  icon: ChefHat,
+                  onClick: () => {
+                    try { window.dispatchEvent(new CustomEvent('workout-plans:open-nutrition')) } catch {}
+                  }
+                },
+              )
             }
           } catch {}
 

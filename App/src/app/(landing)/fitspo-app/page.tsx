@@ -111,8 +111,8 @@ export default function FitspoAppPage() {
 
   // Navigation links for navbar
   const navigationLinks = [
-    { href: '/fitspo-app', label: 'App', active: true },
     { href: '/platform#platform', label: 'Platform' },
+    { href: '/fitspo-app', label: 'App', active: true },
     { href: '/platform/pricing', label: 'Pricing' },
   ]
 
