@@ -8,7 +8,7 @@ import { CreateTemplateDrawer } from './create-template-drawer'
 import { EditTemplateDrawer } from './edit-template-drawer'
 import { useSelectedUser } from '@/hooks/use-selected-user'
 import { useUserTier } from '@/hooks/use-user-tier'
-import { PanelLeft, PanelRight, Plus } from "lucide-react"
+import { Filter, Plus } from "lucide-react"
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabaseClient'
 import { ContOnboardAlert } from '@/components/cont-onboard'
@@ -220,7 +220,7 @@ export default function WorkoutTemplatesPage() {
             onClick={() => setSidebarCollapsed((v) => !v)}
             aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
-            {sidebarCollapsed ? <PanelRight className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
+            <Filter className="h-4 w-4" />
           </Button>
           
           <div className="ml-auto flex items-center gap-3">

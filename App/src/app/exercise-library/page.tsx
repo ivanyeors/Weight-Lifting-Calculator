@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/breadcrumb"
 import { useUserTier } from '@/hooks/use-user-tier'
 import { supabase } from '@/lib/supabaseClient'
-import { Plus, Edit2, Trash2, Dumbbell, Target, Activity, PanelLeft, PanelRight, RefreshCw, CheckCircle, AlertCircle, Cloud, Lock, XIcon } from 'lucide-react'
+import { Plus, Edit2, Trash2, Dumbbell, Target, Activity, Filter, RefreshCw, CheckCircle, AlertCircle, Cloud, Lock, XIcon } from 'lucide-react'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from '@/components/ui/drawer'
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
@@ -149,6 +149,7 @@ export default function ExerciseLibraryPage() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [drawerExercise, setDrawerExercise] = useState<Exercise | null>(null)
   const isMobile = useIsMobile()
+  const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false)
 
   // Placeholder to keep future usage-related side effects if needed
 
@@ -280,6 +281,11 @@ export default function ExerciseLibraryPage() {
     loadExercises()
   }, [])
 
+  // Default-hide sidebar on mobile on first render
+  useEffect(() => {
+    if (isMobile) setSidebarCollapsed(true)
+  }, [isMobile])
+
           // Load saved personal inputs from ideal-exercise-weight (Personal tier)
   useEffect(() => {
     const loadPersonal = async () => {
@@ -320,6 +326,8 @@ export default function ExerciseLibraryPage() {
       loadCustomExercisesFromLocal()
     }
   }, [isPaidTier, userId, loadCustomExercisesFromSupabase])
+
+  
 
   const saveCustomExerciseToLocal = (exercise: Exercise) => {
     try {
@@ -576,6 +584,68 @@ export default function ExerciseLibraryPage() {
 
 
 
+  // Handle mobile dock actions for this page (placed after filteredExercises to avoid TDZ)
+  useEffect(() => {
+    const openFilters = () => {
+      try {
+        setSidebarCollapsed(false)
+      } catch {}
+    }
+
+    const openSelect = () => {
+      try {
+        // Prefer previously opened exercise, otherwise first filtered
+        const target = drawerExercise ?? filteredExercises[0]
+        if (target) {
+          setDrawerExercise(target)
+          setIsDrawerOpen(true)
+        }
+      } catch {}
+    }
+
+    const openAdd = () => {
+      try {
+        if (!isPaidTier) { setShowUpgradeDialog(true); return }
+        resetForm();
+        setEditingExercise(null)
+        if (isMobile) setIsAddDrawerOpen(true)
+        else setIsAddDialogOpen(true)
+      } catch {}
+    }
+
+    const scrollIdeal = () => {
+      try {
+        // Ensure a drawer is open with a target exercise
+        if (!isDrawerOpen) {
+          const target = drawerExercise ?? filteredExercises[0]
+          if (target) {
+            setDrawerExercise(target)
+            setIsDrawerOpen(true)
+            // Wait a tick for drawer to render
+            setTimeout(() => {
+              const el = document.getElementById('ideal-weight')
+              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            }, 300)
+          }
+          return
+        }
+        const el = document.getElementById('ideal-weight')
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      } catch {}
+    }
+
+    window.addEventListener('exercise-library:open-filters', openFilters as EventListener)
+    window.addEventListener('exercise-library:open-select', openSelect as EventListener)
+    window.addEventListener('exercise-library:open-add', openAdd as EventListener)
+    window.addEventListener('exercise-library:scroll-ideal-weight', scrollIdeal as EventListener)
+    return () => {
+      window.removeEventListener('exercise-library:open-filters', openFilters as EventListener)
+      window.removeEventListener('exercise-library:open-select', openSelect as EventListener)
+      window.removeEventListener('exercise-library:open-add', openAdd as EventListener)
+      window.removeEventListener('exercise-library:scroll-ideal-weight', scrollIdeal as EventListener)
+    }
+  }, [filteredExercises, isDrawerOpen, drawerExercise, isPaidTier, isMobile])
+
   if (loading) {
     return (
       <div className="p-6">
@@ -629,7 +699,7 @@ export default function ExerciseLibraryPage() {
             onClick={() => setSidebarCollapsed((v) => !v)}
             aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
-            {sidebarCollapsed ? <PanelRight className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
+            <Filter className="h-4 w-4" />
           </Button>
           <Breadcrumb>
             <BreadcrumbList>
@@ -657,118 +727,120 @@ export default function ExerciseLibraryPage() {
               if (!isPaidTier) { setShowUpgradeDialog(true); return }
               resetForm();
               setEditingExercise(null);
-              setIsAddDialogOpen(true)
+              if (isMobile) setIsAddDrawerOpen(true); else setIsAddDialogOpen(true)
             }}>
               <Plus className="h-4 w-4" />
               Add Exercise
             </Button>
-            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingExercise ? 'Edit Exercise' : 'Add New Exercise'}
-                  </DialogTitle>
-                  <DialogDescription>
-                    {currentTier === 'Free' 
-                      ? 'This exercise will be saved locally on your device.'
-                      : 'This exercise will be synced to your account.'}
-                  </DialogDescription>
-                </DialogHeader>
-                
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium">Name</label>
-                    <Input
-                      value={formData.name}
-                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="Exercise name"
-                    />
-                  </div>
+            {!isMobile && (
+              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editingExercise ? 'Edit Exercise' : 'Add New Exercise'}
+                    </DialogTitle>
+                    <DialogDescription>
+                      {currentTier === 'Free' 
+                        ? 'This exercise will be saved locally on your device.'
+                        : 'This exercise will be synced to your account.'}
+                    </DialogDescription>
+                  </DialogHeader>
                   
-                  <div>
-                    <label className="text-sm font-medium">Description</label>
-                    <Input
-                      value={formData.description}
-                      onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                      placeholder="Exercise description"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-medium">Weight Factor</label>
-                    <Input
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="3"
-                      value={formData.baseWeightFactor}
-                      onChange={(e) => setFormData(prev => ({ 
-                        ...prev, 
-                        baseWeightFactor: parseFloat(e.target.value) || 1.0 
-                      }))}
-                      placeholder="1.0"
-                    />
-                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium">Name</label>
+                      <Input
+                        value={formData.name}
+                        onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                        placeholder="Exercise name"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium">Description</label>
+                      <Input
+                        value={formData.description}
+                        onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                        placeholder="Exercise description"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium">Weight Factor</label>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="3"
+                        value={formData.baseWeightFactor}
+                        onChange={(e) => setFormData(prev => ({ 
+                          ...prev, 
+                          baseWeightFactor: parseFloat(e.target.value) || 1.0 
+                        }))}
+                        placeholder="1.0"
+                      />
+                    </div>
 
-                  <div>
-                    <label className="text-sm font-medium">Muscle Groups</label>
-                    <div className="mt-2 grid grid-cols-2 gap-2 max-h-40 overflow-auto pr-1">
-                      {allMuscleGroups.map((group: string) => (
-                        <label key={group} className="flex items-center gap-2 text-sm">
-                          <Checkbox
-                            checked={formData.muscleGroups.includes(group)}
-                            onCheckedChange={(checked) => {
-                              setFormData((prev) => ({
-                                ...prev,
-                                muscleGroups: checked
-                                  ? [...prev.muscleGroups, group]
-                                  : prev.muscleGroups.filter((g) => g !== group),
-                              }))
-                            }}
-                          />
-                          <span className="truncate">{group}</span>
-                        </label>
-                      ))}
+                    <div>
+                      <label className="text-sm font-medium">Muscle Groups</label>
+                      <div className="mt-2 grid grid-cols-2 gap-2 max-h-40 overflow-auto pr-1">
+                        {allMuscleGroups.map((group: string) => (
+                          <label key={group} className="flex items-center gap-2 text-sm">
+                            <Checkbox
+                              checked={formData.muscleGroups.includes(group)}
+                              onCheckedChange={(checked) => {
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  muscleGroups: checked
+                                    ? [...prev.muscleGroups, group]
+                                    : prev.muscleGroups.filter((g) => g !== group),
+                                }))
+                              }}
+                            />
+                            <span className="truncate">{group}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium">Workout Types</label>
+                      <div className="mt-2 grid grid-cols-2 gap-2 max-h-48 overflow-auto pr-1">
+                        {ALLOWED_WORKOUT_TYPES.map((type) => (
+                          <label key={type} className="flex items-center gap-2 text-sm">
+                            <Checkbox
+                              checked={formData.workoutTypes.includes(type)}
+                              onCheckedChange={(checked) => {
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  workoutTypes: checked
+                                    ? [...prev.workoutTypes, type]
+                                    : prev.workoutTypes.filter((t: string) => t !== type),
+                                }))
+                              }}
+                            />
+                            <span className="truncate">{type}</span>
+                          </label>
+                        ))}
+                      </div>
                     </div>
                   </div>
-
-                  <div>
-                    <label className="text-sm font-medium">Workout Types</label>
-                    <div className="mt-2 grid grid-cols-2 gap-2 max-h-48 overflow-auto pr-1">
-                      {ALLOWED_WORKOUT_TYPES.map((type) => (
-                        <label key={type} className="flex items-center gap-2 text-sm">
-                          <Checkbox
-                            checked={formData.workoutTypes.includes(type)}
-                            onCheckedChange={(checked) => {
-                              setFormData((prev) => ({
-                                ...prev,
-                                workoutTypes: checked
-                                  ? [...prev.workoutTypes, type]
-                                  : prev.workoutTypes.filter((t: string) => t !== type),
-                              }))
-                            }}
-                          />
-                          <span className="truncate">{type}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => {
-                    setIsAddDialogOpen(false)
-                    setEditingExercise(null)
-                    resetForm()
-                  }}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleSaveExercise} disabled={!formData.name.trim()}>
-                    {editingExercise ? 'Update' : 'Add'} Exercise
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                  
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => {
+                      setIsAddDialogOpen(false)
+                      setEditingExercise(null)
+                      resetForm()
+                    }}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleSaveExercise} disabled={!formData.name.trim()}>
+                      {editingExercise ? 'Update' : 'Add'} Exercise
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
         </header>
 
@@ -956,6 +1028,7 @@ export default function ExerciseLibraryPage() {
         onOpenChange={setIsDrawerOpen}
         exercise={drawerExercise}
         isPaidTier={isPaidTier}
+        personalInputs={personalInputs}
         direction={isMobile ? 'bottom' : 'right'}
       />
 
@@ -998,6 +1071,107 @@ export default function ExerciseLibraryPage() {
         </DrawerContent>
       </Drawer>
 
+      {/* Add Exercise Drawer (mobile) */}
+      {isMobile && (
+        <Drawer open={isAddDrawerOpen} onOpenChange={setIsAddDrawerOpen} direction="bottom">
+          <DrawerContent className="data-[vaul-drawer-direction=bottom]:!max-h-[85vh]">
+            <div className="flex flex-col h-full">
+              <DrawerHeader className="pb-0">
+                <div className="flex items-center justify-between">
+                  <DrawerTitle className="text-xl">{editingExercise ? 'Edit Exercise' : 'Add New Exercise'}</DrawerTitle>
+                  <DrawerClose asChild>
+                    <Button variant="ghost" size="icon" aria-label="Close add exercise">
+                      <XIcon className="h-4 w-4" />
+                    </Button>
+                  </DrawerClose>
+                </div>
+              </DrawerHeader>
+              <div className="p-4 pt-2 space-y-4 overflow-auto">
+                <div>
+                  <label className="text-sm font-medium">Name</label>
+                  <Input
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Exercise name"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Description</label>
+                  <Input
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Exercise description"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Weight Factor</label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="3"
+                    value={formData.baseWeightFactor}
+                    onChange={(e) => setFormData(prev => ({ 
+                      ...prev, 
+                      baseWeightFactor: parseFloat(e.target.value) || 1.0 
+                    }))}
+                    placeholder="1.0"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Muscle Groups</label>
+                  <div className="mt-2 grid grid-cols-2 gap-2 max-h-40 overflow-auto pr-1">
+                    {allMuscleGroups.map((group: string) => (
+                      <label key={group} className="flex items-center gap-2 text-sm">
+                        <Checkbox
+                          checked={formData.muscleGroups.includes(group)}
+                          onCheckedChange={(checked) => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              muscleGroups: checked
+                                ? [...prev.muscleGroups, group]
+                                : prev.muscleGroups.filter((g) => g !== group),
+                            }))
+                          }}
+                        />
+                        <span className="truncate">{group}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Workout Types</label>
+                  <div className="mt-2 grid grid-cols-2 gap-2 max-h-48 overflow-auto pr-1">
+                    {ALLOWED_WORKOUT_TYPES.map((type) => (
+                      <label key={type} className="flex items-center gap-2 text-sm">
+                        <Checkbox
+                          checked={formData.workoutTypes.includes(type)}
+                          onCheckedChange={(checked) => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              workoutTypes: checked
+                                ? [...prev.workoutTypes, type]
+                                : prev.workoutTypes.filter((t: string) => t !== type),
+                            }))
+                          }}
+                        />
+                        <span className="truncate">{type}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex gap-2 justify-end pt-2">
+                  <Button variant="outline" onClick={() => { setIsAddDrawerOpen(false); setEditingExercise(null); resetForm() }}>Cancel</Button>
+                  <Button onClick={() => { handleSaveExercise(); setIsAddDrawerOpen(false) }} disabled={!formData.name.trim()}>
+                    {editingExercise ? 'Update' : 'Add'} Exercise
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </DrawerContent>
+        </Drawer>
+      )}
+
       {/* Upgrade dialog for Free tier */}
       <Dialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
         <DialogContent>
@@ -1018,7 +1192,7 @@ export default function ExerciseLibraryPage() {
 }
 
 // Drawer UI for exercise details and videos
-function ExerciseDetailDrawer({ open, onOpenChange, exercise, isPaidTier, direction = 'right' }: { open: boolean; onOpenChange: (v: boolean) => void; exercise: Exercise | null; isPaidTier: boolean; direction?: 'left' | 'right' | 'top' | 'bottom' }) {
+function ExerciseDetailDrawer({ open, onOpenChange, exercise, isPaidTier, personalInputs, direction = 'right' }: { open: boolean; onOpenChange: (v: boolean) => void; exercise: Exercise | null; isPaidTier: boolean; personalInputs: PersonalInputs | null; direction?: 'left' | 'right' | 'top' | 'bottom' }) {
   const [isSearching, setIsSearching] = useState(false)
   const [videoUrls, setVideoUrls] = useState<string[]>([])
   const [videoError, setVideoError] = useState<null | { code: 'missing_api_key' | 'quota_exceeded' | 'upstream_error' | 'no_results' | 'no_queries'; message: string }>(null)
@@ -1174,6 +1348,19 @@ function ExerciseDetailDrawer({ open, onOpenChange, exercise, isPaidTier, direct
                 </BarChart>
               </ChartContainer>
             </div>
+
+            {/* Ideal Weight */}
+            {typeof exercise.baseWeightFactor !== 'undefined' && personalInputs && (
+              <div id="ideal-weight" className="bg-card text-card-foreground rounded-xl border p-4 shadow-sm border-border/50">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base">Ideal Weight</CardTitle>
+                </div>
+                <p className="mt-2 text-sm">
+                  <span className="text-muted-foreground">Based on your inputs: </span>
+                  <span className="font-semibold tabular-nums">{computeIdealWeight(personalInputs, Number(exercise.baseWeightFactor || 1)).toFixed(2)} kg</span>
+                </p>
+              </div>
+            )}
 
             {/* Videos */}
             <div className="bg-card text-card-foreground flex flex-col gap-4 rounded-xl border py-4 shadow-sm border-border/50">
