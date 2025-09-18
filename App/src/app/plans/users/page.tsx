@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
-import { PanelLeft, PanelRight, Plus, RefreshCw, CheckCircle, AlertCircle, Cloud, Pencil } from 'lucide-react'
+import { Filter, Plus, RefreshCw, CheckCircle, AlertCircle, Cloud, Pencil } from 'lucide-react'
 import { UsersSidebar, type ManagedUserForm, type UsersFilterForm } from './users-sidebar'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -254,7 +254,7 @@ export default function PlansUsersPage() {
             onClick={() => setSidebarCollapsed((v) => !v)}
             aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
-            {sidebarCollapsed ? <PanelRight className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
+            <Filter className="h-4 w-4" />
           </Button>
           <div className="ml-auto flex items-center gap-3">
             <Button

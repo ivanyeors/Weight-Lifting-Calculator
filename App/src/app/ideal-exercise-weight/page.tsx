@@ -25,7 +25,7 @@ import {
   validateExerciseData
 } from '@/lib/exerciseLoader'
 import { useSelectedUser } from '@/hooks/use-selected-user'
-import { Target, PanelLeft, PanelRight, RefreshCw, CheckCircle, AlertCircle, Cloud } from 'lucide-react'
+import { Target, Filter, RefreshCw, CheckCircle, AlertCircle, Cloud } from 'lucide-react'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -114,6 +114,29 @@ export default function HomePage() {
   const [currentTier, setCurrentTier] = useState<string>('Free')
   const [completionSeries, setCompletionSeries] = useState<{ date: string; dateLabel: string; weight: number }[]>([])
   
+  // Dock event listeners (mobile)
+  useEffect(() => {
+    const openFilters = () => {
+      try { setSidebarCollapsed(false) } catch {}
+    }
+    const openSelect = () => {
+      try { window.dispatchEvent(new CustomEvent('ideal-exercise-weight:open-select-dropdown')) } catch {}
+    }
+    const scrollIdeal = () => {
+      try {
+        const el = document.getElementById('ideal-weight-card')
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      } catch {}
+    }
+    window.addEventListener('ideal-exercise-weight:open-filters', openFilters as EventListener)
+    window.addEventListener('ideal-exercise-weight:open-select', openSelect as EventListener)
+    window.addEventListener('ideal-exercise-weight:scroll-ideal-weight', scrollIdeal as EventListener)
+    return () => {
+      window.removeEventListener('ideal-exercise-weight:open-filters', openFilters as EventListener)
+      window.removeEventListener('ideal-exercise-weight:open-select', openSelect as EventListener)
+      window.removeEventListener('ideal-exercise-weight:scroll-ideal-weight', scrollIdeal as EventListener)
+    }
+  }, [])
   // Get current exercise
   const currentExercise = exercises.find(ex => ex.id === selectedExerciseId) || exercises[0]
 
@@ -446,7 +469,7 @@ export default function HomePage() {
               onClick={() => setSidebarCollapsed((v) => !v)}
               aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
-              {sidebarCollapsed ? <PanelRight className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
+              <Filter className="h-4 w-4" />
             </Button>
             <Breadcrumb>
               <BreadcrumbList>
@@ -496,7 +519,7 @@ export default function HomePage() {
                 exerciseLoadError={exerciseLoadError}
                 rightSlot={
                   <Card className="@container/card border-2 border-primary/20 bg-gradient-to-t from-primary/5 to-card shadow-lg h-full">
-                    <CardHeader className="p-3">
+                    <CardHeader className="p-3" id="ideal-weight-card">
                       <div className="flex items-center justify-start gap-3">
                         <div className="flex items-center space-x-2">
                           <Target className="h-6 w-6 text-primary" />

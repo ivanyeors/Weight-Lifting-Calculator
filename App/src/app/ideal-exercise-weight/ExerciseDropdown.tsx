@@ -135,6 +135,14 @@ export function ExerciseDropdown({
   const isMobile = useIsMobile()
   const [open, setOpen] = useState(false)
 
+  // Open the mobile drawer when signaled from the dock
+  useEffect(() => {
+    if (!isMobile) return
+    const openSelect = () => setOpen(true)
+    window.addEventListener('ideal-exercise-weight:open-select-dropdown', openSelect as EventListener)
+    return () => window.removeEventListener('ideal-exercise-weight:open-select-dropdown', openSelect as EventListener)
+  }, [isMobile])
+
   if (isMobile) {
     const handleSelect = (id: string) => {
       onSelectExercise(id)
@@ -145,6 +153,7 @@ export function ExerciseDropdown({
         <Drawer open={open} onOpenChange={setOpen}>
           <DrawerTrigger asChild>
             <Button
+              id="iew-select-trigger"
               variant="outline"
               className="w-full justify-between h-10 bg-background border-border hover:bg-accent hover:text-accent-foreground"
               disabled={isActuallyLoading}

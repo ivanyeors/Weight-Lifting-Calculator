@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { Plus, Calendar as CalendarIcon, PanelLeft, PanelRight, ChefHat, Minus, Moon, Trash2 } from 'lucide-react'
+import { Plus, Calendar as CalendarIcon, Filter, ChefHat, Minus, Moon, Trash2 } from 'lucide-react'
 
 // Schedule-X imports
 import { useCalendarApp, ScheduleXCalendar } from '@schedule-x/react'
@@ -2156,7 +2156,7 @@ export function CalendarView({
               onClick={() => setSidebarCollapsed(v => !v)}
               aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
-              {sidebarCollapsed ? <PanelRight className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
+              <Filter className="h-4 w-4" />
             </Button>
             <div className="text-sm text-muted-foreground">Workout Plans</div>
           </div>
