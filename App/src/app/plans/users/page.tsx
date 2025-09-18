@@ -15,6 +15,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { ContOnboardAlert } from '@/components/cont-onboard'
 import { useUserTier } from '@/hooks/use-user-tier'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 type SyncState = 'idle' | 'syncing' | 'success' | 'error'
 
@@ -35,6 +36,7 @@ type ManagedUser = {
 }
 
 export default function PlansUsersPage() {
+  const isMobile = useIsMobile()
   const { isPaidTier } = useUserTier()
   const [syncStatus, setSyncStatus] = useState<SyncState>('idle')
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
@@ -71,6 +73,7 @@ export default function PlansUsersPage() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [muscles, setMuscles] = useState<Array<{ id: string; name: string }>>([])
   const [userInjuries, setUserInjuries] = useState<Record<string, string[]>>({})
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false)
   
   // User detail drawer state
   const [isUserDetailDrawerOpen, setIsUserDetailDrawerOpen] = useState(false)
@@ -126,6 +129,25 @@ export default function PlansUsersPage() {
   }, [])
 
   useEffect(() => { loadUsers(); loadMuscles(); }, [loadUsers, loadMuscles])
+
+  // Mobile dock integration: open filters and add-user via custom events
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const openFilters = () => {
+      if (isMobile) setIsFilterDrawerOpen(true)
+      else setSidebarCollapsed(false)
+    }
+    const openAdd = () => {
+      if (!isPaidTier && users.length >= 2) { setShowUpgradeDialog(true); return }
+      setIsDrawerOpen(true)
+    }
+    window.addEventListener('plans-users:open-filters', openFilters as EventListener)
+    window.addEventListener('plans-users:open-add', openAdd as EventListener)
+    return () => {
+      window.removeEventListener('plans-users:open-filters', openFilters as EventListener)
+      window.removeEventListener('plans-users:open-add', openAdd as EventListener)
+    }
+  }, [isPaidTier, users.length, isMobile])
 
   // Listen for storage events to auto-refresh when data changes from other pages
   useEffect(() => {
@@ -229,15 +251,17 @@ export default function PlansUsersPage() {
 
   return (
     <div className="flex h-screen">
-      <UsersSidebar
-        collapsed={sidebarCollapsed}
-        form={filterDraft}
-        setForm={(updater) => setFilterDraft((prev) => updater(prev))}
-        muscles={muscles}
-        onSearch={() => setAppliedFilters(filterDraft)}
-        onReset={() => { setFilterDraft(defaultFilter()); setAppliedFilters(defaultFilter()) }}
-      />
-      {!sidebarCollapsed && (
+      {!isMobile && (
+        <UsersSidebar
+          collapsed={sidebarCollapsed}
+          form={filterDraft}
+          setForm={(updater) => setFilterDraft((prev) => updater(prev))}
+          muscles={muscles}
+          onSearch={() => setAppliedFilters(filterDraft)}
+          onReset={() => { setFilterDraft(defaultFilter()); setAppliedFilters(defaultFilter()) }}
+        />
+      )}
+      {!isMobile && !sidebarCollapsed && (
         <div
           className="fixed inset-0 z-40 bg-black/40 lg:hidden"
           onClick={() => setSidebarCollapsed(true)}
@@ -251,7 +275,10 @@ export default function PlansUsersPage() {
             size="icon"
             variant="ghost"
             className="h-8 w-8 p-0"
-            onClick={() => setSidebarCollapsed((v) => !v)}
+            onClick={() => {
+              if (isMobile) setIsFilterDrawerOpen(true)
+              else setSidebarCollapsed((v) => !v)
+            }}
             aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             <Filter className="h-4 w-4" />
@@ -447,6 +474,30 @@ export default function PlansUsersPage() {
           </div>
         </DrawerContent>
       </Drawer>
+
+      {/* Mobile filter drawer */}
+      {isMobile && (
+        <Drawer open={isFilterDrawerOpen} onOpenChange={setIsFilterDrawerOpen} direction="bottom">
+          <DrawerContent className="data-[vaul-drawer-direction=bottom]:!max-h-[85vh]">
+            <div className="flex flex-col h-full overflow-hidden">
+              <DrawerHeader className="pb-0">
+                <DrawerTitle className="text-xl">Filter Users</DrawerTitle>
+              </DrawerHeader>
+              <div className="p-2 pt-0 flex-1 overflow-hidden">
+                <UsersSidebar
+                  collapsed={false}
+                  form={filterDraft}
+                  setForm={(updater) => setFilterDraft((prev) => updater(prev))}
+                  muscles={muscles}
+                  onSearch={() => { setAppliedFilters(filterDraft); setIsFilterDrawerOpen(false) }}
+                  onReset={() => { const d = defaultFilter(); setFilterDraft(d); setAppliedFilters(d) }}
+                  asDrawer
+                />
+              </div>
+            </div>
+          </DrawerContent>
+        </Drawer>
+      )}
 
       {/* User Detail Drawer */}
       <Drawer open={isUserDetailDrawerOpen} onOpenChange={setIsUserDetailDrawerOpen} direction="right">

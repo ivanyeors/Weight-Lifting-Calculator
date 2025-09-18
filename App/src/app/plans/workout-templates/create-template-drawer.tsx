@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { Search } from "lucide-react"
 import { supabase } from '@/lib/supabaseClient'
+import { useIsMobile } from '@/hooks/use-mobile'
 import {
   Drawer,
   DrawerContent,
@@ -43,6 +44,7 @@ interface CreateTemplateDrawerProps {
 }
 
 export function CreateTemplateDrawer({ open, onOpenChange, onSave }: CreateTemplateDrawerProps) {
+  const isMobile = useIsMobile()
   const [name, setName] = useState('')
   const [workoutSpaceId, setWorkoutSpaceId] = useState('')
   const [exerciseSearch, setExerciseSearch] = useState('')
@@ -187,14 +189,14 @@ export function CreateTemplateDrawer({ open, onOpenChange, onSave }: CreateTempl
   }
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange} direction="right">
-      <DrawerContent className="data-[vaul-drawer-direction=right]:!w-[80vw] data-[vaul-drawer-direction=right]:!max-w-none lg:data-[vaul-drawer-direction=right]:!w-1/2">
-        <div className="flex flex-col h-full">
+    <Drawer open={open} onOpenChange={onOpenChange} direction={isMobile ? 'bottom' : 'right'}>
+      <DrawerContent className="data-[vaul-drawer-direction=right]:!w-[80vw] data-[vaul-drawer-direction=right]:!max-w-none lg:data-[vaul-drawer-direction=right]:!w-1/2 data-[vaul-drawer-direction=bottom]:!max-h-[85vh]">
+        <div className="flex flex-col h-full overflow-hidden">
           <DrawerHeader className="pb-0">
             <DrawerTitle>Create Workout Template</DrawerTitle>
           </DrawerHeader>
 
-        <div className="px-4 space-y-6 flex-1 overflow-y-auto">
+        <div className="px-4 md:px-6 space-y-4 md:space-y-6 flex-1 overflow-y-auto overscroll-contain min-h-0">
           {/* Template Name */}
           <div className="space-y-2">
             <Label htmlFor="template-name">Template Name</Label>

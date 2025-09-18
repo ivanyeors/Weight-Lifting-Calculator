@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner"
 import { Smartphone, Target, TrendingUp, Users, Zap } from "lucide-react"
 import Image from "next/image"
-import heroImg from "@/assets/fitspoapp-promo/hero-img.png"
+import heroImg from "@/assets/fitspo-platform-promo/platform.png"
 import { Navbar01 } from "@/components/ui/shadcn-io/navbar-01"
 import { useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
@@ -89,8 +89,8 @@ export default function PlatformPage() {
 
   // Navigation links for navbar
   const navigationLinks = [
-    { href: '/fitspo-app', label: 'App' },
     { href: '/platform#platform', label: 'Platform', active: true },
+    { href: '/fitspo-app', label: 'App' },
     { href: '/platform/pricing', label: 'Pricing' },
   ]
 

@@ -22,6 +22,7 @@ import {
   DrawerClose,
 } from "@/components/ui/drawer"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { useIsMobile } from '@/hooks/use-mobile'
 
 interface Exercise {
   id: string
@@ -58,6 +59,7 @@ interface EditTemplateDrawerProps {
 }
 
 export function EditTemplateDrawer({ open, template, onOpenChange, onSave }: EditTemplateDrawerProps) {
+  const isMobile = useIsMobile()
   const { user: selectedUser } = useSelectedUser()
   const [exercises, setExercises] = useState<Exercise[]>([])
   const [exerciseConfigs, setExerciseConfigs] = useState<ExerciseConfig[]>([])
@@ -263,15 +265,15 @@ export function EditTemplateDrawer({ open, template, onOpenChange, onSave }: Edi
   if (!template) return null
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange} direction="right">
-      <DrawerContent className="data-[vaul-drawer-direction=right]:!w-[80vw] data-[vaul-drawer-direction=right]:!max-w-none lg:data-[vaul-drawer-direction=right]:!w-1/2">
-        <div className="flex flex-col h-full">
+    <Drawer open={open} onOpenChange={onOpenChange} direction={isMobile ? 'bottom' : 'right'}>
+      <DrawerContent className="data-[vaul-drawer-direction=right]:!w-[80vw] data-[vaul-drawer-direction=right]:!max-w-none lg:data-[vaul-drawer-direction=right]:!w-1/2 data-[vaul-drawer-direction=bottom]:!max-h-[85vh]">
+        <div className="flex flex-col h-full overflow-hidden">
           <DrawerHeader className="pb-0">
             <DrawerTitle>Edit Workout Template</DrawerTitle>
             <p className="text-sm text-muted-foreground mt-1">{template.name}</p>
           </DrawerHeader>
 
-        <div className="px-6 space-y-6 flex-1 overflow-y-auto">
+        <div className="px-3 md:px-6 space-y-4 md:space-y-6 flex-1 overflow-y-auto overscroll-contain min-h-0">
           {/* Template Info */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
@@ -373,8 +375,8 @@ export function EditTemplateDrawer({ open, template, onOpenChange, onSave }: Edi
             {exerciseConfigs.map((config, index) => {
               const exercise = exercises.find(ex => ex.id === config.exerciseId)
               return (
-                <Card key={config.exerciseId} className="p-4">
-                  <CardHeader className="pb-3">
+                <Card key={config.exerciseId} className="p-1">
+                  <CardHeader className="px-1 pb-3">
                     <CardTitle className="text-base flex items-center justify-between">
                       <span>{exercise?.name || config.exerciseId}</span>
                       <Button
@@ -390,7 +392,7 @@ export function EditTemplateDrawer({ open, template, onOpenChange, onSave }: Edi
                       <p className="text-sm text-muted-foreground">{exercise.description}</p>
                     )}
                   </CardHeader>
-                  <CardContent className="pt-0">
+                  <CardContent className="px-1 pt-0">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor={`sets-${index}`}>Sets</Label>

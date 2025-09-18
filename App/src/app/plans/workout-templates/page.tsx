@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { WorkoutTemplatesSidebar } from './workout-templates-sidebar'
 import { WorkoutTemplateCard } from './workout-template-card'
 import { CreateTemplateDrawer } from './create-template-drawer'
@@ -13,6 +15,9 @@ import { toast } from 'sonner'
 import { supabase } from '@/lib/supabaseClient'
 import { ContOnboardAlert } from '@/components/cont-onboard'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from '@/components/ui/drawer'
+import { useIsMobile } from '@/hooks/use-mobile'
+import { UserSwitcher } from '@/components/ui/user-switcher'
 
 type SyncState = 'idle' | 'syncing' | 'success' | 'error'
 
@@ -38,6 +43,7 @@ interface WorkoutTemplate {
 export default function WorkoutTemplatesPage() {
   const { user: selectedUser } = useSelectedUser()
   const { userId, isPaidTier } = useUserTier()
+  const isMobile = useIsMobile()
   
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
     // Default to collapsed on mobile/tablet, expanded on desktop
@@ -55,6 +61,29 @@ export default function WorkoutTemplatesPage() {
   const [editDrawerOpen, setEditDrawerOpen] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState<WorkoutTemplate | null>(null)
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+
+  // Listen for dock events
+  useEffect(() => {
+    const onOpenFilters = () => {
+      if (isMobile) setMobileFiltersOpen(true)
+      else setSidebarCollapsed(false)
+    }
+    const onOpenAdd = () => {
+      if (!isPaidTier && templates.length >= 9) { setShowUpgradeDialog(true); return }
+      setCreateDrawerOpen(true)
+    }
+    try {
+      window.addEventListener('plans-workout-templates:open-filters', onOpenFilters as EventListener)
+      window.addEventListener('plans-workout-templates:open-add', onOpenAdd as EventListener)
+    } catch {}
+    return () => {
+      try {
+        window.removeEventListener('plans-workout-templates:open-filters', onOpenFilters as EventListener)
+        window.removeEventListener('plans-workout-templates:open-add', onOpenAdd as EventListener)
+      } catch {}
+    }
+  }, [isPaidTier, templates.length, isMobile])
 
   // Load templates from Supabase
   const loadTemplates = async () => {
@@ -217,7 +246,7 @@ export default function WorkoutTemplatesPage() {
             size="icon"
             variant="ghost"
             className="h-8 w-8 p-0"
-            onClick={() => setSidebarCollapsed((v) => !v)}
+            onClick={() => { if (isMobile) setMobileFiltersOpen(true); else setSidebarCollapsed((v) => !v) }}
             aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             <Filter className="h-4 w-4" />
@@ -286,6 +315,39 @@ export default function WorkoutTemplatesPage() {
         onOpenChange={setEditDrawerOpen}
         onSave={handleEditTemplate}
       />
+      {/* Mobile Filters Drawer */}
+      {isMobile ? (
+        <Drawer open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen} direction="bottom">
+          <DrawerContent className="data-[vaul-drawer-direction=bottom]:!max-h-[85vh]">
+            <div className="flex flex-col h-full overflow-hidden">
+              <DrawerHeader className="pb-0">
+                <DrawerTitle>Filters</DrawerTitle>
+              </DrawerHeader>
+              <div className="px-4 space-y-4 flex-1 overflow-y-auto overscroll-contain min-h-0">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Active User</Label>
+                  <UserSwitcher />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Search Templates</Label>
+                  <Input
+                    placeholder="Search template names..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="h-9"
+                  />
+                </div>
+              </div>
+              <DrawerFooter>
+                <div className="flex items-center justify-end gap-2">
+                  <Button variant="outline" onClick={() => { handleReset(); setMobileFiltersOpen(false) }}>Reset</Button>
+                  <Button onClick={() => { handleSearch(); setMobileFiltersOpen(false) }}>Search</Button>
+                </div>
+              </DrawerFooter>
+            </div>
+          </DrawerContent>
+        </Drawer>
+      ) : null}
       <ContOnboardAlert />
 
       {/* Upgrade dialog for Free tier */}

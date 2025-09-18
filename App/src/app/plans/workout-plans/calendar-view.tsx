@@ -19,6 +19,8 @@ import { createResizePlugin } from '@schedule-x/resize'
 import '@schedule-x/theme-shadcn/dist/index.css'
 import { Card } from '@/components/ui/card'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '@/components/ui/drawer'
+import { useIsMobile } from '@/hooks/use-mobile'
 import { createRoot } from 'react-dom/client'
 
 import { CalendarEventDrawer } from './calendar-event-drawer'
@@ -188,6 +190,7 @@ export function CalendarView({
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
   const [prefillDates, setPrefillDates] = useState<{ start: string; end: string } | null>(null)
   const previewEventIdRef = useRef<string | null>(null)
+  const isMobile = useIsMobile()
 
   // Nutrition drawer state
   const [nutritionDrawerOpen, setNutritionDrawerOpen] = useState(false)
@@ -202,7 +205,13 @@ export function CalendarView({
     let active = true
     fetchFoods().then((f) => { if (active) setFoodsForMeals(f) }).catch(() => setFoodsForMeals([]))
     const loadInv = async () => {
-      try { const inv = await fetchUserInventory(); if (active) setRemoteInvForMeals(inv) } catch { /* ignore */ }
+      try {
+        const inv = await fetchUserInventory()
+        if (active) {
+          const amounts = Object.fromEntries(Object.entries(inv || {}).map(([k, v]) => [k, (v as { amount?: number }).amount || 0])) as Record<string, number>
+          setRemoteInvForMeals(amounts)
+        }
+      } catch { /* ignore */ }
     }
     void loadInv()
     const onInv = () => { void loadInv() }
@@ -2117,6 +2126,38 @@ export function CalendarView({
     setPrefillDates(null)
   }
 
+  // Mobile dock integrations
+  useEffect(() => {
+    const onOpenFilters = () => setSidebarCollapsed(false)
+    const onOpenAdd = () => handleAddEvent()
+    const onOpenNutrition = () => {
+      try {
+        const today = new Date()
+        const yyyy = today.getFullYear()
+        const mm = String(today.getMonth() + 1).padStart(2, '0')
+        const dd = String(today.getDate()).padStart(2, '0')
+        setNutritionDrawerDate(`${yyyy}-${mm}-${dd}`)
+      } catch { setNutritionDrawerDate(null) }
+      setNutritionDrawerOpen(true)
+    }
+    try {
+      if (typeof window !== 'undefined') {
+        window.addEventListener('workout-plans:open-filters', onOpenFilters as EventListener)
+        window.addEventListener('workout-plans:open-add', onOpenAdd as EventListener)
+        window.addEventListener('workout-plans:open-nutrition', onOpenNutrition as EventListener)
+      }
+    } catch { /* noop */ }
+    return () => {
+      try {
+        if (typeof window !== 'undefined') {
+          window.removeEventListener('workout-plans:open-filters', onOpenFilters as EventListener)
+          window.removeEventListener('workout-plans:open-add', onOpenAdd as EventListener)
+          window.removeEventListener('workout-plans:open-nutrition', onOpenNutrition as EventListener)
+        }
+      } catch { /* noop */ }
+    }
+  }, [handleAddEvent])
+
   return (
     <div className="flex h-screen">
       {!hideSidebar && (
@@ -2524,7 +2565,8 @@ export function CalendarView({
           <ScheduleXCalendar calendarApp={calendar} />
         </div>
 
-        {/* Event Drawer */}
+        {/* Event Drawer - slide up on mobile */}
+        <div className={isMobile ? 'fixed inset-x-0 bottom-0 z-50' : ''}>
         <CalendarEventDrawer
           isOpen={drawerOpen}
           onClose={handleCloseDrawer}
@@ -2539,16 +2581,17 @@ export function CalendarView({
           onUpdateAttendance={updateAttendance}
           onDeleteEvent={handleDeleteEvent}
         />
+        </div>
 
-        {/* Nutrition Drawer (Right side) */}
-        <Sheet open={nutritionDrawerOpen} onOpenChange={setNutritionDrawerOpen}>
-          <SheetContent side="right" className="w-full sm:max-w-[1000px] lg:max-w-[1180px] overflow-y-auto">
-            <SheetHeader>
-              <SheetTitle>Meals for {nutritionDrawerDate || 'selected day'}</SheetTitle>
-              <SheetDescription>
+        {/* Nutrition Drawer: slide up on mobile (Drawer), right side on desktop */}
+        <Drawer open={nutritionDrawerOpen} onOpenChange={setNutritionDrawerOpen} direction={isMobile ? 'bottom' : 'right'}>
+          <DrawerContent className={isMobile ? 'data-[vaul-drawer-direction=bottom]:!max-h-[90vh] overflow-y-auto' : 'overflow-y-auto'}>
+            <DrawerHeader>
+              <DrawerTitle>Meals for {nutritionDrawerDate || 'selected day'}</DrawerTitle>
+              <DrawerDescription>
                 No recipes added yet.
-              </SheetDescription>
-            </SheetHeader>
+              </DrawerDescription>
+            </DrawerHeader>
             <div className="p-4 space-y-6">
               <div>
                 <div className="text-sm font-medium mb-2">Water</div>
@@ -3029,10 +3072,150 @@ export function CalendarView({
                 Add recipes
               </Button>
             </div>
-          </SheetContent>
-        </Sheet>
+          </DrawerContent>
+        </Drawer>
 
-        <Sheet open={sleepDrawerOpen} onOpenChange={setSleepDrawerOpen}>
+        {isMobile ? (
+          <Drawer open={sleepDrawerOpen} onOpenChange={setSleepDrawerOpen} direction="bottom">
+            <DrawerContent className="data-[vaul-drawer-direction=bottom]:!max-h-[90vh] overflow-y-auto">
+              <DrawerHeader>
+                <DrawerTitle>Sleep for {sleepDrawerDate || 'selected day'}</DrawerTitle>
+                <DrawerDescription>
+                  Edit sleep hours for this day.
+                </DrawerDescription>
+              </DrawerHeader>
+            <div className="p-4 space-y-3 text-sm">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">Start</div>
+                  <input type="time" value={sleepStartInput} onChange={(e) => setSleepStartInput(e.target.value)} className="h-9 w-full rounded border bg-background px-2" />
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">End</div>
+                  <input type="time" value={sleepEndInput} onChange={(e) => setSleepEndInput(e.target.value)} className="h-9 w-full rounded border bg-background px-2" />
+                </div>
+              </div>
+              {/* Sleep status controls */}
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">Status</div>
+                <div className="flex items-center gap-2">
+                  <Button size="sm" variant={(() => { try { const day = sleepDrawerDate; if (!day) return 'outline'; const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:sleep_status_by_day') : null; const map = raw ? JSON.parse(raw) as Record<string,'pending'|'complete'|'missed'> : {}; const s = map[day] || 'pending'; return s==='complete' ? 'default' : 'outline'; } catch { return 'outline' }})()} onClick={async () => {
+                    try {
+                      const day = sleepDrawerDate
+                      if (!day) return
+                      // Update local storage
+                      const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:sleep_status_by_day') : null
+                      const map = raw ? JSON.parse(raw) as Record<string,'pending'|'complete'|'missed'> : {}
+                      map[day] = 'complete'
+                      if (typeof window !== 'undefined') localStorage.setItem('fitspo:sleep_status_by_day', JSON.stringify(map))
+                      // Update event in state
+                      const ev = eventsRef.current.find(ev => ev.extendedProps?.kind === 'sleep' && ev.start?.startsWith(day))
+                      if (ev) {
+                        setEvents(prev => prev.filter(e => e.id !== ev.id))
+                        void handleUpdateEvent(ev.id, { extendedProps: { ...ev.extendedProps, status: 'complete' } })
+                      }
+                    } catch { /* ignore */ }
+                  }}>Complete</Button>
+                  <Button size="sm" variant={(() => { try { const day = sleepDrawerDate; if (!day) return 'outline'; const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:sleep_status_by_day') : null; const map = raw ? JSON.parse(raw) as Record<string,'pending'|'complete'|'missed'> : {}; const s = map[day] || 'pending'; return s==='missed' ? 'default' : 'outline'; } catch { return 'outline' }})()} onClick={async () => {
+                    try {
+                      const day = sleepDrawerDate
+                      if (!day) return
+                      const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:sleep_status_by_day') : null
+                      const map = raw ? JSON.parse(raw) as Record<string,'pending'|'complete'|'missed'> : {}
+                      map[day] = 'missed'
+                      if (typeof window !== 'undefined') localStorage.setItem('fitspo:sleep_status_by_day', JSON.stringify(map))
+                      const ev = eventsRef.current.find(ev => ev.extendedProps?.kind === 'sleep' && ev.start?.startsWith(day))
+                      if (ev) {
+                        setEvents(prev => prev.map(e => e.id === ev.id ? ({ ...e, extendedProps: { ...e.extendedProps, status: 'missed' } }) : e))
+                        void handleUpdateEvent(ev.id, { extendedProps: { ...ev.extendedProps, status: 'missed' } })
+                      }
+                    } catch { /* ignore */ }
+                  }}>Missed</Button>
+                  <Button size="sm" variant={(() => { try { const day = sleepDrawerDate; if (!day) return 'default'; const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:sleep_status_by_day') : null; const map = raw ? JSON.parse(raw) as Record<string,'pending'|'complete'|'missed'> : {}; const s = map[day] || 'pending'; return s==='pending' ? 'default' : 'outline'; } catch { return 'default' }})()} onClick={async () => {
+                    try {
+                      const day = sleepDrawerDate
+                      if (!day) return
+                      const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:sleep_status_by_day') : null
+                      const map = raw ? JSON.parse(raw) as Record<string,'pending'|'complete'|'missed'> : {}
+                      map[day] = 'pending'
+                      if (typeof window !== 'undefined') localStorage.setItem('fitspo:sleep_status_by_day', JSON.stringify(map))
+                      const ev = eventsRef.current.find(ev => ev.extendedProps?.kind === 'sleep' && ev.start?.startsWith(day))
+                      if (ev) {
+                        setEvents(prev => prev.map(e => e.id === ev.id ? ({ ...e, extendedProps: { ...e.extendedProps, status: 'pending' } }) : e))
+                        void handleUpdateEvent(ev.id, { extendedProps: { ...ev.extendedProps, status: 'pending' } })
+                      }
+                    } catch { /* ignore */ }
+                  }}>Pending</Button>
+                </div>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button size="sm" onClick={async () => {
+                  // Update plan default sleep times in localStorage and Supabase, then refresh injected events
+                  let updatedPlanId: string | null = null
+                  try {
+                    const userId = typeof window !== 'undefined' ? (localStorage.getItem('fitspo:selected_user_id') || '') : ''
+                    const raw = typeof window !== 'undefined' ? localStorage.getItem('fitspo:plans') : null
+                    if (userId && raw) {
+                      type AnyPlan = { id?: string; config?: { sleep?: { startTime?: string; endTime?: string } } }
+                      const all = JSON.parse(raw) as Record<string, Array<AnyPlan>>
+                      const list = all[userId] || []
+                      if (list.length > 0) {
+                        const first = { ...list[0] }
+                        updatedPlanId = (first.id as string) || null
+                        first.config = first.config || {}
+                        first.config.sleep = { ...(first.config.sleep || {}), startTime: sleepStartInput, endTime: sleepEndInput }
+                        all[userId] = [first, ...list.slice(1)]
+                        localStorage.setItem('fitspo:plans', JSON.stringify(all))
+                        window.dispatchEvent(new Event('fitspo:plans_changed'))
+                      }
+                    }
+                  } catch {/* ignore */}
+                  try {
+                    if (updatedPlanId) {
+                      await supabase.from('fitness_plans').update({
+                        config: { sleep: { startTime: sleepStartInput, endTime: sleepEndInput } }
+                      }).eq('id', updatedPlanId)
+                    }
+                  } catch {/* ignore */}
+                  try {
+                    // Mirror sleep hours into daily totals and active plan log
+                    const day = sleepDrawerDate || new Date().toISOString().slice(0,10)
+                    const s = sleepStartInput
+                    const e = sleepEndInput
+                    const [sh, sm] = s.split(':').map(Number)
+                    const [eh, em] = e.split(':').map(Number)
+                    let hrs = (eh + (eh < sh ? 24 : 0)) - sh + (em - sm)/60
+                    if (!Number.isFinite(hrs)) hrs = 0
+                    const rawM = typeof window !== 'undefined' ? localStorage.getItem('fitspo:sleep_hours_by_day') : null
+                    const mapM: Record<string, number> = rawM ? JSON.parse(rawM) : {}
+                    mapM[day] = Math.max(0, Math.round(hrs * 10)/10)
+                    localStorage.setItem('fitspo:sleep_hours_by_day', JSON.stringify(mapM))
+                    const rawPlans = typeof window !== 'undefined' ? localStorage.getItem('fitspo:plans') : null
+                    if (rawPlans) {
+                      const all = JSON.parse(rawPlans) as Record<string, Array<{ id: string; status: string }>>
+                      const userId = typeof window !== 'undefined' ? (localStorage.getItem('fitspo:selected_user_id') || '') : ''
+                      const list = all[userId] || []
+                      const active = list.find(p => p.status === 'active')
+                      if (active) {
+                        const key = `fitspo:plan_logs:${active.id}`
+                        const rawLog = localStorage.getItem(key)
+                        const log = rawLog ? JSON.parse(rawLog) as Record<string, { date: string; water?: number; sleep?: number; food?: number; exercise?: number }> : {}
+                        const cur = log[day] || { date: day }
+                        log[day] = { ...cur, sleep: Math.max(0, Math.round(hrs * 10)/10) }
+                        localStorage.setItem(key, JSON.stringify(log))
+                      }
+                    }
+                    window.dispatchEvent(new Event('fitspo:logs_changed'))
+                  } catch {/* ignore */}
+                  setSleepDrawerOpen(false)
+                }}>Save</Button>
+                <Button size="sm" variant="outline" onClick={() => setSleepDrawerOpen(false)}>Cancel</Button>
+              </div>
+            </div>
+          </DrawerContent>
+        </Drawer>
+        ) : (
+          <Sheet open={sleepDrawerOpen} onOpenChange={setSleepDrawerOpen}>
           <SheetContent side="right">
             <SheetHeader>
               <SheetTitle>Sleep for {sleepDrawerDate || 'selected day'}</SheetTitle>
@@ -3170,6 +3353,7 @@ export function CalendarView({
             </div>
           </SheetContent>
         </Sheet>
+        )}
       </div>
     </div>
   )

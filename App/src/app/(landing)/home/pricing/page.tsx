@@ -46,8 +46,8 @@ export default function PricingPage() {
 
   // Navigation links for navbar
   const navigationLinks = [
-    { href: '/fitspo-app', label: 'App' },
     { href: '/home#platform', label: 'Platform' },
+    { href: '/fitspo-app', label: 'App' },
     { href: '/home/pricing', label: 'Pricing', active: true },
   ]
 
