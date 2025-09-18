@@ -120,7 +120,7 @@ export function AppSidebar() {
       }
     } finally {
       const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/');
-      window.location.replace(`${base}home`);
+      window.location.replace(base);
     }
   }
 
@@ -151,17 +151,125 @@ export function AppSidebar() {
         if (plan.status === 'completed') {
           return setFitnessGoalLabel({ text: '100%', className: 'text-green-600 border-green-600/50' })
         }
-        // Active: compute % based on elapsed days over duration
-        let percent = 0
-        if (plan.durationDays && plan.createdAt) {
-          const start = new Date(plan.createdAt).getTime()
-          const now = Date.now()
-          if (Number.isFinite(start) && plan.durationDays > 0) {
-            const elapsedDays = Math.max(0, Math.floor((now - start) / (1000 * 60 * 60 * 24)))
-            percent = Math.min(99, Math.max(0, Math.round((elapsedDays / plan.durationDays) * 100)))
+        // Active: compute % based on actual logs (same logic as fitness goal page)
+        try {
+          const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n))
+          const durationDays = Math.max(1, Number((plan as any).durationDays ?? 28))
+          // Determine start date from createdAt, else backfill from today - (duration-1)
+          let startDateISO: string
+          try {
+            const created = (plan as any).createdAt ? new Date((plan as any).createdAt) : null
+            if (created && !Number.isNaN(created.getTime())) {
+              startDateISO = created.toISOString().slice(0, 10)
+            } else {
+              const now = new Date()
+              now.setDate(now.getDate() - (durationDays - 1))
+              startDateISO = now.toISOString().slice(0, 10)
+            }
+          } catch {
+            const now = new Date()
+            now.setDate(now.getDate() - (durationDays - 1))
+            startDateISO = now.toISOString().slice(0, 10)
           }
+
+          const getDayKeysFromStart = (startISO: string, d: number) => {
+            const out: string[] = []
+            const start = new Date(startISO)
+            for (let i = 0; i < d; i++) {
+              const dt = new Date(start)
+              dt.setDate(start.getDate() + i)
+              out.push(dt.toISOString().slice(0, 10))
+            }
+            return out
+          }
+
+          const readNumberMap = (key: string): Record<string, number> => {
+            try {
+              const raw = localStorage.getItem(key)
+              return raw ? (JSON.parse(raw) as Record<string, number>) : {}
+            } catch {
+              return {}
+            }
+          }
+
+          const computeTargets = () => {
+            const cfg: any = (plan as any).config || {}
+            const m = cfg.food?.macros
+            const foodTarget = m ? (m.protein_g ?? 0) * 4 + (m.carbs_g ?? 0) * 4 + (m.fat_g ?? 0) * 9 : 2500
+            const waterTarget = cfg.water?.recommendedLitersPerDay ?? 3.0
+            let sleepTarget = 8
+            try {
+              const s = cfg.sleep?.startTime || '23:00'
+              const e = cfg.sleep?.endTime || '07:00'
+              const [sh, sm] = s.split(':').map(Number)
+              const [eh, em] = e.split(':').map(Number)
+              const hrs = (eh + (eh < sh ? 24 : 0)) - sh + (em - sm) / 60
+              if (Number.isFinite(hrs)) sleepTarget = hrs
+            } catch {}
+            const exerciseTarget = cfg.exercise?.estimatedKcalsPerWorkout ?? 300
+            return { foodTarget, waterTarget, sleepTarget, exerciseTarget }
+          }
+
+          const days = getDayKeysFromStart(startDateISO, durationDays)
+          const todayISO = new Date().toISOString().slice(0, 10)
+          const targets = computeTargets()
+          const foodMap = readNumberMap('fitspo:food_kcals_by_day')
+          const waterMap = readNumberMap('fitspo:water_liters_by_day')
+          const sleepMap = readNumberMap('fitspo:sleep_hours_by_day')
+          const exerciseMap = readNumberMap('fitspo:exercise_kcals_by_day')
+
+          // Per-plan overrides
+          let planLogs: Record<string, Partial<{ food: number; water: number; sleep: number; exercise: number }>> = {}
+          try {
+            const key = `fitspo:plan_logs:${(plan as any).id}`
+            const raw = localStorage.getItem(key)
+            planLogs = raw ? JSON.parse(raw) : {}
+          } catch {}
+
+          const pillars: any = (plan as any).pillars || {}
+          let totalSlots = 0
+          let hitSlots = 0
+          for (const d of days) {
+            if (d > todayISO) break
+            if (pillars.food) {
+              totalSlots++
+              const v = (planLogs[d]?.food ?? foodMap[d] ?? 0)
+              if (targets.foodTarget > 0 && v >= targets.foodTarget * 0.8) hitSlots++
+            }
+            if (pillars.water) {
+              totalSlots++
+              const v = (planLogs[d]?.water ?? waterMap[d] ?? 0)
+              if (targets.waterTarget > 0 && v >= targets.waterTarget * 0.8) hitSlots++
+            }
+            if (pillars.sleep) {
+              totalSlots++
+              const v = (planLogs[d]?.sleep ?? sleepMap[d] ?? 0)
+              if (targets.sleepTarget > 0 && v >= targets.sleepTarget * 0.8) hitSlots++
+            }
+            if (pillars.exercise) {
+              totalSlots++
+              const v = (planLogs[d]?.exercise ?? exerciseMap[d] ?? 0)
+              if (targets.exerciseTarget > 0 && v >= targets.exerciseTarget * 0.8) hitSlots++
+            }
+          }
+
+          const percent = totalSlots > 0 ? Math.round((hitSlots / totalSlots) * 100) : 0
+          setFitnessGoalLabel({ text: `${clamp(percent, 0, 100)}%`, className: 'text-primary border-primary' })
+        } catch {
+          // Fallback to elapsed-days heuristic if anything fails
+          let percent = 0
+          try {
+            if ((plan as any).durationDays && (plan as any).createdAt) {
+              const start = new Date((plan as any).createdAt).getTime()
+              const now = Date.now()
+              if (Number.isFinite(start) && (plan as any).durationDays > 0) {
+                const elapsedDays = Math.max(0, Math.floor((now - start) / (1000 * 60 * 60 * 24)))
+                percent = Math.min(99, Math.max(0, Math.round((elapsedDays / (plan as any).durationDays) * 100)))
+              }
+            }
+          } catch {}
+          setFitnessGoalLabel({ text: `${percent}%`, className: 'text-primary border-primary' })
         }
-        setFitnessGoalLabel({ text: `${percent}%`, className: 'text-primary border-primary' })
       } catch {
         setFitnessGoalLabel(null)
       }
@@ -175,12 +283,14 @@ export function AppSidebar() {
     if (typeof window !== 'undefined') {
       window.addEventListener('fitspo:plans_changed', compute)
       window.addEventListener('fitspo:selected_user_changed', compute)
+      window.addEventListener('fitspo:logs_changed', compute)
       window.addEventListener('storage', handleStorage)
     }
     return () => {
       if (typeof window !== 'undefined') {
         window.removeEventListener('fitspo:plans_changed', compute)
         window.removeEventListener('fitspo:selected_user_changed', compute)
+        window.removeEventListener('fitspo:logs_changed', compute)
         window.removeEventListener('storage', handleStorage)
       }
     }
@@ -205,17 +315,19 @@ export function AppSidebar() {
       <SidebarHeader className="p-2">
         {state === 'collapsed' ? (
           <div className="flex flex-col items-center gap-2">
-            <img
-              src={(resolvedTheme || theme) === 'dark' ? '/logo-dark.svg' : '/logo-light.svg'}
-              alt="Fitspo Logo"
-              className="h-8 w-8 rounded-[8px]"
-            />
+            <a href="/home" className="inline-flex">
+              <img
+                src={(resolvedTheme || theme) === 'dark' ? '/logo-dark.svg' : '/logo-light.svg'}
+                alt="Fitspo Logo"
+                className="h-8 w-8 rounded-[8px]"
+              />
+            </a>
             <SidebarTrigger className="h-8 w-8 p-0" />
           </div>
         ) : (
           <div className="mb-1">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
+              <a href="/home" className="flex items-center space-x-2">
                 <img
                   src={(resolvedTheme || theme) === 'dark' ? '/logo-dark.svg' : '/logo-light.svg'}
                   alt="Fitspo Logo"
@@ -224,7 +336,7 @@ export function AppSidebar() {
                 <div>
                   <h2 className="text-base font-semibold">Fitspo</h2>
                 </div>
-              </div>
+              </a>
               {!isMobile && <SidebarTrigger className="h-8 w-8 p-0" />}
             </div>
             <div className="mt-2 hidden">

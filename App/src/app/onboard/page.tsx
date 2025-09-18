@@ -55,7 +55,7 @@ export default function OnboardingPage() {
   const { user: selectedUser } = useSelectedUser()
   const { isAuthenticated: isGoogleCalendarConnected } = useGoogleCalendar()
 
-  // Early guard: if user is logged in and onboarding is already complete, skip rendering and redirect immediately
+  // Early guard: allow access even if onboarding is complete (no redirect)
   const [isGuardChecking, setIsGuardChecking] = useState(true)
   useEffect(() => {
     const run = async () => {
@@ -64,8 +64,11 @@ export default function OnboardingPage() {
         const authed = !!session?.user
         const completed = typeof window !== 'undefined' && localStorage.getItem('fitspo:onboarding_complete') === 'true'
         if (authed && completed) {
-          router.replace('/plans/workout-plans')
-          return
+          // If completed, scroll to completion section after mount
+          setTimeout(() => {
+            const el = document.getElementById('onboarding-complete')
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }, 250)
         }
       } catch {
         // noop
@@ -112,6 +115,7 @@ export default function OnboardingPage() {
   const exercisesRef = useRef<HTMLDivElement>(null)
   const nutritionRef = useRef<HTMLDivElement>(null)
   const goalsRef = useRef<HTMLDivElement>(null)
+  const completeRef = useRef<HTMLDivElement>(null)
 
   const [steps, setSteps] = useState<OnboardingStep[]>([
     // Users section
@@ -477,21 +481,24 @@ export default function OnboardingPage() {
     return acc
   }, {} as Record<string, OnboardingStep[]>)
 
-  // Auto-redirect when onboarding is complete
+  // When onboarding is complete, persist state and scroll to completion section (no redirect)
   useEffect(() => {
     if (completedRequiredSteps >= totalRequiredSteps && totalRequiredSteps > 0) {
-      // Mark onboarding as complete
-      localStorage.setItem('fitspo:onboarding_complete', 'true')
-      localStorage.setItem('fitspo:onboarding_completed_at', new Date().toISOString())
+      try {
+        localStorage.setItem('fitspo:onboarding_complete', 'true')
+        localStorage.setItem('fitspo:onboarding_completed_at', new Date().toISOString())
+      } catch {}
 
-      // Small delay to show completion state, then redirect
-      const timer = setTimeout(() => {
-        router.replace('/plans/workout-plans')
-      }, 2000)
-
-      return () => clearTimeout(timer)
+      setTimeout(() => {
+        const el = document.getElementById('onboarding-complete')
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        } else {
+          completeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      }, 150)
     }
-  }, [completedRequiredSteps, totalRequiredSteps, router])
+  }, [completedRequiredSteps, totalRequiredSteps])
 
   return (
     isGuardChecking ? null : (
@@ -706,7 +713,7 @@ export default function OnboardingPage() {
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-12 max-w-md mx-auto">
+        <div id="onboarding-complete" ref={completeRef} className="text-center mt-12 max-w-md mx-auto">
           {completedRequiredSteps >= totalRequiredSteps ? (
             <div className="space-y-4">
               <div className="flex items-center justify-center gap-3">
@@ -714,12 +721,8 @@ export default function OnboardingPage() {
                 <h3 className="text-base font-semibold text-foreground">Setup Complete</h3>
               </div>
               <p className="text-muted-foreground text-sm">
-                Redirecting to your fitness dashboard...
+                You're all set. Review your setup or jump into your plans.
               </p>
-              <div className="flex items-center justify-center gap-2">
-                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary"></div>
-                <span className="text-xs text-muted-foreground">Starting your fitness journey</span>
-              </div>
             </div>
           ) : (
             <div className="space-y-4">

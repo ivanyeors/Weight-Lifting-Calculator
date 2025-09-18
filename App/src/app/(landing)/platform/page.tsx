@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
-import { Smartphone, Target, TrendingUp, Users, Heart, Zap } from "lucide-react"
+import { Smartphone, Target, TrendingUp, Users, Zap } from "lucide-react"
 import Image from "next/image"
 import heroImg from "@/assets/fitspoapp-promo/hero-img.png"
 import { Navbar01 } from "@/components/ui/shadcn-io/navbar-01"
@@ -13,7 +13,7 @@ import { useTheme } from "next-themes"
 import { supabase } from "@/lib/supabaseClient"
 import { LoginSheet } from "@/components/auth/LoginSheet"
 
-export default function FitspoAppPage() {
+export default function PlatformPage() {
   const router = useRouter()
   const { theme, resolvedTheme } = useTheme()
   const [email, setEmail] = useState("")
@@ -53,57 +53,35 @@ export default function FitspoAppPage() {
     const emailValue = emailInput?.value?.trim() || email
 
     if (!emailValue) {
-      toast.error("Please enter your email address", {
-        duration: 4000,
-      })
+      toast.error("Please enter your email address", { duration: 4000 })
       return
     }
-
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(emailValue)) {
-      toast.error("Please enter a valid email address", {
-        duration: 4000,
-      })
+      toast.error("Please enter a valid email address", { duration: 4000 })
       return
     }
 
     setIsSubmitting(true)
-
     try {
       const { error } = await supabase
         .from('fitspo_app_interested_users')
-        .insert([
-          {
-            email: emailValue,
-            source: 'landing_page'
-          }
-        ])
-
+        .insert([{ email: emailValue, source: 'platform_page' }])
       if (error) {
-        if (error.code === '23505') { // Unique constraint violation
-          toast.success("You're already registered! We'll notify you when Fitspo App launches.", {
-            duration: 4000,
-          })
+        if (error.code === '23505') {
+          toast.success("You're already registered! We'll notify you with updates.", { duration: 4000 })
         } else {
           console.error('Error registering interest:', error)
-          toast.error("Something went wrong. Please try again later.", {
-            duration: 4000,
-          })
+          toast.error("Something went wrong. Please try again later.", { duration: 4000 })
         }
       } else {
-        toast.success("Thank you for your interest! We'll notify you when Fitspo App launches.", {
-          duration: 4000,
-        })
-        // Clear the email input
+        toast.success("Thank you! We'll keep you posted.", { duration: 4000 })
         if (emailInput) emailInput.value = ""
         setEmail("")
       }
     } catch (error) {
       console.error('Error registering interest:', error)
-      toast.error("Something went wrong. Please try again later.", {
-        duration: 4000,
-      })
+      toast.error("Something went wrong. Please try again later.", { duration: 4000 })
     } finally {
       setIsSubmitting(false)
     }
@@ -111,8 +89,8 @@ export default function FitspoAppPage() {
 
   // Navigation links for navbar
   const navigationLinks = [
-    { href: '/fitspo-app', label: 'App', active: true },
-    { href: '/platform#platform', label: 'Platform' },
+    { href: '/fitspo-app', label: 'App' },
+    { href: '/platform#platform', label: 'Platform', active: true },
     { href: '/platform/pricing', label: 'Pricing' },
   ]
 
@@ -133,20 +111,20 @@ export default function FitspoAppPage() {
 
   const features = [
     {
-      title: "Personalized Workout Plans",
-      description: "AI-powered workout plans tailored to your fitness level, goals, and available equipment. Get the perfect routine every time.",
+      title: "Integrated Web Platform",
+      description: "Access calculators, exercise library, goals, and calendars in one place.",
       icon: Target,
       image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop&crop=center"
     },
     {
-      title: "Smart Progress Tracking",
-      description: "Track your workouts, monitor your progress, and get insights into your fitness journey with detailed analytics and visualizations.",
+      title: "Progress & Insights",
+      description: "Track your progress and get insights to optimize your training over time.",
       icon: TrendingUp,
       image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop&crop=center"
     },
     {
-      title: "Community & Motivation",
-      description: "Connect with like-minded fitness enthusiasts, share your achievements, and stay motivated with our supportive community.",
+      title: "Multi-user Ready",
+      description: "Built for personal use and trainers managing multiple users.",
       icon: Users,
       image: "https://images.unsplash.com/photo-1521791136064-7986c2920216?w=400&h=300&fit=crop&crop=center"
     }
@@ -175,10 +153,10 @@ export default function FitspoAppPage() {
       />
 
       {/* Hero Section (image only, no overlays) */}
-      <div className="w-full">
+      <div className="w-full" id="platform">
         <Image
           src={heroImg}
-          alt="Fitspo App hero"
+          alt="Fitspo Platform hero"
           className="w-full h-auto object-cover"
           priority
         />
@@ -191,13 +169,14 @@ export default function FitspoAppPage() {
             <div className="space-y-4">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
                 <Smartphone className="w-4 h-4" />
-                Mobile App Coming Soon
+                Web Platform
               </div>
               <h1 className="text-4xl lg:text-6xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
-                Fitspo App
+                Fitspo Platform
               </h1>
               <p className="text-xl text-muted-foreground max-w-2xl">
-                Your personal fitness companion. Coming soon to revolutionize the way you train, track, and transform.
+                Your all-in-one fitness platform: plan smarter workouts, track progress,
+                and manage your journey with beautiful, fast tools.
               </p>
             </div>
 
@@ -219,8 +198,7 @@ export default function FitspoAppPage() {
                     onClick={handleRegisterInterest}
                     disabled={isSubmitting}
                   >
-                    <Heart className="w-4 h-4 mr-2" />
-                    {isSubmitting ? "Registering..." : "Register Interest"}
+                    {isSubmitting ? "Submitting..." : "Notify Me"}
                   </Button>
                 </div>
               </div>
@@ -243,11 +221,11 @@ export default function FitspoAppPage() {
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full" />
-                Available only on iOS
+                Live on the Web
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                Free to download
+                Free tier available
               </div>
             </div>
           </div>
@@ -257,9 +235,9 @@ export default function FitspoAppPage() {
       {/* Features Section */}
       <div id="features" className="container mx-auto px-6 py-20">
         <div className="text-center space-y-4 mb-16">
-          <h2 className="text-3xl lg:text-4xl font-bold">Powerful Features</h2>
+          <h2 className="text-3xl lg:text-4xl font-bold">Powerful Platform Features</h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Everything you need to achieve your fitness goals, all in one beautiful app.
+            Everything you need to plan, track, and succeed—beautifully integrated.
           </p>
         </div>
 
@@ -275,7 +253,6 @@ export default function FitspoAppPage() {
                       alt={feature.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       onError={(e) => {
-                        // Fallback to icon if image fails to load
                         const target = e.target as HTMLImageElement
                         target.style.display = 'none'
                         const parent = target.parentElement
@@ -311,17 +288,16 @@ export default function FitspoAppPage() {
       <div className="bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 border-y">
         <div className="container mx-auto px-6 py-16">
           <div className="text-center space-y-6 max-w-2xl mx-auto">
-            <h3 className="text-2xl lg:text-3xl font-bold">Be the first to know when we launch</h3>
+            <h3 className="text-2xl lg:text-3xl font-bold">Jump into the Platform</h3>
             <p className="text-muted-foreground text-lg">
-              Join thousands of fitness enthusiasts who are excited about the future of personal training.
+              Sign in to start planning your training and tracking your progress.
             </p>
             <Button
               size="default"
               className="px-6"
-              onClick={handleRegisterInterest}
+              onClick={() => { if (isAuthenticated) router.push('/home'); else setIsLoginOpen(true) }}
             >
-              <Heart className="w-4 h-4 mr-2" />
-              Register Your Interest
+              {isAuthenticated ? 'Enter Dashboard' : 'Get Started'}
             </Button>
           </div>
         </div>

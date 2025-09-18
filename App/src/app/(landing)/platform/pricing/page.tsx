@@ -47,15 +47,15 @@ export default function PricingPage() {
   // Navigation links for navbar
   const navigationLinks = [
     { href: '/fitspo-app', label: 'App' },
-    { href: '/home#platform', label: 'Platform' },
-    { href: '/home/pricing', label: 'Pricing', active: true },
+    { href: '/platform#platform', label: 'Platform' },
+    { href: '/platform/pricing', label: 'Pricing', active: true },
   ]
 
   const handleNavigationClick = (link: { href: string; label: string }) => {
     if (link.href === '/fitspo-app') {
       router.push('/fitspo-app')
-    } else if (link.href.startsWith('/home#')) {
-      router.push('/home')
+    } else if (link.href.startsWith('/platform#')) {
+      router.push('/platform')
       // Scroll to section after navigation
       setTimeout(() => {
         const id = link.href.split('#')[1]
@@ -78,7 +78,7 @@ export default function PricingPage() {
             className="h-8 w-8"
           />
         }
-        logoHref="/home"
+        logoHref="/"
         navigationLinks={navigationLinks}
         signInText={isAuthenticated ? 'Account' : 'Sign In'}
         signInHref={isAuthenticated ? '/account' : '#signin'}
@@ -145,3 +145,5 @@ export default function PricingPage() {
     </div>
   )
 }
+
+

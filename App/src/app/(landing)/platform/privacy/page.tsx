@@ -53,10 +53,10 @@ export default function PrivacyPage() {
             className="h-8 w-8"
           />
         }
-        logoHref="/home"
+        logoHref="/"
         navigationLinks={[
           { href: '/fitspo-app', label: 'App' },
-          { href: '/home#platform', label: 'Platform' },
+          { href: '/platform#platform', label: 'Platform' },
         ]}
         signInText={isAuthenticated ? 'Account' : 'Sign In'}
         signInHref={isAuthenticated ? '/account' : '#signin'}
@@ -211,5 +211,7 @@ export default function PrivacyPage() {
     </div>
   )
 }
+
+
 
 
