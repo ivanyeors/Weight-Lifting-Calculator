@@ -39,7 +39,7 @@ export function FitnessGoalDock() {
 
   return (
     <>
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 pb-safe">
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 -translate-y-[6px] z-50 pb-safe">
         <MenuDock
           items={[
             {
