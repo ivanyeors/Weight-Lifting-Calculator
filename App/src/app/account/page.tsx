@@ -17,6 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 
 import { PricingPlansClient } from "@/app/billing/pricing-plans-client"
 import { ThemeSelectionCard } from "@/app/account/theme-selection-card"
+import { LoginForm } from "@/app/account/login-form"
 
 import { useGoogleCalendar } from "@/hooks/useGoogleCalendar"
 import { plans } from "@/lib/plans"
@@ -294,12 +295,35 @@ export default function AccountPage() {
   }
 
   if (!userId) {
+    // If not authenticated, show login on the Account page.
+    // Respect optional ?next= param to redirect after successful login.
+    const nextParam = searchParams.get('next') || '/home'
     if (typeof window !== 'undefined') {
-      // Respect basePath in production (GitHub Pages) by using NEXT_PUBLIC_BASE_URL
-      const base = ((process.env.NEXT_PUBLIC_BASE_URL as string) || '/').replace(/\/?$/, '/')
-      window.location.replace(`${base}ideal-exercise-weight`)
+      try {
+        sessionStorage.setItem('postAuthRedirectTo', nextParam)
+      } catch {}
     }
-    return null
+    return (
+      <div className="container mx-auto p-4 md:p-8">
+        <div className="mb-6 flex items-center gap-3">
+          <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
+          <p className="text-sm text-muted-foreground">Access your account to continue.</p>
+        </div>
+        <div className="max-w-3xl">
+          <LoginForm
+            onSuccess={() => {
+              try {
+                const completed = typeof window !== 'undefined' && localStorage.getItem('fitspo:onboarding_complete') === 'true'
+                const dest = nextParam || (completed ? '/home' : '/onboard')
+                if (typeof window !== 'undefined') window.location.replace(dest)
+              } catch {
+                if (typeof window !== 'undefined') window.location.replace('/home')
+              }
+            }}
+          />
+        </div>
+      </div>
+    )
   }
 
   return (
