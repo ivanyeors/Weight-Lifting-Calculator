@@ -130,7 +130,13 @@ export function IngredientList() {
 
     // Remote amounts keyed by food name
     const remoteByName = new Map<string, number>()
+    // Start with remote inventory from database
     for (const [foodId, item] of Object.entries(remoteInv || {})) {
+      const nm = foodIdToName.get(foodId)
+      if (nm) remoteByName.set(nm, item.amount || 0)
+    }
+    // Override with current in-memory edits (selection) for instant UI feedback
+    for (const [foodId, item] of Object.entries(selection || {})) {
       const nm = foodIdToName.get(foodId)
       if (nm) remoteByName.set(nm, item.amount || 0)
     }
@@ -170,7 +176,7 @@ export function IngredientList() {
     }
 
     return byName
-  }, [foods, remoteInv])
+  }, [foods, remoteInv, selection])
 
   const filteredFoods = useMemo(() => {
     const q = filter.trim().toLowerCase()

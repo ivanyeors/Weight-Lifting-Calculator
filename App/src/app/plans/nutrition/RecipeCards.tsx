@@ -153,6 +153,53 @@ export function RecipeCards() {
     return byName
   }, [state.ingredients, state.inventory, foods, remoteInv])
 
+  // Name normalization and mapping to inventory/database names
+  const normalize = (s: string) => {
+    const cleaned = s
+      .toLowerCase()
+      .replace(/\(.*?\)/g, '')
+      .replace(/\b(raw|cooked|uncooked)\b/g, '')
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim()
+    // singularize
+    const singular = cleaned.split(' ').map(w => {
+      if (/(ss)$/.test(w)) return w
+      if (/(ies)$/.test(w)) return w.replace(/ies$/i, 'y')
+      if (/(ches|shes|xes|zes|ses)$/.test(w)) return w.replace(/es$/i, '')
+      if (/(s)$/.test(w)) return w.replace(/s$/i, '')
+      return w
+    }).join(' ')
+    return singular.replace(/\s+/g, ' ').trim()
+  }
+  const canonicalNameMap = useMemo(() => {
+    const map = new Map<string, string>()
+    // Prioritize current inventory ingredient names
+    for (const ing of state.ingredients) {
+      map.set(normalize(ing.name), ing.name)
+    }
+    // Then supplement with foods database (including aliases)
+    for (const f of foods) {
+      const key = normalize(f.name)
+      if (!map.has(key)) map.set(key, f.name)
+
+      // Also map aliases to the canonical name
+      for (const alias of f.aliases || []) {
+        const aliasKey = normalize(alias)
+        if (!map.has(aliasKey)) map.set(aliasKey, f.name)
+      }
+    }
+    return map
+  }, [state.ingredients, foods])
+
+  const syncRecipeNames = (r: typeof recipes[number]) => {
+    const synced = { ...r, ingredients: r.ingredients.map(ri => {
+      const key = normalize(ri.name)
+      const canon = canonicalNameMap.get(key) || ri.name
+      return { ...ri, name: canon }
+    }) }
+    return synced
+  }
+
   // Build available diet tags and cuisine tags from recipes
   const dietTags = useMemo(() => {
     const s = new Set<string>()
@@ -217,57 +264,17 @@ export function RecipeCards() {
     }
 
     if (onlyFeasible) {
-      base = base.filter(r => feasibilityForRecipe(r, pax, invIndex).canMake)
+      base = base.filter(r => {
+        try {
+          return feasibilityForRecipe(syncRecipeNames(r), pax, invIndex).canMake
+        } catch {
+          return false
+        }
+      })
     }
     return base
-  }, [recipes, search, selectedCategories, selectedCuisines, onlyFeasible, pax, invIndex])
+  }, [recipes, search, selectedCategories, selectedCuisines, onlyFeasible, pax, invIndex, canonicalNameMap])
 
-  // Name normalization and mapping to inventory/database names
-  const normalize = (s: string) => {
-    const cleaned = s
-      .toLowerCase()
-      .replace(/\(.*?\)/g, '')
-      .replace(/\b(raw|cooked|uncooked)\b/g, '')
-      .replace(/[^a-z0-9]+/g, ' ')
-      .trim()
-    // singularize
-    const singular = cleaned.split(' ').map(w => {
-      if (/(ss)$/.test(w)) return w
-      if (/(ies)$/.test(w)) return w.replace(/ies$/i, 'y')
-      if (/(ches|shes|xes|zes|ses)$/.test(w)) return w.replace(/es$/i, '')
-      if (/(s)$/.test(w)) return w.replace(/s$/i, '')
-      return w
-    }).join(' ')
-    return singular.replace(/\s+/g, ' ').trim()
-  }
-  const canonicalNameMap = useMemo(() => {
-    const map = new Map<string, string>()
-    // Prioritize current inventory ingredient names
-    for (const ing of state.ingredients) {
-      map.set(normalize(ing.name), ing.name)
-    }
-    // Then supplement with foods database (including aliases)
-    for (const f of foods) {
-      const key = normalize(f.name)
-      if (!map.has(key)) map.set(key, f.name)
-
-      // Also map aliases to the canonical name
-      for (const alias of f.aliases || []) {
-        const aliasKey = normalize(alias)
-        if (!map.has(aliasKey)) map.set(aliasKey, f.name)
-      }
-    }
-    return map
-  }, [state.ingredients, foods])
-
-  const syncRecipeNames = (r: typeof recipes[number]) => {
-    const synced = { ...r, ingredients: r.ingredients.map(ri => {
-      const key = normalize(ri.name)
-      const canon = canonicalNameMap.get(key) || ri.name
-      return { ...ri, name: canon }
-    }) }
-    return synced
-  }
 
   const openAddDrawer = (recipeId: string) => {
     if (!isPaidTier) { setShowUpgradeDialog(true); return }
@@ -468,7 +475,7 @@ export function RecipeCards() {
               <Slider value={[pax]} min={1} max={20} step={1} onValueChange={(v) => setPax(v[0])} />
               <div className="flex items-center gap-2">
                 <Checkbox id="only-feasible" variant="chip" checked={onlyFeasible} onCheckedChange={(v) => setOnlyFeasible(Boolean(v))}>
-                  <span className="text-xs">Only show feasible</span>
+                  <span className="text-xs">Show available</span>
                 </Checkbox>
               </div>
             </div>
