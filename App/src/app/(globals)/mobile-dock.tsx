@@ -46,6 +46,7 @@ export function MobileDock() {
   return (
     <div className="fixed bottom-4 left-1/2 -translate-x-1/2 -translate-y-[6px] z-50 pb-safe">
       <MenuDock
+        data-haptic="light"
         items={(() => {
           const base = [
             {

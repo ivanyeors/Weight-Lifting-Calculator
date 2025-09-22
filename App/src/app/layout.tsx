@@ -14,6 +14,7 @@ import { AuthCallbackHandler } from "@/auth/AuthCallbackHandler"
 import ConsentDefaults from "@/components/analytics/ConsentDefaults"
 import ConsentBanner from "@/components/analytics/ConsentBanner"
 import GATrackPageViews from "@/components/analytics/GATrackPageViews"
+import { HapticsListener } from "@/app/haptics-listener"
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -81,6 +82,7 @@ export default function RootLayout({children }: { children: React.ReactNode }) {
             <Toaster />
             <Analytics />
             <ConsentBanner />
+            <HapticsListener />
           </AuthCallbackHandler>
         </ThemeProvider>
       </body>

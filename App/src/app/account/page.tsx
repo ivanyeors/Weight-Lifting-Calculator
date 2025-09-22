@@ -24,6 +24,8 @@ import { plans } from "@/lib/plans"
 import { toast } from "sonner"
 import { RefreshCw } from "lucide-react"
 import { ContOnboardAlert } from "@/components/cont-onboard"
+import { useUserTier } from "@/hooks/use-user-tier"
+import { TeamManager } from "@/components/ui/team-manager"
 
 type SupabaseIdentity = { identity_id: string; provider: string; last_sign_in_at: string | null }
 
@@ -44,6 +46,7 @@ export default function AccountPage() {
   const [activeTab, setActiveTab] = useState("account")
   const [currentPlan, setCurrentPlan] = useState<string>('Free')
   const searchParams = useSearchParams()
+  const { currentTier } = useUserTier()
 
   // Google Calendar integration
   const {
@@ -70,7 +73,7 @@ export default function AccountPage() {
 
   useEffect(() => {
     const initialTab = searchParams.get('tab')
-    if (initialTab === 'account' || initialTab === 'calendar' || initialTab === 'billing' || initialTab === 'data') {
+    if (initialTab === 'account' || initialTab === 'calendar' || initialTab === 'billing' || initialTab === 'team' || initialTab === 'data') {
       setActiveTab(initialTab)
     }
   }, [searchParams])
@@ -339,6 +342,7 @@ export default function AccountPage() {
           <TabsTrigger value="account">Account</TabsTrigger>
           <TabsTrigger value="calendar">Calendar Sync</TabsTrigger>
           <TabsTrigger value="billing">Pricing & Billing</TabsTrigger>
+          {currentTier === 'Trainer' && (<TabsTrigger value="team">Team</TabsTrigger>)}
           <TabsTrigger value="data">Data</TabsTrigger>
         </TabsList>
 
@@ -756,6 +760,21 @@ export default function AccountPage() {
             </div>
           </div>
         </TabsContent>
+
+        {/* Trainer: Team Management */}
+        {currentTier === 'Trainer' && (
+          <TabsContent value="team" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Teams</CardTitle>
+                <CardDescription>Create and manage your teams. Use the team switcher in the sidebar to switch contexts.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <TeamManager />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
 
         <TabsContent value="data" className="space-y-6">
           <Card>

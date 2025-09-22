@@ -41,6 +41,8 @@ import {
 } from "@/components/ui/alert-dialog"
 import { FlickeringGrid } from "@/components/ui/shadcn-io/flickering-grid"
 import { supabase } from '@/lib/supabaseClient'
+// NOTE [Trainer Tier]: Team switcher component for multi-team context switching.
+// When implementing the Trainer tier, expose its usage in the header section below.
 import { TeamSwitcher } from "@/components/ui/team-switcher"
 
 import { Calculator, MapPin, ClipboardList, Dumbbell, AppWindow, ChevronDown, Flame, Users as UsersIcon, UtensilsCrossed, Building2, CheckCircle, Calendar } from "lucide-react"
@@ -339,9 +341,12 @@ export function AppSidebar() {
               </a>
               {!isMobile && <SidebarTrigger className="h-8 w-8 p-0" />}
             </div>
-            <div className="mt-2 hidden">
-              <TeamSwitcher teams={teams} />
-            </div>
+            {/* Trainer tier: show TeamSwitcher */}
+            {currentPlan === 'Trainer' && (
+              <div className="mt-2">
+                <TeamSwitcher teams={teams} />
+              </div>
+            )}
           </div>
         )}
       </SidebarHeader>

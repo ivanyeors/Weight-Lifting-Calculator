@@ -605,7 +605,7 @@ export default function ExerciseLibraryPage() {
 
     const openAdd = () => {
       try {
-        if (!isPaidTier) { setShowUpgradeDialog(true); return }
+        // Free tier allowed: saves locally; Paid: syncs to cloud
         resetForm();
         setEditingExercise(null)
         if (isMobile) setIsAddDrawerOpen(true)
@@ -724,7 +724,7 @@ export default function ExerciseLibraryPage() {
               </div>
             )}
             <Button onClick={() => {
-              if (!isPaidTier) { setShowUpgradeDialog(true); return }
+              // Free tier allowed: adds locally; Paid: syncs
               resetForm();
               setEditingExercise(null);
               if (isMobile) setIsAddDrawerOpen(true); else setIsAddDialogOpen(true)
