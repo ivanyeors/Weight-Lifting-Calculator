@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
-import { Smartphone, Target, TrendingUp, Users, Zap } from "lucide-react"
+import { Smartphone, Target, TrendingUp, Users, Zap, CalendarDays, Dumbbell, Utensils, FolderTree, UserPlus, LayoutDashboard } from "lucide-react"
 import Image from "next/image"
 import heroImg from "@/assets/fitspo-platform-promo/platform.png"
 import { Navbar01 } from "@/components/ui/shadcn-io/navbar-01"
@@ -12,6 +11,11 @@ import { useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
 import { supabase } from "@/lib/supabaseClient"
 import { LoginSheet } from "@/components/auth/LoginSheet"
+import { FeatureSection } from "@/components/ui/feature-section"
+
+// Trainer-tier feature demo video (placeholder from media folder)
+// Using public path served by Next.js; autoplay requires muted + playsInline
+const demoVideoSrc = "/assets/media/fitspo-fitness-plan.mp4"
 
 export default function PlatformPage() {
   const router = useRouter()
@@ -22,7 +26,6 @@ export default function PlatformPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   useEffect(() => {
-    let unsub: (() => void) | undefined
     const init = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession()
@@ -44,8 +47,8 @@ export default function PlatformPage() {
         }
       }
     })
-    unsub = () => subscription.unsubscribe()
-    return () => { unsub?.() }
+    const unsub = () => subscription.unsubscribe()
+    return () => { unsub() }
   }, [router])
 
   const handleRegisterInterest = async () => {
@@ -110,25 +113,16 @@ export default function PlatformPage() {
   }
 
   const features = [
-    {
-      title: "Integrated Web Platform",
-      description: "Access calculators, exercise library, goals, and calendars in one place.",
-      icon: Target,
-      image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop&crop=center"
-    },
-    {
-      title: "Progress & Insights",
-      description: "Track your progress and get insights to optimize your training over time.",
-      icon: TrendingUp,
-      image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop&crop=center"
-    },
-    {
-      title: "Multi-user Ready",
-      description: "Built for personal use and trainers managing multiple users.",
-      icon: Users,
-      image: "https://images.unsplash.com/photo-1521791136064-7986c2920216?w=400&h=300&fit=crop&crop=center"
-    }
-  ]
+    { key: 'calculator', title: 'Ideal weight lifting Calculator', description: 'Calculate optimal weights and reps with muscle involvement breakdowns.', icon: Dumbbell, cta: { href: '/ideal-exercise-weight', label: 'Try Calculator' } },
+    { key: 'fitness-goal', title: 'Fitness Goal', description: 'Plan, track and visualize goals. Trainer gets trends from completed workouts.', icon: Target, cta: { href: '/fitness-goal', label: 'Create a Goal' } },
+    { key: 'exercise-library', title: 'Exercise Library', description: 'Gym + Yoga Stretches with 2000+ growing database. Upload & sync videos (Trainer).', icon: LayoutDashboard, cta: { href: '/exercise-library', label: 'Browse Exercises' } },
+    { key: 'ingredients', title: 'Ingredient Database', description: 'Up-to-date macros/micros and custom ingredients with cloud sync.', icon: Utensils, cta: { href: '/plans/nutrition', label: 'Open Ingredients' } },
+    { key: 'recipes', title: 'Recipes & Nutrition Plans', description: 'Browse recipes, track macros/micros, and cloud inventory sync.', icon: TrendingUp, cta: { href: '/plans/nutrition', label: 'Plan Nutrition' } },
+    { key: 'spaces', title: 'Workout spaces', description: 'Organize your training spaces. Unlimited on paid tiers.', icon: FolderTree, cta: { href: '/workout-spaces', label: 'Manage Spaces' } },
+    { key: 'users', title: 'Managed users', description: 'Manage clients and profiles. Unlimited on paid tiers.', icon: UserPlus, cta: { href: '/plans/users', label: 'Manage Users' } },
+    { key: 'calendar', title: 'Synced Calendar for Fitness Goal', description: 'Sync to Google Calendar. Personal: up to 2 accounts. Trainer: unlimited.', icon: CalendarDays, cta: { href: '/plans/workout-plans', label: 'Open Calendar' } },
+    { key: 'team', title: 'Team Management Features', description: 'Trainer tier tools for teams and clients with fast switching.', icon: Users, cta: { href: '/home', label: 'See Teams' } },
+  ] as const
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
@@ -232,55 +226,27 @@ export default function PlatformPage() {
         </div>
       </div>
 
-      {/* Features Section */}
+      {/* Trainer-focused Feature Sections */}
       <div id="features" className="container mx-auto px-6 py-20">
         <div className="text-center space-y-4 mb-16">
-          <h2 className="text-3xl lg:text-4xl font-bold">Powerful Platform Features</h2>
+          <h2 className="text-3xl lg:text-4xl font-bold">Trainer Tier Highlights</h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Everything you need to plan, track, and succeed—beautifully integrated.
+            Built for coaches and power users. Each section shows the feature in action.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, index) => {
-            const Icon = feature.icon
-            return (
-              <Card key={index} className="group hover:shadow-lg transition-all duration-300 border-0 bg-card/50 backdrop-blur-sm">
-                <CardHeader className="space-y-4">
-                  <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
-                    <img
-                      src={feature.image}
-                      alt={feature.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement
-                        target.style.display = 'none'
-                        const parent = target.parentElement
-                        if (parent) {
-                          parent.innerHTML = `
-                            <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
-                              <${Icon.name} class="w-16 h-16 text-primary/60" />
-                            </div>
-                          `
-                        }
-                      }}
-                    />
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      <Icon className="w-6 h-6 text-primary" />
-                    </div>
-                    <CardTitle className="text-xl">{feature.title}</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-base leading-relaxed">
-                    {feature.description}
-                  </CardDescription>
-                </CardContent>
-              </Card>
-            )
-          })}
+        <div className="space-y-12">
+          {features.map((f, idx) => (
+            <FeatureSection
+              key={f.key}
+              title={f.title}
+              description={f.description}
+              cta={f.cta}
+              icon={f.icon}
+              media={{ type: 'video', src: demoVideoSrc }}
+              reverse={idx % 2 === 1}
+            />
+          ))}
         </div>
       </div>
 

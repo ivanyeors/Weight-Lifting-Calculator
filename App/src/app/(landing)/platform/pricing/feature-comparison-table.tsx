@@ -8,92 +8,155 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { ChevronDown, Check, X, BadgeCheck } from 'lucide-react'
 import { Plan } from '@/lib/plans'
 
-// Extended feature data with descriptions
+// Extended feature data aligned with tier-list.md
 const extendedFeatures = [
   {
-    name: 'Core Fitness Calculator',
-    description: 'Access to our main exercise weight calculator with basic functionality for calculating optimal weights and reps.',
+    name: 'Ideal Weight Lifting Calculator',
+    description: 'Calculate optimal weights and reps. Includes detailed muscle involvement breakdowns.',
     free: true,
     personal: true,
-    trainer: true
+    trainer: true,
   },
   {
-    name: 'Exercise Library Access',
-    description: 'Browse our extensive database of exercises with video demonstrations and detailed instructions.',
+    name: 'Fitness Goal',
+    description: 'Plan and track your goals. Free: limited. Personal/Trainer: unlimited goals.',
     free: true,
     personal: true,
-    trainer: true
+    trainer: true,
   },
   {
-    name: 'Muscle Involvement Breakdowns',
-    description: 'Detailed analysis showing which muscles are targeted by each exercise with percentage involvement.',
+    name: 'Exercise Library: Gym Exercises',
+    description: 'Browse core gym exercises.',
     free: true,
     personal: true,
-    trainer: true
+    trainer: true,
   },
   {
-    name: 'Basic Exercise Videos',
-    description: 'Access to video demonstrations for exercises to ensure proper form and technique.',
-    free: true,
-    personal: true,
-    trainer: true
-  },
-  {
-    name: 'Data Saved in Account',
-    description: 'All your fitness data, calculations, and preferences are securely saved to your personal account.',
+    name: 'Exercise Library: Yoga Stretches',
+    description: 'Unlock additional categories like Yoga Stretches.',
     free: false,
     personal: true,
-    trainer: true
+    trainer: true,
   },
   {
-    name: 'SMM + BFM Calculations',
-    description: 'Advanced body composition calculations including Skeletal Muscle Mass and Body Fat Mass tracking.',
-    free: false,
-    personal: true,
-    trainer: true
+    name: 'Custom Exercises (Local)',
+    description: 'Create custom exercises saved locally on your device (Free).',
+    free: true,
+    personal: false,
+    trainer: false,
   },
   {
-    name: 'YouTube Exercise Search',
-    description: 'Search and integrate exercise videos directly from YouTube for comprehensive workout guidance.',
+    name: 'Custom Exercises (Synced)',
+    description: 'Create custom exercises synced to your account (Personal/Trainer).',
     free: false,
     personal: true,
-    trainer: true
+    trainer: true,
+  },
+  {
+    name: 'Exercise Videos (YouTube Search)',
+    description: 'Search exercise videos via YouTube directly in the Exercise Library.',
+    free: false,
+    personal: true,
+    trainer: true,
+  },
+  {
+    name: 'Upload & Sync Exercise Videos',
+    description: 'Upload your own exercise videos and sync them across devices (Trainer).',
+    free: false,
+    personal: false,
+    trainer: true,
+  },
+  {
+    name: 'Ingredient Database Access',
+    description: 'Access ingredient data. Personal/Trainer get ongoing updates.',
+    free: true,
+    personal: true,
+    trainer: true,
+  },
+  {
+    name: 'Ingredient Updates + Add Custom Ingredients',
+    description: 'Receive ingredient updates and add your own custom ingredients (synced).',
+    free: false,
+    personal: true,
+    trainer: true,
+  },
+  {
+    name: 'Recipes & Nutrition (Local)',
+    description: 'Browse recipes and compute local macros/micros with local inventory (Free).',
+    free: true,
+    personal: false,
+    trainer: false,
+  },
+  {
+    name: 'Nutrition Updates + Cloud Inventory Sync',
+    description: 'Get recipe and macro/micro updates with cloud inventory sync (Personal/Trainer).',
+    free: false,
+    personal: true,
+    trainer: true,
+  },
+  {
+    name: 'Workout Spaces',
+    description: 'Create workout spaces. Free: limited. Personal/Trainer: unlimited.',
+    free: true,
+    personal: true,
+    trainer: true,
+  },
+  {
+    name: 'Managed Users',
+    description: 'Manage users/clients. Free: limited. Personal/Trainer: unlimited.',
+    free: true,
+    personal: true,
+    trainer: true,
+  },
+  {
+    name: 'Workout Templates',
+    description: 'Free up to 9 templates. Personal/Trainer: unlimited templates.',
+    free: true,
+    personal: true,
+    trainer: true,
+  },
+  {
+    name: 'Local Calendar',
+    description: 'Local-only calendar for Fitness Goal on the Free plan.',
+    free: true,
+    personal: false,
+    trainer: false,
+  },
+  {
+    name: 'Synced Calendar (Google)',
+    description: 'Sync Fitness Goal with Google Calendar. Personal: up to 2 accounts. Trainer: unlimited.',
+    free: false,
+    personal: true,
+    trainer: true,
   },
   {
     name: 'Theme Customization',
-    description: 'Choose between light and dark themes, with automatic system theme detection.',
+    description: 'Light & Dark with system detection (Personal/Trainer). Free: dark theme only.',
     free: false,
     personal: true,
-    trainer: true
+    trainer: true,
   },
   {
-    name: 'Expanded Exercise Database',
-    description: 'Access to 2000+ additional exercises covering specialized categories and advanced training methods.',
+    name: 'Exercise Trend',
+    description: 'See exercise trends based on completed workouts (Trainer).',
     free: false,
     personal: false,
-    trainer: true
+    trainer: true,
   },
   {
-    name: 'Multi-User/Client Management',
-    description: 'Manage multiple user profiles and client data for personal training and group management.',
+    name: 'Expanded Exercise Database (+2000)',
+    description: 'Access to an expanded and growing exercise database (Trainer).',
     free: false,
     personal: false,
-    trainer: true
+    trainer: true,
   },
   {
-    name: 'Advanced Analytics',
-    description: 'Detailed progress tracking, performance analytics, and comprehensive reporting tools.',
+    name: 'Team Management Features',
+    description: 'Tools for managing teams and clients (Trainer).',
     free: false,
     personal: false,
-    trainer: true
+    trainer: true,
   },
-  {
-    name: 'Priority Support',
-    description: 'Get faster response times and priority access to customer support with dedicated account management.',
-    free: false,
-    personal: false,
-    trainer: true
-  }
 ]
 
 interface FeatureComparisonTableProps {

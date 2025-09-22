@@ -133,6 +133,7 @@ export const MenuDock: React.FC<MenuDockProps> = ({
           <button
             key={`${item.label}-${index}`}
             ref={(el) => { itemRefs.current[index] = el; }}
+            data-haptic="light"
             className={cn(
               'relative flex flex-col items-center justify-center rounded-lg transition-all duration-200',
               'hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',

@@ -12,6 +12,7 @@ function CollapsibleTrigger({
   return (
     <CollapsiblePrimitive.CollapsibleTrigger
       data-slot="collapsible-trigger"
+      data-haptic="light"
       {...props}
     />
   )

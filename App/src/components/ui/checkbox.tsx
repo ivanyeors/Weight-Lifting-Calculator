@@ -21,6 +21,7 @@ const Checkbox = React.forwardRef<
     <CheckboxPrimitive.Root
       ref={ref}
       data-slot="checkbox"
+      data-haptic="light"
       className={cn(variant === "chip" ? baseChip : baseDefault, className)}
       {...props}
     >

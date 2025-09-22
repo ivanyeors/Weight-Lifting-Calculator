@@ -53,6 +53,7 @@ function PaginationLink({
       aria-current={isActive ? "page" : undefined}
       data-slot="pagination-link"
       data-active={isActive}
+      data-haptic="light"
       className={cn(
         buttonVariants({
           variant: isActive ? "outline" : "ghost",

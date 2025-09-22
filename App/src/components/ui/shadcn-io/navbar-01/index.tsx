@@ -170,6 +170,7 @@ export const Navbar01 = React.forwardRef<HTMLElement, Navbar01Props>(
                 <PopoverTrigger asChild>
                   <Button
                     className="group h-9 w-9 hover:bg-accent hover:text-accent-foreground"
+                    data-haptic="light"
                     variant="ghost"
                     size="icon"
                   >
@@ -205,6 +206,7 @@ export const Navbar01 = React.forwardRef<HTMLElement, Navbar01Props>(
             {/* Main nav */}
             <div className="flex items-center gap-6">
               <button
+                data-haptic="light"
                 onClick={(e) => {
                   e.preventDefault();
                   window.location.href = logoHref;
@@ -223,6 +225,7 @@ export const Navbar01 = React.forwardRef<HTMLElement, Navbar01Props>(
                   {navigationLinks.map((link, index) => (
                     <NavigationMenuItem key={index}>
                       <button
+                        data-haptic="light"
                         onClick={(e) => {
                           e.preventDefault();
                           onNavigationClick?.(link);
