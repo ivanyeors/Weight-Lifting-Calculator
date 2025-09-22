@@ -15,7 +15,7 @@ type FeatureSectionProps = {
 export function FeatureSection({ title, description, cta, media, icon: Icon, reverse }: FeatureSectionProps) {
   return (
     <section className="grid lg:grid-cols-2 gap-8 items-center">
-      <div className={reverse ? 'order-2 lg:order-1' : 'order-1'}>
+      <div className={reverse ? 'order-2 lg:order-2' : 'order-1 lg:order-1'}>
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium mb-3">
           {Icon ? <Icon className="w-4 h-4" /> : null}
           {title}
@@ -28,7 +28,7 @@ export function FeatureSection({ title, description, cta, media, icon: Icon, rev
           </Button>
         ) : null}
       </div>
-      <div className={reverse ? 'order-1 lg:order-2' : 'order-2'}>
+      <div className={reverse ? 'order-1 lg:order-1' : 'order-2 lg:order-2'}>
         {media ? (
           <div className="w-full rounded-xl overflow-hidden border bg-black">
             {media.type === 'video' ? (
@@ -43,7 +43,6 @@ export function FeatureSection({ title, description, cta, media, icon: Icon, rev
                 preload="metadata"
               />
             ) : (
-              // eslint-disable-next-line @next/next/no-img-element
               <img src={media.src} alt={media.alt || title} className="w-full h-auto object-cover" />
             )}
           </div>
