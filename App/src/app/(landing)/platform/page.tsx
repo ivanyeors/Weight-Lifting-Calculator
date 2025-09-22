@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { toast } from "sonner"
 import { Smartphone, Target, TrendingUp, Users, Zap, CalendarDays, Dumbbell, Utensils, FolderTree, UserPlus, LayoutDashboard } from "lucide-react"
 import Image from "next/image"
 import heroImg from "@/assets/fitspo-platform-promo/platform.png"
@@ -13,15 +12,11 @@ import { supabase } from "@/lib/supabaseClient"
 import { LoginSheet } from "@/components/auth/LoginSheet"
 import { FeatureSection } from "@/components/ui/feature-section"
 
-// Trainer-tier feature demo video (placeholder from media folder)
-// Using public path served by Next.js; autoplay requires muted + playsInline
-const demoVideoSrc = "/assets/media/fitspo-fitness-plan.mp4"
+// Manually link videos for specific features
 
 export default function PlatformPage() {
   const router = useRouter()
   const { theme, resolvedTheme } = useTheme()
-  const [email, setEmail] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoginOpen, setIsLoginOpen] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
@@ -50,45 +45,6 @@ export default function PlatformPage() {
     const unsub = () => subscription.unsubscribe()
     return () => { unsub() }
   }, [router])
-
-  const handleRegisterInterest = async () => {
-    const emailInput = document.getElementById('email-input') as HTMLInputElement
-    const emailValue = emailInput?.value?.trim() || email
-
-    if (!emailValue) {
-      toast.error("Please enter your email address", { duration: 4000 })
-      return
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(emailValue)) {
-      toast.error("Please enter a valid email address", { duration: 4000 })
-      return
-    }
-
-    setIsSubmitting(true)
-    try {
-      const { error } = await supabase
-        .from('fitspo_app_interested_users')
-        .insert([{ email: emailValue, source: 'platform_page' }])
-      if (error) {
-        if (error.code === '23505') {
-          toast.success("You're already registered! We'll notify you with updates.", { duration: 4000 })
-        } else {
-          console.error('Error registering interest:', error)
-          toast.error("Something went wrong. Please try again later.", { duration: 4000 })
-        }
-      } else {
-        toast.success("Thank you! We'll keep you posted.", { duration: 4000 })
-        if (emailInput) emailInput.value = ""
-        setEmail("")
-      }
-    } catch (error) {
-      console.error('Error registering interest:', error)
-      toast.error("Something went wrong. Please try again later.", { duration: 4000 })
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
 
   // Navigation links for navbar
   const navigationLinks = [
@@ -146,14 +102,19 @@ export default function PlatformPage() {
         onNavigationClick={handleNavigationClick}
       />
 
-      {/* Hero Section (image only, no overlays) */}
-      <div className="w-full" id="platform">
+      {/* Hero Section with centered overlay title */}
+      <div className="relative w-full" id="platform">
         <Image
           src={heroImg}
           alt="Fitspo Platform hero"
           className="w-full h-auto object-cover"
           priority
         />
+        <div className="absolute inset-0 flex items-center justify-center px-4 pointer-events-none">
+          <h1 className="text-center text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground">
+            Multiply your gym, focus on every member
+          </h1>
+        </div>
       </div>
 
       {/* Content Section below hero */}
@@ -166,36 +127,15 @@ export default function PlatformPage() {
                 Web Platform
               </div>
               <h1 className="text-4xl lg:text-6xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
-                Fitspo Platform
+                Holistic Membership Management Platform
               </h1>
               <p className="text-xl text-muted-foreground max-w-2xl">
-                Your all-in-one fitness platform: plan smarter workouts, track progress,
-                and manage your journey with beautiful, fast tools.
+                Schedule personalized workouts, plan nutrition,
+                and automate your members fitness progress with simple tools and integrated features.
               </p>
             </div>
 
             <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex flex-col sm:flex-row gap-2 flex-1 max-w-md">
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                    id="email-input"
-                    disabled={isSubmitting}
-                  />
-                  <Button
-                    size="default"
-                    className="px-4 whitespace-nowrap"
-                    onClick={handleRegisterInterest}
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "Submitting..." : "Notify Me"}
-                  </Button>
-                </div>
-              </div>
               <Button
                 variant="outline"
                 size="default"
@@ -214,10 +154,6 @@ export default function PlatformPage() {
 
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full" />
-                Live on the Web
-              </div>
-              <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-blue-500 rounded-full" />
                 Free tier available
               </div>
@@ -228,13 +164,6 @@ export default function PlatformPage() {
 
       {/* Trainer-focused Feature Sections */}
       <div id="features" className="container mx-auto px-6 py-20">
-        <div className="text-center space-y-4 mb-16">
-          <h2 className="text-3xl lg:text-4xl font-bold">Trainer Tier Highlights</h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Built for coaches and power users. Each section shows the feature in action.
-          </p>
-        </div>
-
         <div className="space-y-12">
           {features.map((f, idx) => (
             <FeatureSection
@@ -243,7 +172,15 @@ export default function PlatformPage() {
               description={f.description}
               cta={f.cta}
               icon={f.icon}
-              media={{ type: 'video', src: demoVideoSrc }}
+              media={
+                f.key === 'calculator'
+                  ? { type: 'video', src: '/assets/media/ideal-weight-cal.mp4', alt: 'Ideal weight lifting calculator demo' }
+                  : f.key === 'fitness-goal'
+                  ? { type: 'video', src: '/assets/media/fitness-goal.mp4', alt: 'Fitness goal planning demo' }
+                  : f.key === 'exercise-library'
+                  ? { type: 'video', src: '/assets/media/Exercise-library-examples.mp4', alt: 'Exercise library examples' }
+                  : undefined
+              }
               reverse={idx % 2 === 1}
             />
           ))}
