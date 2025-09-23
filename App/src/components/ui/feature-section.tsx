@@ -30,21 +30,27 @@ export function FeatureSection({ title, description, cta, media, icon: Icon, rev
       </div>
       <div className={reverse ? 'order-1 lg:order-1' : 'order-2 lg:order-2'}>
         {media ? (
-          <div className="w-full rounded-xl overflow-hidden border bg-black">
+          <div
+            className="w-full rounded-xl overflow-hidden border bg-black relative"
+            style={{ aspectRatio: '16 / 9' }}
+          >
             {media.type === 'video' ? (
               <video
-                className="w-full h-auto"
+                src={media.src}
+                className="absolute inset-0 h-full w-full object-cover"
                 autoPlay
                 muted
                 loop
                 playsInline
-                controls
+                controls={false}
                 preload="metadata"
-              >
-                <source src={media.src} type="video/mp4" />
-              </video>
+              />
             ) : (
-              <img src={media.src} alt={media.alt || title} className="w-full h-auto object-cover" />
+              <img
+                src={media.src}
+                alt={media.alt || title}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
             )}
           </div>
         ) : null}
