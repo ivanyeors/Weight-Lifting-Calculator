@@ -33,15 +33,16 @@ export function FeatureSection({ title, description, cta, media, icon: Icon, rev
           <div className="w-full rounded-xl overflow-hidden border bg-black">
             {media.type === 'video' ? (
               <video
-                src={media.src}
                 className="w-full h-auto"
                 autoPlay
                 muted
                 loop
                 playsInline
-                controls={false}
+                controls
                 preload="metadata"
-              />
+              >
+                <source src={media.src} type="video/mp4" />
+              </video>
             ) : (
               <img src={media.src} alt={media.alt || title} className="w-full h-auto object-cover" />
             )}
